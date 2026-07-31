@@ -47,10 +47,32 @@ document.querySelectorAll('.category-card, .product-card, .testimonial-card').fo
   observer.observe(el);
 });
 
-document.querySelector('.newsletter-form')?.addEventListener('submit', function (e) {
+document.querySelector('.newsletter-form')?.addEventListener('submit', async function (e) {
   e.preventDefault();
   const input = this.querySelector('input');
-  if (input.value) {
+  const btn = this.querySelector('button');
+  if (!input.value) return;
+
+  if (window.API_CONFIG && API_CONFIG.baseUrl) {
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Subscribing...';
+    try {
+      const res = await fetch(`${API_CONFIG.baseUrl}/api/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: input.value }),
+      });
+      if (!res.ok) throw new Error('Subscription failed');
+      alert('Thank you for subscribing!');
+      input.value = '';
+    } catch (err) {
+      alert('Could not subscribe. Please try again later.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  } else {
     alert('Thank you for subscribing!');
     input.value = '';
   }

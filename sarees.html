@@ -198,7 +198,19 @@
           <span id="orderTotal">₹0</span>
         </div>
       </div>
-      <button class="btn-pay-upi payment-btn"><i class="fas fa-qrcode"></i> Pay with UPI</button>
+      <form class="checkout-form" id="checkoutForm">
+        <input type="text" name="name" placeholder="Full Name" required>
+        <input type="tel" name="phone" placeholder="Phone Number" required>
+        <input type="text" name="address" placeholder="Delivery Address" required>
+        <div class="checkout-row">
+          <input type="text" name="city" placeholder="City" required>
+          <input type="text" name="state" placeholder="State" required>
+        </div>
+        <input type="text" name="pincode" placeholder="PIN Code" required>
+      </form>
+      <button class="btn-pay-upi payment-btn" id="payUpiBtn" type="button"><i class="fas fa-qrcode"></i> Pay with UPI</button>
+      <button class="btn-place-order payment-btn" id="placeOrderBtn" type="button">Place Order</button>
+      <p class="order-note hidden" id="orderNote"></p>
     </div>
   </div>
 
@@ -226,6 +238,7 @@
 
   <div class="admin-toast" id="adminToast"></div>
 
+  <script src="js/config.js"></script>
   <script src="js/cart.js"></script>
   <script src="js/prices.js"></script>
 </body>

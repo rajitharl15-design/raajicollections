@@ -137,8 +137,80 @@ function payViaUpi() {
   window.location.href = url;
 }
 
+async function placeOrder() {
+  const form = document.getElementById('checkoutForm');
+  const note = document.getElementById('orderNote');
+  const btn = document.getElementById('placeOrderBtn');
+
+  if (!form || !form.reportValidity()) return;
+
+  const fd = new FormData(form);
+  const items = Object.values(Cart.items).map(i => ({
+    product_id: i.productId || i.id,
+    quantity: i.qty,
+  }));
+
+  const payload = {
+    customer: {
+      first_name: fd.get('name'),
+      phone: fd.get('phone'),
+    },
+    shipping: {
+      address: fd.get('address'),
+      city: fd.get('city'),
+      state: fd.get('state'),
+      pincode: fd.get('pincode'),
+    },
+    items,
+    paymentMethod: 'upi',
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Placing order...';
+
+  if (API_CONFIG.baseUrl) {
+    try {
+      const res = await fetch(`${API_CONFIG.baseUrl}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Order failed');
+      note.textContent = `Order placed! Your order number is ${data.order_number}. Share the UPI payment screenshot on WhatsApp to confirm.`;
+      note.classList.remove('hidden');
+      setTimeout(() => {
+        Cart.clear();
+        closeCheckout();
+      }, 4000);
+    } catch (err) {
+      note.textContent = `Order failed: ${err.message}`;
+      note.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Place Order';
+    }
+  } else {
+    const upi = STORE_CONFIG.upiId ? `UPI: ${STORE_CONFIG.upiId}` : 'Scan the QR / contact us to pay';
+    note.textContent = `${upi} - share your order details on WhatsApp to confirm.`;
+    note.classList.remove('hidden');
+    setTimeout(() => {
+      Cart.clear();
+      closeCheckout();
+    }, 4000);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   Cart.init();
+
+  let productCatalog = [];
+
+  if (API_CONFIG.baseUrl) {
+    fetch(`${API_CONFIG.baseUrl}/api/products`)
+      .then(r => r.json())
+      .then(data => { productCatalog = data.products || []; })
+      .catch(() => {});
+  }
 
   document.querySelectorAll('.btn-add').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -152,7 +224,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const price = prices.length ? parseInt(prices[prices.length - 1].replace(/[^0-9]/g, ''), 10) : 0;
       const id = (name + '_' + price).replace(/\s+/g, '-').toLowerCase();
       const image = imgEl ? imgEl.getAttribute('src') : 'images/saree.svg';
-      Cart.add({ id, name, price, image });
+      const catalogItem = productCatalog.find(p => p.name === name);
+      Cart.add({
+        id,
+        name,
+        price,
+        image,
+        productId: catalogItem ? catalogItem.id : undefined,
+      });
     });
   });
 
@@ -181,4 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.btn-checkout').forEach(b => b.addEventListener('click', openCheckout));
   document.querySelectorAll('.btn-pay-upi').forEach(b => b.addEventListener('click', payViaUpi));
+  const placeOrderBtn = document.getElementById('placeOrderBtn');
+  if (placeOrderBtn) placeOrderBtn.addEventListener('click', placeOrder);
 });
