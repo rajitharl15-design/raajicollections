@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: raaji-collections
+    runtime: docker
+    plan: free
+    rootDir: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://rajitharl15-design.github.io
+
+databases:
+  - name: raaji-collections-db
+    plan: free
+    databaseName: raaji_collections
+    user: raaji_app
