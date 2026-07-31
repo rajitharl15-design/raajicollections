@@ -8,6 +8,7 @@ import productsRouter from './routes/products.js';
 import categoriesRouter from './routes/categories.js';
 import ordersRouter from './routes/orders.js';
 import newsletterRouter from './routes/newsletter.js';
+import adminRouter from './routes/admin.js';
 import { migrate } from './migrate.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -24,6 +25,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/newsletter', newsletterRouter);
+app.use('/api/admin', adminRouter);
 
 // Serve the static website (index.html, css/, js/, images/)
 const publicDir = path.resolve(__dirname, '../../');
