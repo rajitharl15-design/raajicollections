@@ -51,7 +51,7 @@ function setAdminMode(on) {
   if (bar) bar.style.display = on ? 'flex' : 'none';
   const toast = document.getElementById('adminToast');
   if (toast) {
-    toast.textContent = on ? 'Admin mode ON - click a price to edit' : 'Admin mode OFF';
+    toast.textContent = on ? 'Admin mode ON - click image or price to edit' : 'Admin mode OFF';
     toast.classList.add('show');
     clearTimeout(setAdminMode._t);
     setAdminMode._t = setTimeout(() => toast.classList.remove('show'), 2000);
@@ -103,6 +103,23 @@ function copyChanges() {
   }
 }
 
+function editPriceFor(card) {
+  if (!isAdminMode) return;
+  const nameEl = card.querySelector('h3');
+  if (!nameEl) return;
+  const priceEl = card.querySelector('.product-price');
+  if (!priceEl) return;
+  const name = nameEl.textContent.trim();
+  const current = priceOverrides[name] != null ? priceOverrides[name] : priceTextOf(priceEl);
+  const input = prompt(`New price for "${name}" (in ₹):`, current);
+  if (input == null) return;
+  const val = parseInt(input.replace(/[^0-9]/g, ''), 10);
+  if (isNaN(val) || val <= 0) return;
+  priceOverrides[name] = val;
+  savePriceOverrides();
+  applyPrice(priceEl);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadPriceOverrides();
   applyAllPrices();
@@ -119,18 +136,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isAdminMode) return;
       e.preventDefault();
       e.stopPropagation();
-      const card = this.closest('.product-card');
-      const nameEl = card.querySelector('h3');
-      if (!nameEl) return;
-      const name = nameEl.textContent.trim();
-      const current = priceOverrides[name] != null ? priceOverrides[name] : priceTextOf(this);
-      const input = prompt(`New price for "${name}" (in ₹):`, current);
-      if (input == null) return;
-      const val = parseInt(input.replace(/[^0-9]/g, ''), 10);
-      if (isNaN(val) || val <= 0) return;
-      priceOverrides[name] = val;
-      savePriceOverrides();
-      applyPrice(this);
+      editPriceFor(this.closest('.product-card'));
+    });
+  });
+
+  document.querySelectorAll('.product-card img').forEach(img => {
+    img.addEventListener('click', function (e) {
+      if (!isAdminMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      editPriceFor(this.closest('.product-card'));
     });
   });
 

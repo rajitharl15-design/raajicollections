@@ -1383,6 +1383,12 @@ body.admin-mode .product-price {
   border-radius: 4px;
 }
 
+body.admin-mode .product-card img {
+  outline: 2px dashed var(--accent);
+  outline-offset: 3px;
+  cursor: pointer;
+}
+
 .admin-toast {
   position: fixed;
   bottom: 80px;
