@@ -1,5 +1,4 @@
 const STORE_CONFIG = {
-  whatsappNumber: '1234',
   upiId: '',
   currency: '₹'
 };
@@ -112,23 +111,6 @@ const Cart = {
   }
 };
 
-function formatOrderText() {
-  const entries = Object.values(Cart.items);
-  const lines = entries.map(i =>
-    `${i.qty} x ${i.name} - ${STORE_CONFIG.currency}${(i.qty * i.price).toLocaleString('en-IN')}`
-  );
-  return [
-    'New Order - Raaji Collections',
-    '--------------------------------',
-    ...lines,
-    '--------------------------------',
-    `Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}`,
-    '',
-    'Name:',
-    'Address:'
-  ].join('\n');
-}
-
 function openCheckout() {
   if (Cart.count() === 0) return;
   document.getElementById('cartDrawer').classList.remove('show');
@@ -154,24 +136,6 @@ function payViaUpi() {
   const url = `upi://pay?pa=${upi}&pn=${encodeURIComponent('Raaji Collections')}&am=${amount}&cu=INR&tn=${note}`;
   window.location.href = url;
 }
-
-function orderOnWhatsApp() {
-  const text = encodeURIComponent(formatOrderText());
-  const url = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${text}`;
-  window.open(url, '_blank');
-}
-
-function placeOrder() {
-  orderOnWhatsApp();
-  const note = document.getElementById('orderNote');
-  if (note) note.classList.remove('hidden');
-  setTimeout(() => {
-    Cart.clear();
-    closeCheckout();
-  }, 1500);
-}
-
-window.placeOrder = placeOrder;
 
 document.addEventListener('DOMContentLoaded', () => {
   Cart.init();
@@ -217,6 +181,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.btn-checkout').forEach(b => b.addEventListener('click', openCheckout));
   document.querySelectorAll('.btn-pay-upi').forEach(b => b.addEventListener('click', payViaUpi));
-  document.querySelectorAll('.btn-whatsapp').forEach(b => b.addEventListener('click', orderOnWhatsApp));
-  document.querySelectorAll('.btn-place-order').forEach(b => b.addEventListener('click', placeOrder));
 });
