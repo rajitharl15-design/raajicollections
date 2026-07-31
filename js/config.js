@@ -1,3 +1,3 @@
 const API_CONFIG = {
-  baseUrl: '', // e.g. 'https://raaji-api.onrender.com'
+  baseUrl: 'https://backend-production-2549d.up.railway.app',
 };
