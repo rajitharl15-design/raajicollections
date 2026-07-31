@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E8449"/>
+      <stop offset="100%" style="stop-color:#145A32"/>
+    </linearGradient>
+    <pattern id="pat" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+      <circle cx="7" cy="7" r="1" fill="rgba(212,168,83,0.2)"/>
+    </pattern>
+  </defs>
+  <path d="M62 55 Q77 50 97 55 L112 248 L92 256 L67 251 Z" fill="url(#g1)" opacity="0.92"/>
+  <path d="M62 55 Q77 50 97 55 L112 248 L92 256 L67 251 Z" fill="url(#pat)"/>
+  <rect x="65" y="53" width="28" height="7" rx="2" fill="#D4A853" opacity="0.6"/>
+  <path d="M65 88 L75 83 L85 88" stroke="#D4A853" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M67 128 L77 123 L87 128" stroke="#D4A853" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M70 168 L80 163 L90 168" stroke="#D4A853" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M72 208 L82 203 L92 208" stroke="#D4A853" stroke-width="1" fill="none" opacity="0.5"/>
+  <circle cx="90" cy="75" r="2.5" fill="#D4A853" opacity="0.5"/>
+</svg>

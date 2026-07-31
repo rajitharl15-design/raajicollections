@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sarees - Raaji Collections</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="header-top">
+    <p>Free shipping on orders above ₹999</p>
+  </div>
+  <nav>
+    <div class="logo">
+      <h1>Raaji Collections</h1>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#categories">Categories</a></li>
+      <li><a href="index.html#products">Featured</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="nav-icons">
+      <a href="#"><i class="fas fa-search"></i></a>
+      <a href="#"><i class="fas fa-heart"></i></a>
+      <a href="#"><i class="fas fa-shopping-bag"></i></a>
+    </div>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <section class="page-banner">
+    <div class="page-banner-content">
+      <h1>Sarees</h1>
+      <p>Banarasi, Kanjivaram, Silk, Cotton & more</p>
+    </div>
+  </section>
+
+  <section class="products" style="padding-top:40px;">
+    <div class="section-header">
+      <span class="subtitle">Our Collection</span>
+      <h2>All Sarees</h2>
+      <div class="divider"><span></span></div>
+    </div>
+
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="silk">Silk</button>
+      <button class="filter-btn" data-filter="kanjivaram">Kanjivaram</button>
+      <button class="filter-btn" data-filter="georgette">Georgette</button>
+      <button class="filter-btn" data-filter="tissue">Tissue</button>
+      <button class="filter-btn" data-filter="cotton">Cotton</button>
+    </div>
+
+    <div class="product-grid">
+      <div class="product-card" data-category="silk">
+        <div class="product-badge">New</div>
+        <img src="images/saree-upload-1.jpg" alt="Red Banarasi Silk Saree">
+        <div class="product-info">
+          <h3>Red Banarasi Silk Saree</h3>
+          <p class="product-category">Silk Sarees</p>
+          <p class="product-price">₹3,499</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card" data-category="kanjivaram">
+        <div class="product-badge sale">Sale</div>
+        <img src="images/saree-upload-2.webp" alt="Blue Kanjivaram Saree">
+        <div class="product-info">
+          <h3>Blue Kanjivaram Saree</h3>
+          <p class="product-category">Kanjivaram</p>
+          <p class="product-price"><span class="old-price">₹5,999</span> ₹4,499</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card" data-category="georgette">
+        <div class="product-badge">New</div>
+        <img src="images/saree-upload-3.jpeg" alt="Purple Georgette Saree">
+        <div class="product-info">
+          <h3>Purple Georgette Saree</h3>
+          <p class="product-category">Georgette</p>
+          <p class="product-price">₹2,299</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card" data-category="tissue">
+        <img src="images/saree-upload-4.jpeg" alt="Gold Tissue Saree">
+        <div class="product-info">
+          <h3>Gold Tissue Saree</h3>
+          <p class="product-category">Tissue</p>
+          <p class="product-price">₹3,999</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card" data-category="cotton">
+        <div class="product-badge">New</div>
+        <img src="images/saree-upload-5.jpeg" alt="Green Cotton Saree">
+        <div class="product-info">
+          <h3>Green Cotton Saree</h3>
+          <p class="product-category">Cotton</p>
+          <p class="product-price">₹1,799</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card" data-category="silk">
+        <img src="images/saree.svg" alt="Red Silk Saree with Border">
+        <div class="product-info">
+          <h3>Red Silk Saree with Border</h3>
+          <p class="product-category">Silk Sarees</p>
+          <p class="product-price">₹2,999</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="newsletter">
+    <div class="newsletter-content">
+      <h2>Stay in Touch</h2>
+      <p>Subscribe to get updates on new arrivals, offers & exclusive discounts</p>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>Raaji Collections</h3>
+        <p>Your destination for authentic traditional women's wear. Celebrating Indian heritage through timeless fashion.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#categories">Categories</a></li>
+          <li><a href="index.html#products">Featured</a></li>
+          <li><a href="index.html#about">About Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <ul>
+          <li><a href="sarees.html">Sarees</a></li>
+          <li><a href="#">Dresses</a></li>
+          <li><a href="#">Tops</a></li>
+          <li><a href="#">Blouses</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Service</h4>
+        <ul>
+          <li><a href="#">Shipping Policy</a></li>
+          <li><a href="#">Return Policy</a></li>
+          <li><a href="#">Size Guide</a></li>
+          <li><a href="#">FAQs</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Raaji Collections. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.product-card').forEach(card => {
+          card.style.display = (filter === 'all' || card.dataset.category === filter) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+  <script src="js/script.js"></script>
+</body>
+</html>

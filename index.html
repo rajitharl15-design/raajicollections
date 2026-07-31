@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raaji Collections - Traditional Women's Wear</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header / Navigation -->
+  <header>
+    <div class="header-top">
+      <p>Free shipping on orders above ₹999</p>
+    </div>
+    <nav>
+      <div class="logo">
+        <h1>Raaji Collections</h1>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#categories">Categories</a></li>
+        <li><a href="#products">Featured</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <div class="nav-icons">
+        <a href="#"><i class="fas fa-search"></i></a>
+        <a href="#"><i class="fas fa-heart"></i></a>
+        <a href="#"><i class="fas fa-shopping-bag"></i></a>
+      </div>
+      <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <span class="hero-tag">New Collection 2026</span>
+      <h1>Elegance in Every Thread</h1>
+      <p>Discover our exquisite range of traditional sarees, dresses, tops & ready-made blouses</p>
+      <a href="#categories" class="btn-primary">Shop Now</a>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section id="categories" class="categories">
+    <div class="section-header">
+      <span class="subtitle">Our Collection</span>
+      <h2>Shop by Category</h2>
+      <div class="divider"><span></span></div>
+    </div>
+    <div class="category-grid">
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/saree.svg" alt="Sarees">
+        </div>
+        <div class="category-info">
+          <h3>Sarees</h3>
+          <p>Banarasi, Kanjivaram, Silk & more</p>
+          <a href="sarees.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/dress.svg" alt="Dresses">
+        </div>
+        <div class="category-info">
+          <h3>Dresses</h3>
+          <p>Anarkali, Lehenga, Indo-Western</p>
+          <a href="#" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/top.svg" alt="Tops">
+        </div>
+        <div class="category-info">
+          <h3>Tops</h3>
+          <p>Kurtis, Tunics, Crop Tops</p>
+          <a href="#" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/blouse.svg" alt="Ready Made Blouses">
+        </div>
+        <div class="category-info">
+          <h3>Ready Made Blouses</h3>
+          <p>Stitched, Unstitched, Designer</p>
+          <a href="blouses.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section id="products" class="products">
+    <div class="section-header">
+      <span class="subtitle">Best Sellers</span>
+      <h2>Featured Products</h2>
+      <div class="divider"><span></span></div>
+    </div>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="product-badge">New</div>
+        <img src="images/product-1.svg" alt="Red Banarasi Saree">
+        <div class="product-info">
+          <h3>Red Banarasi Saree</h3>
+          <p class="product-category">Sarees</p>
+          <p class="product-price">₹2,499</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-badge sale">Sale</div>
+        <img src="images/product-2.svg" alt="Green Anarkali Dress">
+        <div class="product-info">
+          <h3>Green Anarkali Dress</h3>
+          <p class="product-category">Dresses</p>
+          <p class="product-price"><span class="old-price">₹3,999</span> ₹2,999</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card">
+        <img src="images/product-3.svg" alt="Silk Kurti Top">
+        <div class="product-info">
+          <h3>Silk Kurti Top</h3>
+          <p class="product-category">Tops</p>
+          <p class="product-price">₹1,299</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-badge">New</div>
+        <img src="images/product-4.svg" alt="Designer Blouse">
+        <div class="product-info">
+          <h3>Designer Blouse</h3>
+          <p class="product-category">Blouses</p>
+          <p class="product-price">₹899</p>
+          <button class="btn-add">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Banner -->
+  <section class="banner">
+    <div class="banner-content">
+      <h2>Traditional Elegance, Modern Comfort</h2>
+      <p>Handcrafted with love for the woman who values tradition</p>
+      <a href="#" class="btn-primary">View All Collection</a>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="about">
+    <div class="about-grid">
+      <div class="about-img">
+        <img src="images/about.svg" alt="About Raaji Collections">
+      </div>
+      <div class="about-text">
+        <span class="subtitle">Our Story</span>
+        <h2>Celebrating Indian Craftsmanship</h2>
+        <div class="divider left"><span></span></div>
+        <p>At Raaji Collections, we bring you the finest traditional women's wear that blends timeless Indian craftsmanship with contemporary designs. Each piece tells a story of heritage, artistry, and elegance.</p>
+        <p>From the rich silk sarees of Varanasi to the intricate embroidery of Lucknow, our curated collection celebrates the diverse textile traditions of India.</p>
+        <div class="features">
+          <div class="feature">
+            <i class="fas fa-leaf"></i>
+            <span>100% Pure Fabrics</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-hand-sparkles"></i>
+            <span>Handcrafted Excellence</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-truck"></i>
+            <span>Free Delivery</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-undo-alt"></i>
+            <span>Easy Returns</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <div class="section-header">
+      <span class="subtitle">What They Say</span>
+      <h2>Customer Reviews</h2>
+      <div class="divider"><span></span></div>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"Absolutely stunning saree! The fabric is so rich and the colors are exactly as pictured. Received so many compliments at the wedding."</p>
+        <div class="customer">
+          <div class="customer-avatar">P</div>
+          <div>
+            <h4>Priya S.</h4>
+            <span>Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"The blouse fit perfectly and the quality is exceptional. Will definitely be ordering more. Fast shipping too!"</p>
+        <div class="customer">
+          <div class="customer-avatar">A</div>
+          <div>
+            <h4>Ananya R.</h4>
+            <span>Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★☆</div>
+        <p>"Beautiful Anarkali dress, the embroidery work is exquisite. Slight delay in delivery but the product made up for it."</p>
+        <div class="customer">
+          <div class="customer-avatar">M</div>
+          <div>
+            <h4>Meera K.</h4>
+            <span>Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="newsletter">
+    <div class="newsletter-content">
+      <h2>Stay in Touch</h2>
+      <p>Subscribe to get updates on new arrivals, offers & exclusive discounts</p>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h2>Get in Touch</h2>
+        <div class="divider left"><span></span></div>
+        <p><i class="fas fa-map-marker-alt"></i> 123, Fashion Street, Mumbai - 400001</p>
+        <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+        <p><i class="fas fa-envelope"></i> hello@raajicollections.com</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-pinterest-p"></i></a>
+        </div>
+      </div>
+      <div class="contact-form">
+        <form>
+          <input type="text" placeholder="Your Name" required>
+          <input type="email" placeholder="Your Email" required>
+          <textarea placeholder="Your Message" rows="4" required></textarea>
+          <button type="submit" class="btn-primary">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>Raaji Collections</h3>
+        <p>Your destination for authentic traditional women's wear. Celebrating Indian heritage through timeless fashion.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#categories">Categories</a></li>
+          <li><a href="#products">Featured</a></li>
+          <li><a href="#about">About Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <ul>
+          <li><a href="sarees.html">Sarees</a></li>
+          <li><a href="#">Dresses</a></li>
+          <li><a href="#">Tops</a></li>
+          <li><a href="blouses.html">Blouses</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Service</h4>
+        <ul>
+          <li><a href="#">Shipping Policy</a></li>
+          <li><a href="#">Return Policy</a></li>
+          <li><a href="#">Size Guide</a></li>
+          <li><a href="#">FAQs</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Raaji Collections. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
