@@ -32,6 +32,10 @@ npm install
 npm start               # http://localhost:3000
 ```
 
+> **Auto-migration:** on boot, the server automatically applies `database/schema.sql` and
+> `database/seed.sql` if the database is empty (idempotent — skips when already applied).
+> Set `AUTO_MIGRATE=false` to disable, or `AUTO_MIGRATE=true` to fail startup if migration errors.
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -66,10 +70,6 @@ Push this repo to GitHub and deploy `backend/` to a host that supports Node (e.g
 - `DATABASE_URL` — your hosted Postgres URL (e.g. Neon, Supabase, Railway Postgres)
 - `PORT` — default `3000`
 - `CORS_ORIGIN` — your frontend domain(s), comma-separated
+- `AUTO_MIGRATE` — default `true`; schema and seed are applied automatically on first boot
 
-Apply the schema to the hosted DB:
-
-```bash
-psql "$DATABASE_URL" -f database/schema.sql
-psql "$DATABASE_URL" -f database/seed.sql
-```
+No manual `psql` step needed — the server migrates itself on startup.

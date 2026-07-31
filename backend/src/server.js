@@ -8,6 +8,7 @@ import productsRouter from './routes/products.js';
 import categoriesRouter from './routes/categories.js';
 import ordersRouter from './routes/orders.js';
 import newsletterRouter from './routes/newsletter.js';
+import { migrate } from './migrate.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -35,6 +36,19 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Raaji Collections backend running on http://localhost:${PORT}`);
-});
+
+async function start() {
+  if (process.env.AUTO_MIGRATE !== 'false') {
+    try {
+      await migrate();
+    } catch (err) {
+      console.error('[migrate] failed:', err.message);
+      if (process.env.AUTO_MIGRATE === 'true') process.exit(1);
+    }
+  }
+  app.listen(PORT, () => {
+    console.log(`Raaji Collections backend running on http://localhost:${PORT}`);
+  });
+}
+
+start();

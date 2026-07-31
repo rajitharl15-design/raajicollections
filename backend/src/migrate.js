@@ -1,0 +1,48 @@
+import { readFile } from 'node:fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import pool from './db.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, '../../');
+const SCHEMA_FILE = path.join(repoRoot, 'database', 'schema.sql');
+const SEED_FILE = path.join(repoRoot, 'database', 'seed.sql');
+
+async function hasSchema() {
+  const { rows } = await pool.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = 'categories'
+     ) AS exists`
+  );
+  return rows[0].exists;
+}
+
+async function isSeeded() {
+  const { rows } = await pool.query('SELECT COUNT(*)::int AS count FROM categories');
+  return rows[0].count > 0;
+}
+
+export async function migrate() {
+  console.log('[migrate] checking schema...');
+
+  const schemaExists = await hasSchema();
+  if (!schemaExists) {
+    console.log('[migrate] applying schema.sql...');
+    const sql = await readFile(SCHEMA_FILE, 'utf8');
+    await pool.query(sql);
+    console.log('[migrate] schema applied.');
+  } else {
+    console.log('[migrate] schema already present, skipping.');
+  }
+
+  const seeded = await isSeeded();
+  if (!seeded) {
+    console.log('[migrate] applying seed.sql...');
+    const sql = await readFile(SEED_FILE, 'utf8');
+    await pool.query(sql);
+    console.log('[migrate] seed applied.');
+  } else {
+    console.log('[migrate] data already seeded, skipping.');
+  }
+}
