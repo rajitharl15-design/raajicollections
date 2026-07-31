@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Raaji Collections</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-page">
+
+  <div class="admin-login" id="adminLogin">
+    <div class="admin-login-box">
+      <h2>Admin Login</h2>
+      <p>Enter your admin key to manage orders</p>
+      <input type="password" id="adminKeyInput" placeholder="Admin key" autocomplete="off">
+      <button class="btn-primary" id="adminLoginBtn">Login</button>
+      <p class="admin-err" id="adminLoginErr"></p>
+      <p class="admin-back"><a href="index.html">&larr; Back to store</a></p>
+    </div>
+  </div>
+
+  <div class="admin-dashboard hidden" id="adminDashboard">
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <h1>Raaji Collections <span>Admin</span></h1>
+        <div class="admin-actions">
+          <a href="index.html" class="admin-link"><i class="fas fa-store"></i> View Store</a>
+          <button id="adminLogoutBtn" class="btn-outline">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-stats" id="adminStats"></div>
+
+      <div class="admin-filters">
+        <button class="filter-btn active" data-status="all">All</button>
+        <button class="filter-btn" data-status="pending">Pending</button>
+        <button class="filter-btn" data-status="confirmed">Confirmed</button>
+        <button class="filter-btn" data-status="paid">Paid</button>
+        <button class="filter-btn" data-status="shipped">Shipped</button>
+        <button class="filter-btn" data-status="delivered">Delivered</button>
+      </div>
+
+      <div class="admin-orders" id="adminOrders">
+        <p class="admin-loading">Loading orders...</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
