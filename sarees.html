@@ -27,7 +27,7 @@
     <div class="nav-icons">
       <a href="#"><i class="fas fa-search"></i></a>
       <a href="#"><i class="fas fa-heart"></i></a>
-      <a href="#"><i class="fas fa-shopping-bag"></i></a>
+      <a href="#" class="cart-icon" id="cartOpen"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
     </div>
     <div class="hamburger" id="hamburger" onclick="toggleMenu()">
       <span></span>
@@ -171,6 +171,47 @@
     </div>
   </footer>
 
+  <div class="cart-overlay" data-close-cart></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Shopping Cart</h3>
+      <button class="cart-close" data-close-cart><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cart-body" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotal">₹0</span>
+      </div>
+      <button class="btn-checkout payment-btn"><i class="fas fa-shopping-bag"></i> Checkout</button>
+    </div>
+  </div>
+
+  <div class="checkout-modal" id="checkoutModal">
+    <div class="checkout-box">
+      <h3>Place Your Order</h3>
+      <p class="sub">Pay via UPI or send your order on WhatsApp</p>
+      <div class="order-summary">
+        <div id="orderItems"></div>
+        <div class="order-total">
+          <span>Total</span>
+          <span id="orderTotal">₹0</span>
+        </div>
+      </div>
+      <div class="upi-section">
+        <p class="label">Scan to Pay with any UPI App</p>
+        <div class="upi-qr">
+          <img src="images/upi-qr-placeholder.svg" alt="UPI QR Code">
+        </div>
+      </div>
+      <button class="btn-pay-upi payment-btn"><i class="fas fa-qrcode"></i> Pay with UPI</button>
+      <button class="btn-place-order payment-btn"><i class="fab fa-whatsapp"></i> Order on WhatsApp</button>
+      <p class="order-note hidden" id="orderNote">Order sent! Share the UPI payment screenshot on WhatsApp to confirm.</p>
+    </div>
+  </div>
+
+  <div class="cart-toast" id="cartToast"></div>
+
   <script>
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', function () {
@@ -184,5 +225,6 @@
     });
   </script>
   <script src="js/script.js"></script>
+  <script src="js/cart.js"></script>
 </body>
 </html>
