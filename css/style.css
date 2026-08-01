@@ -475,7 +475,23 @@ nav {
 /* === PRODUCTS === */
 .products {
   padding: 80px 5%;
-  background: var(--cream);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #A02030 100%);
+}
+
+.products .section-header .subtitle {
+  color: var(--secondary);
+}
+
+.products .section-header h2 {
+  color: var(--white);
+}
+
+.products .divider span {
+  background: var(--secondary);
+}
+
+.products .product-card {
+  background: var(--white);
 }
 
 .product-grid {
