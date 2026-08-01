@@ -1,8 +1,3 @@
-const STORE_CONFIG = {
-  upiId: '',
-  currency: '₹'
-};
-
 const Cart = {
   items: {},
 
@@ -121,6 +116,21 @@ function openCheckout() {
     `${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}`;
   document.getElementById('checkoutModal').classList.add('show');
   document.body.style.overflow = 'hidden';
+  updateWhatsAppLink();
+}
+
+function updateWhatsAppLink() {
+  const link = document.getElementById('whatsappLink');
+  if (!link) return;
+  const wa = STORE_CONFIG.whatsappNumber;
+  if (!wa) {
+    link.style.display = 'none';
+    return;
+  }
+  link.style.display = '';
+  const items = Object.values(Cart.items).map(i => `${i.qty} x ${i.name}`).join(', ');
+  const msg = `Hello Raaji Collections! I would like to order: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. Please confirm my order and share payment details.`;
+  link.href = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
 }
 
 function closeCheckout() {
@@ -135,9 +145,7 @@ function payViaUpi() {
   const upi = STORE_CONFIG.upiId ? encodeURIComponent(STORE_CONFIG.upiId) : '';
   const url = `upi://pay?pa=${upi}&pn=${encodeURIComponent('Raaji Collections')}&am=${amount}&cu=INR&tn=${note}`;
   window.location.href = url;
-}
-
-async function placeOrder() {
+}async function placeOrder() {
   const form = document.getElementById('checkoutForm');
   const note = document.getElementById('orderNote');
   const btn = document.getElementById('placeOrderBtn');
