@@ -358,6 +358,10 @@ nav {
   object-fit: contain;
 }
 
+.category-img img.category-icon {
+  height: 65%;
+}
+
 .category-info {
   padding: 25px;
   text-align: center;
