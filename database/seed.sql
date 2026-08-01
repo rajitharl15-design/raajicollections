@@ -7,7 +7,8 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Sarees', 'sarees', 'Banarasi, Kanjivaram, Silk, Cotton & more', 'images/saree.svg', 1),
   ('Dresses', 'dresses', 'Anarkali, Lehenga, Indo-Western', 'images/dress.svg', 2),
   ('Tops', 'tops', 'Kurtis, Tunics, Crop Tops', 'images/top.svg', 3),
-  ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4)
+  ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4),
+  ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery.svg', 5)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
@@ -25,6 +26,12 @@ INSERT INTO products (category_id, name, slug, description, price, old_price, ba
   ((SELECT id FROM categories WHERE slug='ready-made-blouses'), 'Designer Fashion Blouse', 'designer-fashion-blouse', 'Trendy designer fashion blouse.', 1299.00, NULL, 'New', 'Georgette', FALSE, 14),
   ((SELECT id FROM categories WHERE slug='ready-made-blouses'), 'Stylish Printed Blouse', 'stylish-printed-blouse', 'Stylish printed blouse with modern print.', 799.00, 1199.00, 'Sale', 'Cotton', FALSE, 22);
 
+INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
+  ((SELECT id FROM categories WHERE slug='jewellery'), 'Kundan Necklace Set', 'kundan-necklace-set', 'Traditional Kundan necklace set with matching earrings.', 3499.00, NULL, 'New', 'Kundan', TRUE, 10),
+  ((SELECT id FROM categories WHERE slug='jewellery'), 'Gold Plated Jhumkas', 'gold-plated-jhumkas', 'Elegant gold plated jhumka earrings for festive wear.', 899.00, 1299.00, 'Sale', 'Gold Plated', FALSE, 20),
+  ((SELECT id FROM categories WHERE slug='jewellery'), 'Temple Jewellery Bangles', 'temple-jewellery-bangles', 'Traditional temple jewellery bangles with intricate detailing.', 1499.00, NULL, NULL, 'Antique', FALSE, 15),
+  ((SELECT id FROM categories WHERE slug='jewellery'), 'Pearl Choker Necklace', 'pearl-choker-necklace', 'Classic pearl choker necklace for elegant occasions.', 2799.00, NULL, 'New', 'Pearl', FALSE, 8);
+
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-saree'), 'images/product-1.svg', 'Red Banarasi Saree', TRUE, 1),
   ((SELECT id FROM products WHERE slug='red-banarasi-silk-saree'), 'images/saree-upload-1.jpg', 'Red Banarasi Silk Saree', TRUE, 1),
@@ -39,6 +46,12 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
   ((SELECT id FROM products WHERE slug='black-ready-made-blouse'), 'images/blouse-upload-1.jpg', 'Black Ready Made Blouse', TRUE, 1),
   ((SELECT id FROM products WHERE slug='designer-fashion-blouse'), 'images/blouse-upload-2.webp', 'Designer Fashion Blouse', TRUE, 1),
   ((SELECT id FROM products WHERE slug='stylish-printed-blouse'), 'images/blouse-upload-3.avif', 'Stylish Printed Blouse', TRUE, 1);
+
+INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
+  ((SELECT id FROM products WHERE slug='kundan-necklace-set'), 'images/jewellery.svg', 'Kundan Necklace Set', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='gold-plated-jhumkas'), 'images/jewellery.svg', 'Gold Plated Jhumkas', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='temple-jewellery-bangles'), 'images/jewellery.svg', 'Temple Jewellery Bangles', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='pearl-choker-necklace'), 'images/jewellery.svg', 'Pearl Choker Necklace', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-silk-saree'), 'Priya S.', 5, 'Absolutely stunning saree! The fabric is so rich and the colors are exactly as pictured.', TRUE),
