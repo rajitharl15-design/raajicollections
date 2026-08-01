@@ -8,7 +8,8 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Dresses', 'dresses', 'Anarkali, Lehenga, Indo-Western', 'images/dress.svg', 2),
   ('Tops', 'tops', 'Kurtis, Tunics, Crop Tops', 'images/top.svg', 3),
   ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4),
-  ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery.svg', 5)
+  ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery.svg', 5),
+  ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightdress.svg', 6)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
@@ -32,6 +33,11 @@ INSERT INTO products (category_id, name, slug, description, price, old_price, ba
   ((SELECT id FROM categories WHERE slug='jewellery'), 'Temple Jewellery Bangles', 'temple-jewellery-bangles', 'Traditional temple jewellery bangles with intricate detailing.', 1499.00, NULL, NULL, 'Antique', FALSE, 15),
   ((SELECT id FROM categories WHERE slug='jewellery'), 'Pearl Choker Necklace', 'pearl-choker-necklace', 'Classic pearl choker necklace for elegant occasions.', 2799.00, NULL, 'New', 'Pearl', FALSE, 8);
 
+INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
+  ((SELECT id FROM categories WHERE slug='night-dresses'), 'Cotton Night Dress', 'cotton-night-dress', 'Soft cotton night dress with full sleeves.', 699.00, 999.00, 'Sale', 'Cotton', FALSE, 10),
+  ((SELECT id FROM categories WHERE slug='night-dresses'), 'Silk Satin Night Gown', 'silk-satin-night-gown', 'Elegant silk satin night gown with lace trim.', 1199.00, NULL, 'New', 'Silk Satin', TRUE, 8),
+  ((SELECT id FROM categories WHERE slug='night-dresses'), 'Two Piece Night Set', 'two-piece-night-set', 'Comfortable two piece night set with shorts.', 799.00, NULL, NULL, 'Cotton', FALSE, 12);
+
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-saree'), 'images/product-1.svg', 'Red Banarasi Saree', TRUE, 1),
   ((SELECT id FROM products WHERE slug='red-banarasi-silk-saree'), 'images/saree-upload-1.jpg', 'Red Banarasi Silk Saree', TRUE, 1),
@@ -52,6 +58,11 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
   ((SELECT id FROM products WHERE slug='gold-plated-jhumkas'), 'images/jewellery-image4.webp', 'Gold Plated Jhumkas', TRUE, 1),
   ((SELECT id FROM products WHERE slug='temple-jewellery-bangles'), 'images/jewellery-bangle.jpeg', 'Temple Jewellery Bangles', TRUE, 1),
   ((SELECT id FROM products WHERE slug='pearl-choker-necklace'), 'images/jewellery-image5.webp', 'Pearl Choker Necklace', TRUE, 1);
+
+INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
+  ((SELECT id FROM products WHERE slug='cotton-night-dress'), 'images/nightdress.svg', 'Cotton Night Dress', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='silk-satin-night-gown'), 'images/nightdress.svg', 'Silk Satin Night Gown', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='two-piece-night-set'), 'images/nightdress.svg', 'Two Piece Night Set', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-silk-saree'), 'Priya S.', 5, 'Absolutely stunning saree! The fabric is so rich and the colors are exactly as pictured.', TRUE),

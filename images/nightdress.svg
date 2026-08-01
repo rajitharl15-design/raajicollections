@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6C5CE7"/>
+      <stop offset="45%" style="stop-color:#4A3BB5"/>
+      <stop offset="100%" style="stop-color:#2D2173"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD966"/>
+      <stop offset="100%" style="stop-color:#D4A853"/>
+    </linearGradient>
+  </defs>
+  <path d="M100 45 Q70 55 65 70 L45 75 Q40 80 45 88 L62 105 L58 280 L80 280 L82 175 Q82 170 88 170 L112 170 Q118 170 118 175 L120 280 L142 280 L138 105 L155 88 Q160 80 155 75 L135 70 Q130 55 100 45 Z" fill="url(#g1)"/>
+  <path d="M100 45 Q70 55 65 70 L45 75" stroke="url(#g2)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <circle cx="100" cy="52" r="3.5" fill="url(#g2)"/>
+  <circle cx="90" cy="54" r="2" fill="url(#g2)" opacity="0.7"/>
+  <circle cx="110" cy="54" r="2" fill="url(#g2)" opacity="0.7"/>
+  <path d="M70 95 L85 88 L100 92 L115 88 L130 95" stroke="url(#g2)" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M72 120 L86 114 L100 118 L114 114 L128 120" stroke="url(#g2)" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M72 145 L86 140 L100 143 L114 140 L128 145" stroke="url(#g2)" stroke-width="1.5" fill="none" opacity="0.7"/>
+  <path d="M100 45 L100 35" stroke="url(#g2)" stroke-width="1.5" fill="none" opacity="0.8"/>
+  <path d="M92 48 L86 40" stroke="url(#g2)" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M108 48 L114 40" stroke="url(#g2)" stroke-width="1.5" fill="none" opacity="0.6"/>
+</svg>
