@@ -48,10 +48,10 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
   ((SELECT id FROM products WHERE slug='stylish-printed-blouse'), 'images/blouse-upload-3.avif', 'Stylish Printed Blouse', TRUE, 1);
 
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
-  ((SELECT id FROM products WHERE slug='kundan-necklace-set'), 'images/jewellery.svg', 'Kundan Necklace Set', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='gold-plated-jhumkas'), 'images/jewellery.svg', 'Gold Plated Jhumkas', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='temple-jewellery-bangles'), 'images/jewellery.svg', 'Temple Jewellery Bangles', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='pearl-choker-necklace'), 'images/jewellery.svg', 'Pearl Choker Necklace', TRUE, 1);
+  ((SELECT id FROM products WHERE slug='kundan-necklace-set'), 'images/jewellery-image2.webp', 'Kundan Necklace Set', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='gold-plated-jhumkas'), 'images/jewellery-image4.webp', 'Gold Plated Jhumkas', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='temple-jewellery-bangles'), 'images/jewellery-bangle.jpeg', 'Temple Jewellery Bangles', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='pearl-choker-necklace'), 'images/jewellery-image5.webp', 'Pearl Choker Necklace', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-silk-saree'), 'Priya S.', 5, 'Absolutely stunning saree! The fabric is so rich and the colors are exactly as pictured.', TRUE),
