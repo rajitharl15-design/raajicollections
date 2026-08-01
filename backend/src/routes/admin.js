@@ -125,4 +125,45 @@ router.patch('/orders/:id', async (req, res, next) => {
   }
 });
 
+// PATCH /api/admin/products/:slug  -> update price / old_price / stock / badge
+router.patch('/products/:slug', async (req, res, next) => {
+  try {
+    const { price, old_price, stock_qty, badge, is_featured } = req.body;
+
+    if (price != null && (!Number.isFinite(Number(price)) || Number(price) < 0)) {
+      return res.status(400).json({ error: 'price must be a non-negative number' });
+    }
+    if (old_price != null && old_price !== '' && (!Number.isFinite(Number(old_price)) || Number(old_price) < Number(price))) {
+      return res.status(400).json({ error: 'old_price must be >= price' });
+    }
+    if (stock_qty != null && (!Number.isInteger(Number(stock_qty)) || Number(stock_qty) < 0)) {
+      return res.status(400).json({ error: 'stock_qty must be a non-negative integer' });
+    }
+
+    const updated = await pool.query(
+      `UPDATE products
+          SET price = COALESCE($1::numeric, price),
+              old_price = CASE WHEN $2::text = '' THEN NULL ELSE COALESCE($2::numeric, old_price) END,
+              stock_qty = COALESCE($3::int, stock_qty),
+              badge = COALESCE($4::varchar, badge),
+              is_featured = COALESCE($5::boolean, is_featured),
+              updated_at = NOW()
+        WHERE slug = $6 AND is_active = TRUE
+        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured`,
+      [
+        price != null ? Number(price) : null,
+        old_price != null ? old_price : null,
+        stock_qty != null ? Number(stock_qty) : null,
+        badge != null ? badge : null,
+        is_featured != null ? is_featured : null,
+        req.params.slug,
+      ]
+    );
+    if (updated.rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+    res.json({ product: updated.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

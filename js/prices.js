@@ -2,6 +2,7 @@ const PRICE_STORAGE_KEY = 'raaji_prices';
 
 let isAdminMode = false;
 let priceOverrides = {};
+let dbPrices = {};
 
 function loadPriceOverrides() {
   try {
@@ -13,6 +14,22 @@ function loadPriceOverrides() {
 
 function savePriceOverrides() {
   localStorage.setItem(PRICE_STORAGE_KEY, JSON.stringify(priceOverrides));
+}
+
+async function loadDbPrices() {
+  if (!window.API_CONFIG || !API_CONFIG.baseUrl) return;
+  try {
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/products`);
+    if (!res.ok) throw new Error('Failed to load products');
+    const data = await res.json();
+    dbPrices = {};
+    (data.products || []).forEach(p => {
+      dbPrices[p.name] = { price: Number(p.price), old_price: p.old_price != null ? Number(p.old_price) : null };
+    });
+    applyAllPrices();
+  } catch (e) {
+    /* keep hardcoded prices if backend is down */
+  }
 }
 
 function priceTextOf(el) {
@@ -30,13 +47,25 @@ function applyPrice(el) {
   const nameEl = card.querySelector('h3');
   if (!nameEl) return;
   const name = nameEl.textContent.trim();
-  if (priceOverrides[name] == null) return;
-  const val = priceOverrides[name];
-  const oldEl = el.querySelector('.old-price');
-  if (oldEl) {
-    el.innerHTML = `<span class="old-price">${oldEl.textContent.trim()}</span> ₹${val.toLocaleString('en-IN')}`;
+
+  let price, oldPrice;
+  const db = dbPrices[name];
+  const local = priceOverrides[name];
+
+  if (db) {
+    price = db.price;
+    oldPrice = db.old_price;
+  }
+  if (local != null) {
+    price = local;
+  }
+
+  if (price == null) return;
+
+  if (oldPrice != null && oldPrice > price) {
+    el.innerHTML = `<span class="old-price">₹${oldPrice.toLocaleString('en-IN')}</span> ₹${price.toLocaleString('en-IN')}`;
   } else {
-    el.textContent = `₹${val.toLocaleString('en-IN')}`;
+    el.textContent = `₹${price.toLocaleString('en-IN')}`;
   }
 }
 
@@ -103,7 +132,7 @@ function copyChanges() {
   }
 }
 
-function editPriceFor(card) {
+async function editPriceFor(card) {
   if (!isAdminMode) return;
   const nameEl = card.querySelector('h3');
   if (!nameEl) return;
@@ -115,13 +144,42 @@ function editPriceFor(card) {
   if (input == null) return;
   const val = parseInt(input.replace(/[^0-9]/g, ''), 10);
   if (isNaN(val) || val <= 0) return;
-  priceOverrides[name] = val;
-  savePriceOverrides();
-  applyPrice(priceEl);
+
+  if (window.API_CONFIG && API_CONFIG.baseUrl) {
+    try {
+      const adminKey = localStorage.getItem('raaji_admin_key');
+      const res = await fetch(`${API_CONFIG.baseUrl}/api/admin/products/${name.toLowerCase().replace(/\s+/g, '-')}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminKey ? { 'x-admin-key': adminKey } : {}),
+        },
+        body: JSON.stringify({ price: val }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to save price');
+      delete priceOverrides[name];
+      savePriceOverrides();
+      await loadDbPrices();
+      const toast = document.getElementById('adminToast');
+      if (toast) {
+        toast.textContent = `Saved to database: ${name} ₹${val}`;
+        toast.classList.add('show');
+        clearTimeout(setAdminMode._t);
+        setAdminMode._t = setTimeout(() => toast.classList.remove('show'), 3000);
+      }
+    } catch (err) {
+      alert(`Could not save price: ${err.message}. Check your admin key in the Admin dashboard.`);
+    }
+  } else {
+    priceOverrides[name] = val;
+    savePriceOverrides();
+    applyPrice(priceEl);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   loadPriceOverrides();
+  loadDbPrices();
   applyAllPrices();
 
   document.addEventListener('keydown', e => {
