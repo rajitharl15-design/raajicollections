@@ -1,22 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
   <defs>
     <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#CC2936"/>
-      <stop offset="50%" style="stop-color:#8B1A2B"/>
+      <stop offset="0%" style="stop-color:#FF5A5F"/>
+      <stop offset="45%" style="stop-color:#C62839"/>
+      <stop offset="100%" style="stop-color:#8B1A2B"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD966"/>
       <stop offset="100%" style="stop-color:#D4A853"/>
     </linearGradient>
     <pattern id="pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-      <circle cx="10" cy="10" r="1.5" fill="rgba(212,168,83,0.3)"/>
+      <circle cx="10" cy="10" r="1.8" fill="rgba(255,217,102,0.55)"/>
     </pattern>
   </defs>
-  <path d="M60 60 Q70 55 80 60 L100 280 L80 290 L60 285 Z" fill="url(#g1)" opacity="0.9"/>
+  <path d="M60 60 Q70 55 80 60 L100 280 L80 290 L60 285 Z" fill="url(#g1)"/>
   <path d="M60 60 Q70 55 80 60 L100 280 L80 290 L60 285 Z" fill="url(#pattern)"/>
-  <path d="M100 280 L120 285 L140 290 L120 280 L100 275 Z" fill="#D4A853" opacity="0.8"/>
-  <path d="M65 80 Q75 75 85 82" stroke="#D4A853" stroke-width="1.5" fill="none" opacity="0.6"/>
-  <path d="M70 120 Q80 115 90 122" stroke="#D4A853" stroke-width="1.5" fill="none" opacity="0.6"/>
-  <path d="M75 160 Q85 155 95 162" stroke="#D4A853" stroke-width="1.5" fill="none" opacity="0.6"/>
-  <path d="M62 200 L78 195" stroke="#D4A853" stroke-width="2" fill="none" opacity="0.5"/>
-  <path d="M65 210 L80 205" stroke="#D4A853" stroke-width="2" fill="none" opacity="0.5"/>
-  <path d="M55 240 L70 235" stroke="#D4A853" stroke-width="2" fill="none" opacity="0.5"/>
-  <rect x="58" y="55" width="24" height="8" rx="2" fill="#D4A853" opacity="0.7"/>
+  <path d="M68 62 Q76 58 84 62" stroke="url(#g2)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M100 280 L120 285 L140 290 L120 280 L100 275 Z" fill="url(#g2)"/>
+  <path d="M64 85 Q75 79 86 86" stroke="url(#g2)" stroke-width="2" fill="none" opacity="0.9"/>
+  <path d="M68 120 Q78 114 89 121" stroke="url(#g2)" stroke-width="2" fill="none" opacity="0.9"/>
+  <path d="M72 155 Q82 149 92 156" stroke="url(#g2)" stroke-width="2" fill="none" opacity="0.9"/>
+  <path d="M76 190 Q86 184 95 190" stroke="url(#g2)" stroke-width="2" fill="none" opacity="0.9"/>
+  <path d="M62 210 L78 205" stroke="url(#g2)" stroke-width="2.5" fill="none" opacity="0.9"/>
+  <path d="M65 224 L80 219" stroke="url(#g2)" stroke-width="2.5" fill="none" opacity="0.9"/>
+  <path d="M58 238 L72 233" stroke="url(#g2)" stroke-width="2.5" fill="none" opacity="0.9"/>
+  <rect x="57" y="53" width="26" height="10" rx="3" fill="url(#g2)"/>
+  <circle cx="100" cy="292" r="4" fill="url(#g2)"/>
 </svg>
