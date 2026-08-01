@@ -182,14 +182,16 @@ nav {
 
 /* === HERO === */
 .hero {
-  min-height: 90vh;
+  min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #A02030 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   position: relative;
   overflow: hidden;
+  padding: 60px 5% 80px;
 }
 
 .hero::before {
@@ -264,6 +266,57 @@ nav {
   box-shadow: 0 8px 25px rgba(212,168,83,0.3);
 }
 
+.hero-categories {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  width: 100%;
+  margin-top: 50px;
+}
+
+.hero-categories .category-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+}
+
+.hero-categories .category-card:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--secondary);
+}
+
+.hero-categories .category-img {
+  background: transparent;
+  height: 170px;
+  padding: 16px;
+}
+
+.hero-categories .category-info h3 {
+  color: var(--white);
+}
+
+.hero-categories .category-info p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hero-categories .category-info::before {
+  background: var(--secondary);
+}
+
+.hero-categories .btn-outline {
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.hero-categories .btn-outline:hover {
+  background: var(--secondary);
+  color: var(--dark);
+}
+
 /* === SECTION HEADERS === */
 .section-header {
   text-align: center;
@@ -318,19 +371,6 @@ nav {
 }
 
 /* === CATEGORIES === */
-.categories {
-  padding: 80px 5%;
-  background: var(--white);
-}
-
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
 .category-card {
   background: var(--white);
   border-radius: 18px;
@@ -997,11 +1037,14 @@ footer {
   }
 
   .hero {
-    min-height: 70vh;
+    min-height: auto;
+    padding: 50px 5% 70px;
   }
 
-  .category-grid {
+  .hero-categories {
     grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 40px;
   }
 
   .product-grid {
@@ -1022,8 +1065,9 @@ footer {
 }
 
 @media (max-width: 480px) {
-  .category-grid {
+  .hero-categories {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .product-grid {
