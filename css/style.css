@@ -475,7 +475,7 @@ nav {
 /* === PRODUCTS === */
 .products {
   padding: 80px 5%;
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #A02030 100%);
+  background: linear-gradient(135deg, #3A060E 0%, #5C101B 40%, #8B1A2B 75%, #A02030 100%);
 }
 
 .products .section-header .subtitle {
