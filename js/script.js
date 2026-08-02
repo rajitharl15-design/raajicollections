@@ -90,6 +90,75 @@ document.querySelectorAll('.category-card, .product-card, .testimonial-card').fo
   observer.observe(el);
 });
 
+document.querySelector('.product-card img') && (() => {
+  let current = [], currentIndex = 0;
+
+  function build() {
+    if (document.getElementById('lightbox')) return document.getElementById('lightbox');
+    const div = document.createElement('div');
+    div.id = 'lightbox';
+    div.className = 'lightbox';
+    div.setAttribute('role', 'dialog');
+    div.setAttribute('aria-label', 'Image preview');
+    div.innerHTML = `
+      <button class="lightbox-close" aria-label="Close preview">&times;</button>
+      <button class="lightbox-prev" aria-label="Previous image">&#10094;</button>
+      <button class="lightbox-next" aria-label="Next image">&#10095;</button>
+      <div class="lightbox-content">
+        <img src="" alt="">
+        <p class="lightbox-caption"></p>
+      </div>`;
+    document.body.appendChild(div);
+    return div;
+  }
+
+  function show(idx) {
+    if (!current.length) return;
+    currentIndex = (idx + current.length) % current.length;
+    const lb = document.getElementById('lightbox');
+    const img = lb.querySelector('.lightbox-content img');
+    img.src = current[currentIndex].src;
+    img.alt = current[currentIndex].alt;
+    lb.querySelector('.lightbox-caption').textContent = current[currentIndex].alt;
+  }
+
+  function open(img) {
+    const lb = build();
+    current = [...document.querySelectorAll('.product-card img')].map(i => ({ src: i.currentSrc || i.src, alt: i.alt }));
+    const idx = Math.max(0, current.findIndex(i => i.src === img.src));
+    show(idx);
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    const lb = document.getElementById('lightbox');
+    if (lb) lb.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('click', e => {
+    const img = e.target.closest('.product-card img');
+    if (img) { e.preventDefault(); open(img); }
+  });
+
+  document.addEventListener('click', e => {
+    const lb = document.getElementById('lightbox');
+    if (!lb || !lb.classList.contains('open')) return;
+    if (e.target.closest('.lightbox-close') || e.target === lb) close();
+    else if (e.target.closest('.lightbox-prev')) show(currentIndex - 1);
+    else if (e.target.closest('.lightbox-next')) show(currentIndex + 1);
+  });
+
+  document.addEventListener('keydown', e => {
+    const lb = document.getElementById('lightbox');
+    if (!lb || !lb.classList.contains('open')) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft') show(currentIndex - 1);
+    else if (e.key === 'ArrowRight') show(currentIndex + 1);
+  });
+})();
+
 document.querySelector('.newsletter-form')?.addEventListener('submit', async function (e) {
   e.preventDefault();
   const input = this.querySelector('input');
