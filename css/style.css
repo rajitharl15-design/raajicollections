@@ -13,7 +13,7 @@
   --beige: #F5E6D3;
   --dark: #2C1810;
   --text: #3C2415;
-  --text-light: #8B7355;
+  --text-light: #6B5A3E;
   --white: #FFFFFF;
   --shadow: 0 4px 20px rgba(44, 24, 16, 0.1);
   --transition: all 0.3s ease;
@@ -295,7 +295,7 @@ nav {
   padding: 14px;
 }
 
-.hero-categories .category-info h3 {
+.hero-categories .category-info h2 {
   color: var(--white);
 }
 
@@ -439,7 +439,7 @@ nav {
   background: var(--secondary);
 }
 
-.category-info h3 {
+.category-info h2 {
   font-size: 20px;
   color: var(--dark);
   margin-bottom: 6px;
@@ -800,7 +800,7 @@ nav {
   font-size: 18px;
 }
 
-.customer h4 {
+.customer h3 {
   font-size: 15px;
   color: var(--dark);
 }
@@ -1009,7 +1009,7 @@ footer {
 
 .footer-bottom p {
   font-size: 13px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.65);
 }
 
 /* === FILTER BUTTONS === */

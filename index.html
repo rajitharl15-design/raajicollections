@@ -2,15 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="images/icon-192.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Raaji Collections - Traditional Women's Wear</title>
+  <meta name="description" content="Raaji Collections - Authentic traditional women's wear. Shop sarees, ready-made blouses, jewellery & night dresses at the best prices.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8B1A2B">
   <link rel="stylesheet" href="css/style.css?v=3">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -32,9 +35,9 @@
         <li><a href="#contact">Contact</a></li>
       </ul>
       <div class="nav-icons">
-        <a href="#"><i class="fas fa-search"></i></a>
-        <a href="#"><i class="fas fa-heart"></i></a>
-        <a href="#" class="cart-icon" id="cartOpen"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
+        <a href="#" aria-label="Search"><i class="fas fa-search"></i></a>
+        <a href="#" aria-label="Wishlist"><i class="fas fa-heart"></i></a>
+        <a href="#" class="cart-icon" id="cartOpen" aria-label="Open cart"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
       </div>
       <div class="hamburger" id="hamburger" onclick="toggleMenu()">
         <span></span>
@@ -59,7 +62,7 @@
           <img src="images/saree.svg" alt="Sarees">
         </div>
         <div class="category-info">
-          <h3>Sarees</h3>
+          <h2>Sarees</h2>
           <p>Banarasi, Kanjivaram, Silk & more</p>
           <a href="sarees.html" class="btn-outline">Explore</a>
         </div>
@@ -69,7 +72,7 @@
           <img src="images/dress.svg" alt="Dresses">
         </div>
         <div class="category-info">
-          <h3>Dresses</h3>
+          <h2>Dresses</h2>
           <p>Anarkali, Lehenga, Indo-Western</p>
           <a href="#" class="btn-outline">Explore</a>
         </div>
@@ -79,7 +82,7 @@
           <img src="images/top.svg" alt="Tops">
         </div>
         <div class="category-info">
-          <h3>Tops</h3>
+          <h2>Tops</h2>
           <p>Kurtis, Tunics, Crop Tops</p>
           <a href="#" class="btn-outline">Explore</a>
         </div>
@@ -89,7 +92,7 @@
           <img src="images/blouse.svg" alt="Ready Made Blouses">
         </div>
         <div class="category-info">
-          <h3>Ready Made Blouses</h3>
+          <h2>Ready Made Blouses</h2>
           <p>Stitched, Unstitched, Designer</p>
           <a href="blouses.html" class="btn-outline">Explore</a>
         </div>
@@ -99,7 +102,7 @@
           <img src="images/jewellery-image2.webp" alt="Jewellery" class="category-icon">
         </div>
         <div class="category-info">
-          <h3>Jewellery</h3>
+          <h2>Jewellery</h2>
           <p>Necklaces, Earrings, Bangles, Kundan</p>
           <a href="jewellery.html" class="btn-outline">Explore</a>
         </div>
@@ -109,7 +112,7 @@
           <img src="images/nightdress.svg" alt="Night Dresses">
         </div>
         <div class="category-info">
-          <h3>Night Dresses</h3>
+          <h2>Night Dresses</h2>
           <p>Comfortable & stylish nightwear</p>
           <a href="nightdresses.html" class="btn-outline">Explore</a>
         </div>
@@ -225,7 +228,7 @@
         <div class="customer">
           <div class="customer-avatar">P</div>
           <div>
-            <h4>Priya S.</h4>
+            <h3>Priya S.</h3>
             <span>Verified Buyer</span>
           </div>
         </div>
@@ -236,7 +239,7 @@
         <div class="customer">
           <div class="customer-avatar">A</div>
           <div>
-            <h4>Ananya R.</h4>
+            <h3>Ananya R.</h3>
             <span>Verified Buyer</span>
           </div>
         </div>
@@ -247,7 +250,7 @@
         <div class="customer">
           <div class="customer-avatar">M</div>
           <div>
-            <h4>Meera K.</h4>
+            <h3>Meera K.</h3>
             <span>Verified Buyer</span>
           </div>
         </div>
@@ -277,10 +280,10 @@
         <p><i class="fas fa-phone"></i> +91 81254 91097</p>
         <p><i class="fas fa-envelope"></i> hello@raajicollections.com</p>
         <div class="social-links">
-          <a href="#"><i class="fab fa-instagram"></i></a>
-          <a href="#"><i class="fab fa-facebook-f"></i></a>
-          <a href="#"><i class="fab fa-youtube"></i></a>
-          <a href="#"><i class="fab fa-pinterest-p"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
         </div>
       </div>
       <div class="contact-form">
@@ -338,7 +341,7 @@
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h3>Shopping Cart</h3>
-      <button class="cart-close" data-close-cart><i class="fas fa-times"></i></button>
+      <button class="cart-close" data-close-cart aria-label="Close cart"><i class="fas fa-times"></i></button>
     </div>
     <div class="cart-body" id="cartItems"></div>
     <div class="cart-footer">

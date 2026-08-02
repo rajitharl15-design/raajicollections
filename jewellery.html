@@ -2,15 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="images/icon-192.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Jewellery - Raaji Collections</title>
+  <meta name="description" content="Shop traditional jewellery at Raaji Collections - necklaces, earrings, bangles, kundan & more.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8B1A2B">
   <link rel="stylesheet" href="css/style.css?v=3">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -161,7 +164,7 @@
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
       <h3>Shopping Cart</h3>
-      <button class="cart-close" data-close-cart><i class="fas fa-times"></i></button>
+      <button class="cart-close" data-close-cart aria-label="Close cart"><i class="fas fa-times"></i></button>
     </div>
     <div class="cart-body" id="cartItems"></div>
     <div class="cart-footer">
