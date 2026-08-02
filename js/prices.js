@@ -61,7 +61,7 @@ function applyPrice(el) {
     price = db.price;
     oldPrice = db.old_price;
   }
-  if (local != null) {
+  if (price == null && local != null) {
     price = local;
   }
 
