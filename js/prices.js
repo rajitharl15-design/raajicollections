@@ -164,6 +164,24 @@ function copyChanges() {
   }
 }
 
+async function savePriceToDb(slug, val, key) {
+  const res = await fetch(`${API_CONFIG.baseUrl}/api/admin/products/${slug}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(key ? { 'x-admin-key': key } : {}),
+    },
+    body: JSON.stringify({ price: val }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || `Failed to save price (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
 async function editPriceFor(card) {
   if (!isAdminMode) return;
   const nameEl = card.querySelector('h3');
@@ -179,16 +197,24 @@ async function editPriceFor(card) {
 
   if (window.API_CONFIG && API_CONFIG.baseUrl) {
     try {
-      const adminKey = localStorage.getItem('raaji_admin_key');
-      const res = await fetch(`${API_CONFIG.baseUrl}/api/admin/products/${name.toLowerCase().replace(/\s+/g, '-')}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(adminKey ? { 'x-admin-key': adminKey } : {}),
-        },
-        body: JSON.stringify({ price: val }),
-      });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to save price');
+      const slug = name.toLowerCase().replace(/\s+/g, '-');
+      let adminKey = localStorage.getItem('raaji_admin_key');
+      if (!adminKey) {
+        adminKey = prompt(`Enter the admin key to save "${name}" to the database:`);
+        if (adminKey == null) return;
+      }
+      try {
+        await savePriceToDb(slug, val, adminKey);
+      } catch (err) {
+        if (err.status === 401) {
+          adminKey = prompt('Invalid admin key. Enter the correct admin key:');
+          if (adminKey == null) return;
+          await savePriceToDb(slug, val, adminKey);
+        } else {
+          throw err;
+        }
+      }
+      localStorage.setItem('raaji_admin_key', adminKey);
       delete priceOverrides[name];
       savePriceOverrides();
       await loadDbPrices();
