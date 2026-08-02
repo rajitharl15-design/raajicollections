@@ -573,6 +573,42 @@ nav {
   transition: var(--transition);
 }
 
+.install-app-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 22px;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 50px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(139, 26, 43, 0.35);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.install-app-btn.visible {
+  display: inline-flex;
+  animation: installPulse 2.5s ease-in-out infinite;
+}
+
+.install-app-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+@keyframes installPulse {
+  0%, 100% { box-shadow: 0 6px 20px rgba(139, 26, 43, 0.35); }
+  50% { box-shadow: 0 6px 30px rgba(139, 26, 43, 0.6); }
+}
+
 .btn-refresh:hover {
   opacity: 0.85;
   transform: translateY(-2px);

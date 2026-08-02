@@ -11,6 +11,43 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  showInstallButton();
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  hideInstallButton();
+});
+
+function showInstallButton() {
+  let btn = document.getElementById('installAppBtn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'installAppBtn';
+    btn.className = 'install-app-btn';
+    btn.innerHTML = '<i class="fas fa-download"></i> Install App';
+    btn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      hideInstallButton();
+    });
+    document.body.appendChild(btn);
+  }
+  btn.classList.add('visible');
+}
+
+function hideInstallButton() {
+  const btn = document.getElementById('installAppBtn');
+  if (btn) btn.classList.remove('visible');
+}
+
 document.querySelectorAll('.nav-links a').forEach(link => {
   link.addEventListener('click', () => {
     document.getElementById('navLinks').classList.remove('show');
