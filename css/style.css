@@ -535,6 +535,28 @@ nav {
   background: #E8590C;
 }
 
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 9px 20px;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 25px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-refresh:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
 .product-card img {
   width: 100%;
   height: auto;
