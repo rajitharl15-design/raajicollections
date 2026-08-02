@@ -5,6 +5,12 @@ function toggleMenu() {
   hamburger.classList.toggle('active');
 }
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
 document.querySelectorAll('.nav-links a').forEach(link => {
   link.addEventListener('click', () => {
     document.getElementById('navLinks').classList.remove('show');
