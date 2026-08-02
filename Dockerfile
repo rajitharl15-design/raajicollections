@@ -3,11 +3,12 @@ FROM node:20-slim
 WORKDIR /app
 
 # Static website (served at /)
-COPY index.html sarees.html blouses.html ./
+COPY *.html ./
 COPY css ./css
 COPY js ./js
 COPY images ./images
 COPY database ./database
+COPY manifest.json sw.js ./
 
 # Backend
 COPY backend/package*.json ./backend/
