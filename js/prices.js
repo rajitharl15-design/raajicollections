@@ -24,9 +24,14 @@ async function loadDbPrices() {
     const data = await res.json();
     dbPrices = {};
     (data.products || []).forEach(p => {
-      dbPrices[p.name] = { price: Number(p.price), old_price: p.old_price != null ? Number(p.old_price) : null };
+      dbPrices[p.name] = {
+        price: Number(p.price),
+        old_price: p.old_price != null ? Number(p.old_price) : null,
+        stock_qty: Number(p.stock_qty),
+      };
     });
     applyAllPrices();
+    applySoldOut();
   } catch (e) {
     /* keep hardcoded prices if backend is down */
   }
@@ -71,6 +76,33 @@ function applyPrice(el) {
 
 function applyAllPrices() {
   document.querySelectorAll('.product-price').forEach(applyPrice);
+}
+
+function applySoldOut() {
+  document.querySelectorAll('.product-card').forEach(card => {
+    const nameEl = card.querySelector('h3');
+    if (!nameEl) return;
+    const name = nameEl.textContent.trim();
+    const db = dbPrices[name];
+    const soldOut = db && db.stock_qty === 0;
+
+    card.classList.toggle('sold-out', soldOut);
+
+    let badge = card.querySelector('.product-badge.soldout');
+    const btn = card.querySelector('.btn-add');
+    if (btn) btn.disabled = soldOut;
+
+    if (soldOut) {
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'product-badge soldout';
+        card.appendChild(badge);
+      }
+      badge.textContent = 'Sold Out';
+    } else if (badge) {
+      badge.remove();
+    }
+  });
 }
 
 function setAdminMode(on) {

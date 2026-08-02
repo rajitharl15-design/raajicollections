@@ -535,6 +535,27 @@ nav {
   background: #E8590C;
 }
 
+.product-badge.soldout {
+  background: #6B7280;
+  top: auto;
+  bottom: 12px;
+}
+
+.product-card.sold-out img {
+  filter: grayscale(0.9);
+  opacity: 0.7;
+}
+
+.product-card.sold-out .btn-add {
+  background: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.product-card.sold-out .btn-add:hover {
+  opacity: 1;
+  transform: none;
+}
+
 .btn-refresh {
   display: inline-flex;
   align-items: center;
