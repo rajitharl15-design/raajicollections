@@ -60,8 +60,8 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
   ((SELECT id FROM products WHERE slug='pearl-choker-necklace'), 'images/jewellery-image5.webp', 'Pearl Choker Necklace', TRUE, 1);
 
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
-  ((SELECT id FROM products WHERE slug='cotton-night-dress'), 'images/nightdress.svg', 'Cotton Night Dress', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='silk-satin-night-gown'), 'images/nightdress.svg', 'Silk Satin Night Gown', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='cotton-night-dress'), 'images/nightwear-1.jpg', 'Cotton Night Dress', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='silk-satin-night-gown'), 'images/nightwear-2.jpg', 'Silk Satin Night Gown', TRUE, 1),
   ((SELECT id FROM products WHERE slug='two-piece-night-set'), 'images/nightdress.svg', 'Two Piece Night Set', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
