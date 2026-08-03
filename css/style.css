@@ -71,11 +71,31 @@ nav {
   z-index: 1000;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  height: 42px;
+  width: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .logo h1 {
   font-size: 26px;
   color: var(--primary);
   letter-spacing: 1px;
   font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+@media (max-width: 600px) {
+  .logo-img { height: 36px; width: 36px; }
+  .logo h1 { font-size: 20px; }
 }
 
 .nav-links {
@@ -1752,4 +1772,28 @@ body.admin-mode .product-card img {
 @media (max-width: 600px) {
   .lightbox-prev { left: 6px; }
   .lightbox-next { right: 6px; }
+}
+
+/* Footer brand */
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.footer-logo {
+  height: 44px;
+  width: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.footer-brand h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+@media (max-width: 600px) {
+  .footer-logo { height: 38px; width: 38px; }
 }
