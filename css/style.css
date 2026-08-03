@@ -1862,3 +1862,43 @@ body.admin-mode .product-card img {
   cursor: pointer;
   line-height: 1;
 }
+
+.videos-section {
+  padding: 50px 20px 10px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding-top: 10px;
+}
+
+.video-card video {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  max-height: 70vh;
+  object-fit: cover;
+  border-radius: 14px;
+  background: #000;
+  display: block;
+}
+
+.video-caption {
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+@media (min-width: 768px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    justify-items: center;
+  }
+  .video-card video {
+    max-width: 420px;
+  }
+}
