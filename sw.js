@@ -2,7 +2,6 @@ const CACHE = 'raaji-cache-v1';
 const ASSETS = [
   '/raajicollections/',
   '/raajicollections/index.html',
-  '/raajicollections/sarees.html',
   '/raajicollections/blouses.html',
   '/raajicollections/jewellery.html',
   '/raajicollections/nightdresses.html',

@@ -23,7 +23,7 @@ router.get('/', async (req, res, next) => {
       `SELECT p.id, p.name, p.slug, p.description, p.price, p.old_price,
               p.badge, p.material, p.is_featured, p.stock_qty,
               c.name AS category_name, c.slug AS category_slug,
-              COALESCE(img.image_url, '/images/saree.svg') AS image_url
+              COALESCE(img.image_url, '/images/dress.svg') AS image_url
          FROM products p
          JOIN categories c ON c.id = p.category_id
          LEFT JOIN LATERAL (

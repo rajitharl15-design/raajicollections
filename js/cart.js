@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const prices = priceText.match(/₹\s?[\d,]+/g) || [];
       const price = prices.length ? parseInt(prices[prices.length - 1].replace(/[^0-9]/g, ''), 10) : 0;
       const id = (name + '_' + price).replace(/\s+/g, '-').toLowerCase();
-      const image = imgEl ? imgEl.getAttribute('src') : 'images/saree.svg';
+      const image = imgEl ? imgEl.getAttribute('src') : 'images/dress.svg';
       const catalogItem = productCatalog.find(p => p.name === name);
       Cart.add({
         id,
