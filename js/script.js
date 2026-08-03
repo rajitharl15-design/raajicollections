@@ -13,6 +13,43 @@ if ('serviceWorker' in navigator) {
 
 let deferredInstallPrompt = null;
 
+function isSamsungBrowser() {
+  return /SamsungBrowser/i.test(navigator.userAgent);
+}
+
+function chromeOpenUrl() {
+  const fallback = encodeURIComponent(location.href);
+  return `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${fallback};end`;
+}
+
+function showInstallHelp() {
+  let modal = document.getElementById('installHelp');
+  if (modal) modal.classList.add('open');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'installHelp';
+    modal.className = 'install-help';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-label', 'Installation help');
+    modal.innerHTML = `
+      <div class="install-help-box">
+        <button class="install-help-close" aria-label="Close">&times;</button>
+        <h3>Install Raaji Collections App</h3>
+        <p>Some Android browsers (like <strong>Samsung Internet</strong>) may show a privacy warning when installing the app. For a smooth, secure installation, please use <strong>Google Chrome</strong>.</p>
+        <button class="btn-primary" id="installHelpChrome">Open in Chrome</button>
+        <button class="btn-outline" id="installHelpClose">Close</button>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.classList.add('open');
+    modal.querySelector('#installHelpChrome').addEventListener('click', () => {
+      window.location.href = chromeOpenUrl();
+    });
+    modal.querySelector('#installHelpClose').addEventListener('click', () => modal.classList.remove('open'));
+    modal.querySelector('.install-help-close').addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+  }
+}
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstallPrompt = e;
@@ -33,6 +70,10 @@ function showInstallButton() {
     btn.innerHTML = '<i class="fas fa-download"></i> Install App';
     btn.addEventListener('click', async () => {
       if (!deferredInstallPrompt) return;
+      if (isSamsungBrowser()) {
+        showInstallHelp();
+        return;
+      }
       deferredInstallPrompt.prompt();
       await deferredInstallPrompt.userChoice;
       deferredInstallPrompt = null;

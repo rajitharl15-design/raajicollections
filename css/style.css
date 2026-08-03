@@ -1805,3 +1805,60 @@ body.admin-mode .product-card img {
 @media (max-width: 600px) {
   .footer-logo { height: 38px; width: 38px; }
 }
+
+/* Install help modal (Samsung Internet workaround) */
+.install-help {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  padding: 20px;
+}
+
+.install-help.open {
+  display: flex;
+}
+
+.install-help-box {
+  position: relative;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 32px 28px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.install-help-box h3 {
+  color: var(--primary);
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.install-help-box p {
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+
+.install-help-box .btn-primary,
+.install-help-box .btn-outline {
+  margin: 6px 4px;
+}
+
+.install-help-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: var(--text-light);
+  cursor: pointer;
+  line-height: 1;
+}
