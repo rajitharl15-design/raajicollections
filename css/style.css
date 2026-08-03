@@ -645,8 +645,9 @@ nav {
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 5;
-  object-fit: cover;
+  object-fit: contain;
   background: var(--beige);
+  transition: transform 0.3s ease;
 }
 
 .product-info {
