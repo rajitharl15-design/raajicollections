@@ -290,7 +290,7 @@ nav {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   max-width: 1100px;
   width: 100%;
@@ -311,8 +311,8 @@ nav {
 
 .hero-categories .category-img {
   background: transparent;
-  height: 130px;
-  padding: 14px;
+  height: 200px;
+  padding: 0;
 }
 
 .hero-categories .category-info h2 {
@@ -407,12 +407,11 @@ nav {
 }
 
 .category-img {
-  height: 240px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(180deg, #FBF0E0 0%, #F1E0C7 100%);
-  padding: 30px;
   position: relative;
   overflow: hidden;
 }
@@ -421,20 +420,28 @@ nav {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 30%, rgba(212, 168, 83, 0.18), transparent 65%);
+  background: linear-gradient(180deg, rgba(139, 26, 43, 0) 55%, rgba(44, 24, 16, 0.35) 100%);
   pointer-events: none;
 }
 
 .category-img img {
+  width: 100%;
   height: 100%;
-  object-fit: contain;
-  transition: transform 0.5s ease;
+  object-fit: cover;
+  transition: transform 0.6s ease;
   position: relative;
   z-index: 1;
 }
 
+.category-img img.icon-svg {
+  object-fit: contain;
+  width: auto;
+  height: 72%;
+  padding: 12px;
+}
+
 .category-card:hover .category-img img {
-  transform: scale(1.12);
+  transform: scale(1.08);
 }
 
 .category-img img.category-icon {
