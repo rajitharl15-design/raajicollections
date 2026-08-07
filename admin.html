@@ -43,20 +43,67 @@
     </header>
 
     <main class="admin-main">
-      <div class="admin-stats" id="adminStats"></div>
-
-      <div class="admin-filters">
-        <button class="filter-btn active" data-status="all">All</button>
-        <button class="filter-btn" data-status="pending">Pending</button>
-        <button class="filter-btn" data-status="confirmed">Confirmed</button>
-        <button class="filter-btn" data-status="paid">Paid</button>
-        <button class="filter-btn" data-status="shipped">Shipped</button>
-        <button class="filter-btn" data-status="delivered">Delivered</button>
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="orders">Orders</button>
+        <button class="tab-btn" data-tab="addproduct">Add Product</button>
       </div>
 
-      <div class="admin-orders" id="adminOrders">
-        <p class="admin-loading">Loading orders...</p>
-      </div>
+      <section id="tab-orders">
+        <div class="admin-stats" id="adminStats"></div>
+
+        <div class="admin-filters">
+          <button class="filter-btn active" data-status="all">All</button>
+          <button class="filter-btn" data-status="pending">Pending</button>
+          <button class="filter-btn" data-status="confirmed">Confirmed</button>
+          <button class="filter-btn" data-status="paid">Paid</button>
+          <button class="filter-btn" data-status="shipped">Shipped</button>
+          <button class="filter-btn" data-status="delivered">Delivered</button>
+        </div>
+
+        <div class="admin-orders" id="adminOrders">
+          <p class="admin-loading">Loading orders...</p>
+        </div>
+      </section>
+
+      <section id="tab-addproduct" class="hidden">
+        <div class="product-form">
+          <h3>Add New Product</h3>
+          <div class="pf-grid">
+            <label>Product Name
+              <input type="text" id="pfName" placeholder="e.g. Red Banarasi Saree">
+            </label>
+            <label>Category
+              <select id="pfCategory"></select>
+            </label>
+            <label>Price (₹)
+              <input type="number" id="pfPrice" min="0" placeholder="2499">
+            </label>
+            <label>Old Price (₹, optional)
+              <input type="number" id="pfOldPrice" min="0" placeholder="2999">
+            </label>
+            <label>Stock
+              <input type="number" id="pfStock" min="0" value="10">
+            </label>
+            <label>Badge (optional)
+              <input type="text" id="pfBadge" placeholder="New / Sale">
+            </label>
+          </div>
+          <label>Description
+            <textarea id="pfDesc" rows="2" placeholder="Short description..."></textarea>
+          </label>
+          <div class="pf-images">
+            <label class="file-drop">
+              <input type="file" id="pfImages" accept="image/*" multiple>
+              <span>+ Click to add product images (multiple)</span>
+            </label>
+            <div id="pfPreview" class="pf-preview"></div>
+          </div>
+          <div class="pf-submit">
+            <button id="pfSaveBtn" class="btn-primary">Save Product</button>
+            <span id="pfStatus" class="pf-status"></span>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 

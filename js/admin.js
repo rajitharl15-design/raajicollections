@@ -180,6 +180,72 @@ function showLogin() {
   document.getElementById('adminDashboard').classList.add('hidden');
 }
 
+async function loadAdminCategories() {
+  const select = document.getElementById('pfCategory');
+  if (!select) return;
+  try {
+    const data = await api('/api/admin/categories');
+    select.innerHTML = data.categories.map(c =>
+      `<option value="${c.id}">${c.name}</option>`).join('');
+  } catch (err) {
+    select.innerHTML = `<option value="">Categories failed to load</option>`;
+  }
+}
+
+async function saveNewProduct() {
+  const status = document.getElementById('pfStatus');
+  const btn = document.getElementById('pfSaveBtn');
+  const name = document.getElementById('pfName').value.trim();
+  const categoryId = document.getElementById('pfCategory').value;
+  const price = document.getElementById('pfPrice').value;
+  const oldPrice = document.getElementById('pfOldPrice').value;
+  const stock = document.getElementById('pfStock').value;
+  const badge = document.getElementById('pfBadge').value.trim();
+  const desc = document.getElementById('pfDesc').value.trim();
+
+  if (!name || !categoryId || !price) {
+    status.textContent = 'Name, category and price are required.';
+    status.style.color = '#C62828';
+    return;
+  }
+
+  const payload = {
+    name,
+    category_id: Number(categoryId),
+    price: Number(price),
+    old_price: oldPrice ? Number(oldPrice) : null,
+    stock_qty: Number(stock || 0),
+    badge: badge || null,
+    description: desc || null,
+    images: selectedImages.map(dataUrl => ({ dataUrl, alt: name })),
+  };
+
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Saving...';
+  status.textContent = '';
+
+  try {
+    const data = await api('/api/admin/products', { method: 'POST', body: JSON.stringify(payload) });
+    status.style.color = '#2E7D32';
+    status.textContent = `Saved: ${data.product.name} (₹${data.product.price})`;
+    document.getElementById('pfName').value = '';
+    document.getElementById('pfPrice').value = '';
+    document.getElementById('pfOldPrice').value = '';
+    document.getElementById('pfDesc').value = '';
+    document.getElementById('pfBadge').value = '';
+    document.getElementById('pfImages').value = '';
+    document.getElementById('pfPreview').innerHTML = '';
+    selectedImages = [];
+  } catch (err) {
+    status.style.color = '#C62828';
+    status.textContent = `Error: ${err.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
 function showDashboard() {
   document.getElementById('adminLogin').classList.add('hidden');
   document.getElementById('adminDashboard').classList.remove('hidden');
@@ -242,6 +308,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const exportBtn = document.getElementById('adminExportBtn');
   if (exportBtn) exportBtn.addEventListener('click', exportOrdersCsv);
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      document.getElementById('tab-orders').classList.toggle('hidden', tab !== 'orders');
+      document.getElementById('tab-addproduct').classList.toggle('hidden', tab !== 'addproduct');
+      if (tab === 'addproduct') loadAdminCategories();
+    });
+  });
+
+  // Add product form
+  let selectedImages = [];
+  const imgInput = document.getElementById('pfImages');
+  if (imgInput) {
+    imgInput.addEventListener('change', () => {
+      selectedImages = [];
+      document.getElementById('pfPreview').innerHTML = '';
+      const files = Array.from(imgInput.files);
+      files.forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          selectedImages.push(e.target.result);
+          const preview = document.createElement('img');
+          preview.src = e.target.result;
+          document.getElementById('pfPreview').appendChild(preview);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  }
+
+  const saveBtn = document.getElementById('pfSaveBtn');
+  if (saveBtn) saveBtn.addEventListener('click', saveNewProduct);
 
   document.getElementById('adminLogoutBtn').addEventListener('click', () => {
     localStorage.removeItem(ADMIN_KEY_STORAGE);

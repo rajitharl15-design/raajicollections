@@ -16,6 +16,74 @@ function requireAdmin(req, res, next) {
 
 router.use(requireAdmin);
 
+// GET /api/admin/categories
+router.get('/categories', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, name, slug FROM categories WHERE is_active = TRUE ORDER BY sort_order, name`
+    );
+    res.json({ categories: rows });
+  } catch (err) { next(err); }
+});
+
+// POST /api/admin/products  -> create product with multiple images
+router.post('/products', async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const {
+      name,
+      category_id,
+      price,
+      old_price,
+      stock_qty = 0,
+      badge = null,
+      material = null,
+      description = null,
+      images = [],          // [{ dataUrl, alt }]
+      is_featured = false,
+      is_active = true,
+    } = req.body;
+
+    if (!name) return res.status(400).json({ error: 'name is required' });
+    if (!category_id) return res.status(400).json({ error: 'category_id is required' });
+    if (price == null || Number(price) < 0) return res.status(400).json({ error: 'price is required' });
+
+    await client.query('BEGIN');
+
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const productRes = await client.query(
+      `INSERT INTO products (name, slug, category_id, description, price, old_price,
+                             badge, material, is_featured, is_active, stock_qty)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING id, name, slug, price, old_price, badge, stock_qty`,
+      [name, slug, category_id, description || null,
+       Number(price), old_price != null ? Number(old_price) : null,
+       badge || null, material || null, is_featured, is_active, Number(stock_qty)]
+    );
+    const product = productRes.rows[0];
+
+    // Insert images if provided
+    if (images && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        await client.query(
+          `INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [product.id, images[i].dataUrl, images[i].alt || name, i === 0, i]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    res.status(201).json({ product });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    if (err.code === '23505') return res.status(409).json({ error: 'A product with this name/slug already exists' });
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 // GET /api/admin/orders  -> all orders with customer + item summary
 router.get('/orders', async (req, res, next) => {
   try {

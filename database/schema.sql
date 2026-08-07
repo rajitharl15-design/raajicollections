@@ -45,7 +45,7 @@ CREATE TABLE products (
 CREATE TABLE product_images (
     id            SERIAL PRIMARY KEY,
     product_id    INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    image_url     VARCHAR(500) NOT NULL,
+    image_url     TEXT NOT NULL,
     alt_text      VARCHAR(200),
     is_primary    BOOLEAN NOT NULL DEFAULT FALSE,
     sort_order    INT NOT NULL DEFAULT 0,
