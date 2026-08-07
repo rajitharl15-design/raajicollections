@@ -317,6 +317,31 @@ function escapeHtml(s) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+function imgLabelHint(msg) {
+  const lbl = document.querySelector('.file-drop span');
+  if (lbl) { lbl.textContent = msg; setTimeout(() => { lbl.textContent = '+ Click to add product images (multiple)'; }, 3000); }
+}
+
+async function dataUrlFromObjectUrls(urls) {
+  const out = [];
+  for (const u of urls) {
+    try {
+      const res = await fetch(u);
+      const blob = await res.blob();
+      const dataUrl = await new Promise((res2, rej) => {
+        const r = new FileReader();
+        r.onload = () => res2(r.result);
+        r.onerror = rej;
+        r.readAsDataURL(blob);
+      });
+      out.push(dataUrl);
+    } catch (e) {
+      return null;
+    }
+  }
+  return out;
+}
+
 async function saveNewProduct() {
   const status = document.getElementById('pfStatus');
   const btn = document.getElementById('pfSaveBtn');
@@ -334,7 +359,7 @@ async function saveNewProduct() {
     return;
   }
 
-  const payload = {
+  const payloadBase = {
     name,
     category_id: Number(categoryId),
     price: Number(price),
@@ -342,7 +367,6 @@ async function saveNewProduct() {
     stock_qty: Number(stock || 0),
     badge: badge || null,
     description: desc || null,
-    images: selectedImages.map(dataUrl => ({ dataUrl, alt: name })),
   };
 
   btn.disabled = true;
@@ -351,7 +375,16 @@ async function saveNewProduct() {
   status.textContent = '';
 
   try {
-    const data = await api('/api/admin/products', { method: 'POST', body: JSON.stringify(payload) });
+    const dataUrls = selectedImages[0] && selectedImages[0].startsWith('blob:')
+      ? await dataUrlFromObjectUrls(selectedImages)
+      : selectedImages;
+    if (dataUrls === null) {
+      throw new Error('Could not read the selected images.');
+    }
+    const data = await api('/api/admin/products', {
+      method: 'POST',
+      body: JSON.stringify({ ...payloadBase, images: dataUrls.map(d => ({ dataUrl: d, alt: name })) }),
+    });
     status.style.color = '#2E7D32';
     status.textContent = `Saved: ${data.product.name} (₹${data.product.price})`;
     document.getElementById('pfName').value = '';
@@ -462,20 +495,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const preview = document.getElementById('pfPreview');
       preview.innerHTML = '';
       const files = Array.from(imgInput.files);
+      if (files.length === 0) return;
       files.forEach(file => {
-        if (!file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-          selectedImages.push(e.target.result);
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.alt = file.name;
-          preview.appendChild(img);
-        };
-        reader.onerror = () => {
-          preview.innerHTML = `<p class="pf-status" style="color:#C62828">Could not read one of the images. Try again.</p>`;
-        };
-        reader.readAsDataURL(file);
+        if (!file.type.startsWith('image/')) {
+          imgLabelHint(file.name + ' is not an image');
+          return;
+        }
+        const url = URL.createObjectURL(file);
+        selectedImages.push(url);
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = file.name;
+        preview.appendChild(img);
       });
     });
   }
