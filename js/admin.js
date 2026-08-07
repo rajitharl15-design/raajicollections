@@ -459,16 +459,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (imgInput) {
     imgInput.addEventListener('change', () => {
       selectedImages = [];
-      document.getElementById('pfPreview').innerHTML = '';
+      const preview = document.getElementById('pfPreview');
+      preview.innerHTML = '';
       const files = Array.from(imgInput.files);
       files.forEach(file => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = e => {
           selectedImages.push(e.target.result);
-          const preview = document.createElement('img');
-          preview.src = e.target.result;
-          document.getElementById('pfPreview').appendChild(preview);
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.alt = file.name;
+          preview.appendChild(img);
+        };
+        reader.onerror = () => {
+          preview.innerHTML = `<p class="pf-status" style="color:#C62828">Could not read one of the images. Try again.</p>`;
         };
         reader.readAsDataURL(file);
       });
