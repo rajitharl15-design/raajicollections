@@ -12,7 +12,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8B1A2B">
   <link rel="stylesheet" href="css/style.css?v=9">
-  <link rel="stylesheet" href="css/admin.css?v=3">
+  <link rel="stylesheet" href="css/admin.css?v=4">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -93,10 +93,10 @@
             <textarea id="pfDesc" rows="2" placeholder="Short description..."></textarea>
           </label>
           <div class="pf-images">
-            <label class="file-drop">
-              <input type="file" id="pfImages" accept="image/*" multiple>
-              <span>+ Click to add product images (multiple)</span>
-            </label>
+            <button type="button" class="file-drop" id="pfDropBtn">
+              <span id="pfDropLabel">+ Click to add product images (multiple)</span>
+            </button>
+            <input type="file" id="pfImages" accept="image/*" multiple hidden>
             <div id="pfPreview" class="pf-preview"></div>
           </div>
           <div class="pf-submit">
@@ -125,6 +125,6 @@
   </div>
 
   <script src="js/config.js?v=3"></script>
-  <script src="js/admin.js?v=11"></script>
+  <script src="js/admin.js?v=12"></script>
 </body>
 </html>

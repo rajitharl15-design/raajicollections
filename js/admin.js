@@ -318,7 +318,7 @@ function escapeHtml(s) {
 }
 
 function imgLabelHint(msg) {
-  const lbl = document.querySelector('.file-drop span');
+  const lbl = document.getElementById('pfDropLabel');
   if (lbl) { lbl.textContent = msg; setTimeout(() => { lbl.textContent = '+ Click to add product images (multiple)'; }, 3000); }
 }
 
@@ -489,13 +489,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add product form
   let selectedImages = [];
   const imgInput = document.getElementById('pfImages');
-  if (imgInput) {
+  const dropBtn = document.getElementById('pfDropBtn');
+  if (imgInput && dropBtn) {
+    dropBtn.addEventListener('click', e => {
+      e.preventDefault();
+      imgInput.click();
+    });
     imgInput.addEventListener('change', () => {
       selectedImages = [];
       const preview = document.getElementById('pfPreview');
       preview.innerHTML = '';
       const files = Array.from(imgInput.files);
       if (files.length === 0) return;
+      const label = document.getElementById('pfDropLabel');
+      if (label) label.textContent = files.length + ' image(s) selected';
       files.forEach(file => {
         if (!file.type.startsWith('image/')) {
           imgLabelHint(file.name + ' is not an image');
