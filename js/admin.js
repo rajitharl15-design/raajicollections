@@ -186,6 +186,39 @@ function showDashboard() {
   loadOrders();
 }
 
+function escapeCsv(v) {
+  if (v == null) return '';
+  const s = String(v);
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportOrdersCsv() {
+  if (orders.length === 0) return alert('No orders to export.');
+  const head = ['Order Number', 'Date', 'Status', 'Payment', 'Name', 'Phone', 'Email',
+    'City', 'State', 'Pincode', 'Subtotal', 'Shipping', 'Discount', 'Total', 'Items'];
+  const rows = orders.map(o => [
+    o.order_number, formatDate(o.created_at), o.status, o.payment_status,
+    o.first_name || o.shipping_name, o.phone, o.email,
+    o.shipping_city, o.shipping_state, o.shipping_pincode,
+    o.subtotal, o.shipping_fee, o.discount, o.total, o.item_count,
+  ]);
+  const csv = [head, ...rows].map(r => r.map(escapeCsv).join(',')).join('\n');
+  downloadFile('raaji-orders.csv', '\ufeff' + csv, 'text/csv;charset=utf-8');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('adminLoginBtn').addEventListener('click', async () => {
     const key = document.getElementById('adminKeyInput').value.trim();
@@ -206,6 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('adminKeyInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('adminLoginBtn').click();
   });
+
+  const exportBtn = document.getElementById('adminExportBtn');
+  if (exportBtn) exportBtn.addEventListener('click', exportOrdersCsv);
 
   document.getElementById('adminLogoutBtn').addEventListener('click', () => {
     localStorage.removeItem(ADMIN_KEY_STORAGE);
