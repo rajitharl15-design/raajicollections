@@ -14,7 +14,8 @@ window.ProductsRenderer = {
 
     try {
       const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
-      const res = await fetch(`${base}/api/products${qs}`, { headers: { 'Cache-Control': 'no-cache' } });
+      const sep = qs ? '&' : '?';
+      const res = await fetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
       if (!res.ok) throw new Error('load failed');
       const data = await res.json();
       const products = data.products || [];
