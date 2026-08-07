@@ -232,6 +232,9 @@ function renderAdminProducts() {
         <label>Old Price (₹) <input data-field="old_price" data-slug="${p.slug}" type="number" min="0" value="${p.old_price != null ? p.old_price : ''}" placeholder="none"></label>
         <label>Stock <input data-field="stock_qty" data-slug="${p.slug}" type="number" min="0" value="${p.stock_qty}"></label>
         <label>Badge <input data-field="badge" data-slug="${p.slug}" type="text" value="${escapeHtml(p.badge || '')}" placeholder="New / Sale"></label>
+        <label class="pm-check">Visible on store
+          <input data-field="is_active" data-slug="${p.slug}" type="checkbox" ${p.is_active ? 'checked' : ''}>
+        </label>
         <button class="btn-link" data-save="${p.slug}"><i class="fas fa-save"></i> Save</button>
         <span class="pm-saved" id="pmSaved-${p.slug}"></span>
       </div>
@@ -251,6 +254,7 @@ function renderAdminProducts() {
         else if (field === 'old_price') payload.old_price = val === '' ? '' : Number(val);
         else if (field === 'stock_qty' && val !== '') payload.stock_qty = Number(val);
         else if (field === 'badge') payload.badge = val;
+        else if (field === 'is_active') payload.is_active = inp.checked;
       });
       const saved = document.getElementById(`pmSaved-${slug}`);
       try {

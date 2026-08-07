@@ -197,7 +197,7 @@ router.patch('/orders/:id', async (req, res, next) => {
 router.get('/products', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      `SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock_qty, p.badge, p.is_featured,
+      `SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock_qty, p.badge, p.is_featured, p.is_active,
               c.name AS category_name,
               COALESCE(img.image_url, '/images/dress.svg') AS image_url
          FROM products p
@@ -207,7 +207,6 @@ router.get('/products', async (req, res, next) => {
            WHERE product_id = p.id AND is_primary = TRUE
            ORDER BY sort_order LIMIT 1
          ) img ON TRUE
-        WHERE p.is_active = TRUE
         ORDER BY p.id`
     );
     res.json({ products: rows });
@@ -217,7 +216,7 @@ router.get('/products', async (req, res, next) => {
 // PATCH /api/admin/products/:slug  -> update name / price / old_price / stock / badge
 router.patch('/products/:slug', async (req, res, next) => {
   try {
-    const { name, price, old_price, stock_qty, badge, is_featured } = req.body;
+    const { name, price, old_price, stock_qty, badge, is_featured, is_active } = req.body;
 
     if (name != null && (!name.trim() || name.length > 200)) {
       return res.status(400).json({ error: 'name must be non-empty and under 200 chars' });
@@ -240,9 +239,10 @@ router.patch('/products/:slug', async (req, res, next) => {
               stock_qty = COALESCE($4::int, stock_qty),
               badge = COALESCE($5::varchar, badge),
               is_featured = COALESCE($6::boolean, is_featured),
+              is_active = COALESCE($7::boolean, is_active),
               updated_at = NOW()
-        WHERE slug = $7 AND is_active = TRUE
-        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured`,
+        WHERE slug = $8
+        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active`,
       [
         name != null && name.trim() ? name.trim() : null,
         price != null ? Number(price) : null,
@@ -250,6 +250,7 @@ router.patch('/products/:slug', async (req, res, next) => {
         stock_qty != null ? Number(stock_qty) : null,
         badge != null ? badge : null,
         is_featured != null ? is_featured : null,
+        is_active != null ? is_active : null,
         req.params.slug,
       ]
     );
