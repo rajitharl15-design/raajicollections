@@ -41,7 +41,15 @@ window.ProductsRenderer = {
       const res = await fetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
       if (!res.ok) throw new Error('load failed');
       const data = await res.json();
-      const products = data.products || [];
+      let products = data.products || [];
+      const limitAttr = grid.getAttribute('data-limit');
+      if (limitAttr) {
+        const limit = parseInt(limitAttr, 10);
+        if (Number.isFinite(limit) && limit > 0) {
+          const featured = products.filter(p => p.is_featured);
+          products = (featured.length ? featured : products).slice(0, limit);
+        }
+      }
       if (products.length === 0) {
         grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
         return;
