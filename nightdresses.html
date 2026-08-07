@@ -60,27 +60,7 @@
       <button class="btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
     </div>
 
-    <div class="product-grid">
-      <div class="product-card">
-        <div class="product-badge sale">Sale</div>
-        <img src="images/nightwear-1.jpg" alt="Cotton Night Dress">
-        <div class="product-info">
-          <h3>Cotton Night Dress</h3>
-          <p class="product-category">Cotton</p>
-          <p class="product-price">₹250</p>
-          <button class="btn-add">Add to Cart</button>
-        </div>
-      </div>
-      <div class="product-card">
-        <div class="product-badge">New</div>
-        <img src="images/nightwear-2.jpg" alt="Silk Satin Night Gown">
-        <div class="product-info">
-          <h3>Silk Satin Night Gown</h3>
-          <p class="product-category">Silk Satin</p>
-          <p class="product-price">₹300</p>
-          <button class="btn-add">Add to Cart</button>
-        </div>
-      </div>
+    <div class="product-grid" data-products="night-dresses">
     </div>
   </section>
 
@@ -196,6 +176,8 @@
 
   <script src="js/config.js?v=3"></script>
   <script src="js/cart.js?v=3"></script>
+  <script src="js/products.js?v=1"></script>
   <script src="js/prices.js?v=3"></script>
+  <script>ProductsRenderer.load();</script>
 </body>
 </html>

@@ -212,26 +212,28 @@ document.addEventListener('DOMContentLoaded', () => {
       .catch(() => {});
   }
 
-  document.querySelectorAll('.btn-add').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const card = btn.closest('.product-card');
-      const nameEl = card.querySelector('h3');
-      const priceEl = card.querySelector('.product-price');
-      const imgEl = card.querySelector('img');
-      const name = nameEl ? nameEl.textContent.trim() : 'Product';
-      const priceText = priceEl ? priceEl.textContent.trim() : '0';
-      const prices = priceText.match(/₹\s?[\d,]+/g) || [];
-      const price = prices.length ? parseInt(prices[prices.length - 1].replace(/[^0-9]/g, ''), 10) : 0;
-      const id = (name + '_' + price).replace(/\s+/g, '-').toLowerCase();
-      const image = imgEl ? imgEl.getAttribute('src') : 'images/dress.svg';
-      const catalogItem = productCatalog.find(p => p.name === name);
-      Cart.add({
-        id,
-        name,
-        price,
-        image,
-        productId: catalogItem ? catalogItem.id : undefined,
-      });
+  // Event delegation so dynamically rendered cards also work
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-add');
+    if (!btn) return;
+    const card = btn.closest('.product-card');
+    if (!card) return;
+    const nameEl = card.querySelector('h3');
+    const priceEl = card.querySelector('.product-price');
+    const imgEl = card.querySelector('img');
+    const name = nameEl ? nameEl.textContent.trim() : 'Product';
+    const priceText = priceEl ? priceEl.textContent.trim() : '0';
+    const prices = priceText.match(/₹\s?[\d,]+/g) || [];
+    const price = prices.length ? parseInt(prices[prices.length - 1].replace(/[^0-9]/g, ''), 10) : 0;
+    const id = (name + '_' + price).replace(/\s+/g, '-').toLowerCase();
+    const image = imgEl ? imgEl.getAttribute('src') : 'images/dress.svg';
+    const catalogItem = productCatalog.find(p => p.name === name);
+    Cart.add({
+      id,
+      name,
+      price,
+      image,
+      productId: catalogItem ? catalogItem.id : undefined,
     });
   });
 
