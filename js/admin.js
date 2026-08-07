@@ -251,36 +251,54 @@ function renderAdminProducts() {
   list.querySelectorAll('[data-save]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const slug = btn.dataset.save;
-      const inputs = list.querySelectorAll(`input[data-slug="${slug}"]`);
-      const payload = {};
-      inputs.forEach(inp => {
-        const field = inp.dataset.field;
-        const val = inp.value.trim();
-        if (field === 'name' && val) payload.name = val;
-        else if (field === 'price' && val) payload.price = Number(val);
-        else if (field === 'old_price') payload.old_price = val === '' ? '' : Number(val);
-        else if (field === 'stock_qty' && val !== '') payload.stock_qty = Number(val);
-        else if (field === 'badge') payload.badge = val;
-        else if (field === 'is_active') payload.is_active = inp.checked;
-      });
-      const catSel = list.querySelector(`select[data-field="category_id"][data-slug="${slug}"]`);
-      if (catSel) payload.category_id = Number(catSel.value);
-      const saved = document.getElementById(`pmSaved-${slug}`);
-      try {
-        const data = await api(`/api/admin/products/${slug}`, {
-          method: 'PATCH', body: JSON.stringify(payload),
-        });
-        saved.textContent = `Saved: ${data.product.name}`;
-        setTimeout(() => { saved.textContent = ''; }, 3000);
-        const idx = adminProducts.findIndex(p => p.slug === slug);
-        if (idx !== -1) adminProducts[idx] = { ...adminProducts[idx], ...data.product };
-        const h4 = list.querySelector(`h4[data-slug="${slug}"]`);
-        if (h4) h4.textContent = data.product.name;
-      } catch (err) {
-        saved.textContent = `Error: ${err.message}`;
-      }
+      const saved = await saveAdminProduct(slug);
+      const el = document.getElementById(`pmSaved-${slug}`);
+      if (el) { el.textContent = saved ? `Saved: ${saved.name}` : `Error: ${saved}`; setTimeout(() => { el.textContent = ''; }, 3000); }
     });
   });
+
+  list.querySelectorAll('input[data-field="is_active"]').forEach(cb => {
+    cb.addEventListener('change', async () => {
+      const slug = cb.dataset.slug;
+      const el = document.getElementById(`pmSaved-${slug}`);
+      if (el) { el.textContent = 'Saving...'; }
+      const data = await api(`/api/admin/products/${slug}`, {
+        method: 'PATCH', body: JSON.stringify({ is_active: cb.checked }),
+      });
+      if (el) { el.textContent = `Visibility saved`; setTimeout(() => { el.textContent = ''; }, 3000); }
+      const idx = adminProducts.findIndex(p => p.slug === slug);
+      if (idx !== -1) adminProducts[idx] = { ...adminProducts[idx], ...data.product };
+    });
+  });
+}
+
+async function saveAdminProduct(slug) {
+  const list = document.getElementById('pmList');
+  const inputs = list.querySelectorAll(`input[data-slug="${slug}"]`);
+  const payload = {};
+  inputs.forEach(inp => {
+    const field = inp.dataset.field;
+    const val = inp.value.trim();
+    if (field === 'name' && val) payload.name = val;
+    else if (field === 'price' && val) payload.price = Number(val);
+    else if (field === 'old_price') payload.old_price = val === '' ? '' : Number(val);
+    else if (field === 'stock_qty' && val !== '') payload.stock_qty = Number(val);
+    else if (field === 'badge') payload.badge = val;
+  });
+  const catSel = list.querySelector(`select[data-field="category_id"][data-slug="${slug}"]`);
+  if (catSel) payload.category_id = Number(catSel.value);
+  try {
+    const data = await api(`/api/admin/products/${slug}`, {
+      method: 'PATCH', body: JSON.stringify(payload),
+    });
+    const idx = adminProducts.findIndex(p => p.slug === slug);
+    if (idx !== -1) adminProducts[idx] = { ...adminProducts[idx], ...data.product };
+    const h4 = list.querySelector(`h4[data-slug="${slug}"]`);
+    if (h4) h4.textContent = data.product.name;
+    return data.product;
+  } catch (err) {
+    return err.message;
+  }
 }
 
 function escapeHtml(s) {
