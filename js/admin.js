@@ -190,7 +190,7 @@ async function loadAdminCategories() {
     const filter = document.getElementById('pmCategoryFilter');
     if (filter) {
       filter.innerHTML = `<option value="">All</option>` +
-        data.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        data.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
   } catch (err) {
     select.innerHTML = `<option value="">Categories failed to load</option>`;
