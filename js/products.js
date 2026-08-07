@@ -1,3 +1,26 @@
+function escapeAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function openProductLightbox(src, alt) {
+  const box = document.createElement('div');
+  box.className = 'product-lightbox';
+  const img = document.createElement('img');
+  img.src = src;
+  img.alt = alt || '';
+  const close = document.createElement('span');
+  close.className = 'pl-close';
+  close.innerHTML = '&times;';
+  close.addEventListener('click', e => { e.stopPropagation(); box.remove(); });
+  box.appendChild(close);
+  box.appendChild(img);
+  box.addEventListener('click', () => box.remove());
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { box.remove(); document.removeEventListener('keydown', esc); }
+  });
+  document.body.appendChild(box);
+}
+
 window.ProductsRenderer = {
   apiBase: () => API_CONFIG.baseUrl || '',
   loaded: false,
@@ -36,7 +59,9 @@ window.ProductsRenderer = {
         return `
         <div class="product-card">
           ${badgeHtml}
-          <img src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
+          <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
+            <img src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
+          </a>
           <div class="product-info">
             <h3>${p.name}</h3>
             <p class="product-category">${p.category_name}</p>
@@ -55,6 +80,13 @@ window.ProductsRenderer = {
         });
       }
       document.dispatchEvent(new CustomEvent('products:rendered'));
+      grid.querySelectorAll('.product-img-link').forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          openProductLightbox(link.dataset.img, link.querySelector('img').alt);
+        });
+      });
     } catch (err) {
       /* keep hardcoded cards if backend unavailable */
     }

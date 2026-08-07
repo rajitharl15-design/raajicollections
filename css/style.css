@@ -650,6 +650,48 @@ nav {
   transition: transform 0.3s ease;
 }
 
+.product-img-link {
+  display: block;
+  text-decoration: none;
+}
+
+.product-img-link img {
+  cursor: zoom-in;
+}
+
+.product-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  cursor: zoom-out;
+}
+
+.product-lightbox img {
+  max-width: 92vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+  background: #fff;
+}
+
+.product-lightbox .pl-close {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  color: #fff;
+  font-size: 38px;
+  font-weight: 300;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 1;
+}
+
 .product-info {
   padding: 12px;
 }
