@@ -193,11 +193,35 @@ router.patch('/orders/:id', async (req, res, next) => {
   }
 });
 
-// PATCH /api/admin/products/:slug  -> update price / old_price / stock / badge
+// GET /api/admin/products  -> list all products with primary image
+router.get('/products', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock_qty, p.badge, p.is_featured,
+              c.name AS category_name,
+              COALESCE(img.image_url, '/images/dress.svg') AS image_url
+         FROM products p
+         JOIN categories c ON c.id = p.category_id
+         LEFT JOIN LATERAL (
+           SELECT image_url FROM product_images
+           WHERE product_id = p.id AND is_primary = TRUE
+           ORDER BY sort_order LIMIT 1
+         ) img ON TRUE
+        WHERE p.is_active = TRUE
+        ORDER BY p.id`
+    );
+    res.json({ products: rows });
+  } catch (err) { next(err); }
+});
+
+// PATCH /api/admin/products/:slug  -> update name / price / old_price / stock / badge
 router.patch('/products/:slug', async (req, res, next) => {
   try {
-    const { price, old_price, stock_qty, badge, is_featured } = req.body;
+    const { name, price, old_price, stock_qty, badge, is_featured } = req.body;
 
+    if (name != null && (!name.trim() || name.length > 200)) {
+      return res.status(400).json({ error: 'name must be non-empty and under 200 chars' });
+    }
     if (price != null && (!Number.isFinite(Number(price)) || Number(price) < 0)) {
       return res.status(400).json({ error: 'price must be a non-negative number' });
     }
@@ -210,15 +234,17 @@ router.patch('/products/:slug', async (req, res, next) => {
 
     const updated = await pool.query(
       `UPDATE products
-          SET price = COALESCE($1::numeric, price),
-              old_price = CASE WHEN $2::text = '' THEN NULL ELSE COALESCE($2::numeric, old_price) END,
-              stock_qty = COALESCE($3::int, stock_qty),
-              badge = COALESCE($4::varchar, badge),
-              is_featured = COALESCE($5::boolean, is_featured),
+          SET name = COALESCE($1::varchar, name),
+              price = COALESCE($2::numeric, price),
+              old_price = CASE WHEN $3::text = '' THEN NULL ELSE COALESCE($3::numeric, old_price) END,
+              stock_qty = COALESCE($4::int, stock_qty),
+              badge = COALESCE($5::varchar, badge),
+              is_featured = COALESCE($6::boolean, is_featured),
               updated_at = NOW()
-        WHERE slug = $6 AND is_active = TRUE
+        WHERE slug = $7 AND is_active = TRUE
         RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured`,
       [
+        name != null && name.trim() ? name.trim() : null,
         price != null ? Number(price) : null,
         old_price != null ? old_price : null,
         stock_qty != null ? Number(stock_qty) : null,

@@ -187,9 +187,91 @@ async function loadAdminCategories() {
     const data = await api('/api/admin/categories');
     select.innerHTML = data.categories.map(c =>
       `<option value="${c.id}">${c.name}</option>`).join('');
+    const filter = document.getElementById('pmCategoryFilter');
+    if (filter) {
+      filter.innerHTML = `<option value="">All</option>` +
+        data.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
   } catch (err) {
     select.innerHTML = `<option value="">Categories failed to load</option>`;
   }
+}
+
+let adminProducts = [];
+
+async function loadAdminProducts() {
+  const list = document.getElementById('pmList');
+  try {
+    adminProducts = (await api('/api/admin/products')).products;
+    renderAdminProducts();
+  } catch (err) {
+    if (list) list.innerHTML = `<p class="admin-loading">Failed to load products: ${err.message}</p>`;
+  }
+}
+
+function renderAdminProducts() {
+  const filter = document.getElementById('pmCategoryFilter');
+  const cat = filter ? filter.value : '';
+  const filtered = cat ? adminProducts.filter(p => String(p.category_name) === cat) : adminProducts;
+  const list = document.getElementById('pmList');
+  if (!list) return;
+  if (filtered.length === 0) {
+    list.innerHTML = '<p class="admin-loading">No products found.</p>';
+    return;
+  }
+  list.innerHTML = filtered.map(p => `
+    <div class="pm-product">
+      <img src="${p.image_url}" alt="${p.name}">
+      <div class="pm-info">
+        <h4 data-slug="${p.slug}">${p.name}</h4>
+        <p class="admin-order-meta">${p.category_name}</p>
+        <label>Name
+          <input data-field="name" data-slug="${p.slug}" type="text" value="${escapeHtml(p.name)}">
+        </label>
+        <label>Price (₹) <input data-field="price" data-slug="${p.slug}" type="number" min="0" value="${p.price}"></label>
+        <label>Old Price (₹) <input data-field="old_price" data-slug="${p.slug}" type="number" min="0" value="${p.old_price != null ? p.old_price : ''}" placeholder="none"></label>
+        <label>Stock <input data-field="stock_qty" data-slug="${p.slug}" type="number" min="0" value="${p.stock_qty}"></label>
+        <label>Badge <input data-field="badge" data-slug="${p.slug}" type="text" value="${escapeHtml(p.badge || '')}" placeholder="New / Sale"></label>
+        <button class="btn-link" data-save="${p.slug}"><i class="fas fa-save"></i> Save</button>
+        <span class="pm-saved" id="pmSaved-${p.slug}"></span>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-save]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const slug = btn.dataset.save;
+      const inputs = list.querySelectorAll(`input[data-slug="${slug}"]`);
+      const payload = {};
+      inputs.forEach(inp => {
+        const field = inp.dataset.field;
+        const val = inp.value.trim();
+        if (field === 'name' && val) payload.name = val;
+        else if (field === 'price' && val) payload.price = Number(val);
+        else if (field === 'old_price') payload.old_price = val === '' ? '' : Number(val);
+        else if (field === 'stock_qty' && val !== '') payload.stock_qty = Number(val);
+        else if (field === 'badge') payload.badge = val;
+      });
+      const saved = document.getElementById(`pmSaved-${slug}`);
+      try {
+        const data = await api(`/api/admin/products/${slug}`, {
+          method: 'PATCH', body: JSON.stringify(payload),
+        });
+        saved.textContent = `Saved: ${data.product.name}`;
+        setTimeout(() => { saved.textContent = ''; }, 3000);
+        const idx = adminProducts.findIndex(p => p.slug === slug);
+        if (idx !== -1) adminProducts[idx] = { ...adminProducts[idx], ...data.product };
+        const h4 = list.querySelector(`h4[data-slug="${slug}"]`);
+        if (h4) h4.textContent = data.product.name;
+      } catch (err) {
+        saved.textContent = `Error: ${err.message}`;
+      }
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 async function saveNewProduct() {
@@ -317,9 +399,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const tab = btn.dataset.tab;
       document.getElementById('tab-orders').classList.toggle('hidden', tab !== 'orders');
       document.getElementById('tab-addproduct').classList.toggle('hidden', tab !== 'addproduct');
+      document.getElementById('tab-manageproducts').classList.toggle('hidden', tab !== 'manageproducts');
       if (tab === 'addproduct') loadAdminCategories();
+      if (tab === 'manageproducts') { loadAdminCategories(); loadAdminProducts(); }
     });
   });
+
+  const pmCat = document.getElementById('pmCategoryFilter');
+  if (pmCat) pmCat.addEventListener('change', renderAdminProducts);
+  const pmRefresh = document.getElementById('pmRefreshBtn');
+  if (pmRefresh) pmRefresh.addEventListener('click', loadAdminProducts);
 
   // Add product form
   let selectedImages = [];
