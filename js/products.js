@@ -14,11 +14,14 @@ window.ProductsRenderer = {
 
     try {
       const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
-      const res = await fetch(`${base}/api/products${qs}`);
+      const res = await fetch(`${base}/api/products${qs}`, { headers: { 'Cache-Control': 'no-cache' } });
       if (!res.ok) throw new Error('load failed');
       const data = await res.json();
       const products = data.products || [];
-      if (products.length === 0) return;
+      if (products.length === 0) {
+        grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
+        return;
+      }
 
       grid.innerHTML = products.map(p => {
         const price = Number(p.price);
