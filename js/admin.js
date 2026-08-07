@@ -533,13 +533,11 @@ document.addEventListener('DOMContentLoaded', () => {
         img.alt = file.name;
         img.className = 'pf-prev-img';
         img.title = 'Click to zoom';
+        img.addEventListener('click', e => {
+          e.stopPropagation();
+          openImageLightbox(img.src);
+        });
         preview.appendChild(img);
-      });
-      preview.addEventListener('click', e => {
-        const t = e.target;
-        if (t && t.classList && t.classList.contains('pf-prev-img')) {
-          openImageLightbox(t.src);
-        }
       });
     });
   }
