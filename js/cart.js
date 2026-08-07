@@ -91,9 +91,6 @@ const Cart = {
 
     const total = document.getElementById('cartTotal');
     if (total) total.textContent = `${STORE_CONFIG.currency}${this.total().toLocaleString('en-IN')}`;
-
-    const upiPayBtn = document.querySelector('.btn-pay-upi');
-    if (upiPayBtn) upiPayBtn.style.display = STORE_CONFIG.upiId ? '' : 'none';
   },
 
   toast(msg) {
@@ -138,14 +135,9 @@ function closeCheckout() {
   document.body.style.overflow = '';
 }
 
-function payViaUpi() {
-  const total = Cart.total();
-  const amount = encodeURIComponent(total.toFixed(2).toString());
-  const note = encodeURIComponent('Order - Raaji Collections');
-  const upi = STORE_CONFIG.upiId ? encodeURIComponent(STORE_CONFIG.upiId) : '';
-  const url = `upi://pay?pa=${upi}&pn=${encodeURIComponent('Raaji Collections')}&am=${amount}&cu=INR&tn=${note}`;
-  window.location.href = url;
-}async function placeOrder() {
+function loadCheckout() {}
+
+async function placeOrder() {
   const form = document.getElementById('checkoutForm');
   const note = document.getElementById('orderNote');
   const btn = document.getElementById('placeOrderBtn');
@@ -170,7 +162,7 @@ function payViaUpi() {
       pincode: fd.get('pincode'),
     },
     items,
-    paymentMethod: 'upi',
+    paymentMethod: 'cod',
   };
 
   btn.disabled = true;
@@ -185,7 +177,7 @@ function payViaUpi() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order failed');
-      note.textContent = `Order placed! Your order number is ${data.order_number}. Share the UPI payment screenshot on WhatsApp to confirm.`;
+      note.textContent = `Order placed! Your order number is ${data.order_number}. Share your payment screenshot on WhatsApp to confirm.`;
       note.classList.remove('hidden');
       setTimeout(() => {
         Cart.clear();
@@ -267,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.querySelectorAll('.btn-checkout').forEach(b => b.addEventListener('click', openCheckout));
-  document.querySelectorAll('.btn-pay-upi').forEach(b => b.addEventListener('click', payViaUpi));
   const placeOrderBtn = document.getElementById('placeOrderBtn');
   if (placeOrderBtn) placeOrderBtn.addEventListener('click', placeOrder);
 });

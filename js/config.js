@@ -4,7 +4,6 @@ const API_CONFIG = {
 window.API_CONFIG = API_CONFIG;
 
 const STORE_CONFIG = {
-  upiId: '8125491097@ybl',
   whatsappNumber: '918125491097',
   currency: '₹'
 };
