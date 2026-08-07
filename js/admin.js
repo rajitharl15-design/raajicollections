@@ -251,9 +251,21 @@ function renderAdminProducts() {
   list.querySelectorAll('[data-save]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const slug = btn.dataset.save;
-      const saved = await saveAdminProduct(slug);
       const el = document.getElementById(`pmSaved-${slug}`);
-      if (el) { el.textContent = saved ? `Saved: ${saved.name}` : `Error: ${saved}`; setTimeout(() => { el.textContent = ''; }, 3000); }
+      if (el) { el.textContent = 'Saving...'; }
+      const result = await saveAdminProduct(slug);
+      if (el) { el.textContent = (result && result.name) ? `Saved: ${result.name}` : `Error: ${result}`; setTimeout(() => { el.textContent = ''; }, 3000); }
+    });
+  });
+
+  list.querySelectorAll('#pmList input[data-field], #pmList select[data-field]').forEach(inp => {
+    if (inp.type === 'checkbox') return;
+    inp.addEventListener('change', async () => {
+      const slug = inp.dataset.slug;
+      const el = document.getElementById(`pmSaved-${slug}`);
+      if (el) { el.textContent = 'Saving...'; }
+      const result = await saveAdminProduct(slug);
+      if (el) { el.textContent = (result && result.name) ? `Saved: ${result.name}` : `Error: ${result}`; setTimeout(() => { el.textContent = ''; }, 3000); }
     });
   });
 
