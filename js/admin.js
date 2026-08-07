@@ -322,6 +322,24 @@ function imgLabelHint(msg) {
   if (lbl) { lbl.textContent = msg; setTimeout(() => { lbl.textContent = '+ Click to add product images (multiple)'; }, 3000); }
 }
 
+function openImageLightbox(src) {
+  const box = document.createElement('div');
+  box.className = 'pf-lightbox';
+  const img = document.createElement('img');
+  img.src = src;
+  const close = document.createElement('span');
+  close.className = 'pf-lb-close';
+  close.innerHTML = '&times;';
+  close.addEventListener('click', e => { e.stopPropagation(); box.remove(); });
+  box.appendChild(close);
+  box.appendChild(img);
+  box.addEventListener('click', () => box.remove());
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { box.remove(); document.removeEventListener('keydown', esc); }
+  });
+  document.body.appendChild(box);
+}
+
 async function dataUrlFromObjectUrls(urls) {
   const out = [];
   for (const u of urls) {
@@ -513,7 +531,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const img = document.createElement('img');
         img.src = url;
         img.alt = file.name;
+        img.className = 'pf-prev-img';
+        img.title = 'Click to zoom';
         preview.appendChild(img);
+      });
+      preview.addEventListener('click', e => {
+        const t = e.target;
+        if (t && t.classList && t.classList.contains('pf-prev-img')) {
+          openImageLightbox(t.src);
+        }
       });
     });
   }

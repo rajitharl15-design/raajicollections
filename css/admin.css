@@ -491,6 +491,41 @@ body.admin-page {
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid var(--beige);
+  cursor: zoom-in;
+  transition: transform .15s ease;
+}
+
+.pf-preview img:hover {
+  transform: scale(1.05);
+}
+
+.pf-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, .85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  cursor: zoom-out;
+}
+
+.pf-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .6);
+}
+
+.pf-lightbox .pf-lb-close {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  color: #fff;
+  font-size: 32px;
+  cursor: pointer;
+  line-height: 1;
 }
 
 .pf-submit {
