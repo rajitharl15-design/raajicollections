@@ -198,6 +198,7 @@ router.get('/products', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock_qty, p.badge, p.is_featured, p.is_active,
+              p.category_id,
               c.name AS category_name,
               COALESCE(img.image_url, '/images/dress.svg') AS image_url
          FROM products p
@@ -216,7 +217,7 @@ router.get('/products', async (req, res, next) => {
 // PATCH /api/admin/products/:slug  -> update name / price / old_price / stock / badge
 router.patch('/products/:slug', async (req, res, next) => {
   try {
-    const { name, price, old_price, stock_qty, badge, is_featured, is_active } = req.body;
+    const { name, price, old_price, stock_qty, badge, is_featured, is_active, category_id } = req.body;
 
     if (name != null && (!name.trim() || name.length > 200)) {
       return res.status(400).json({ error: 'name must be non-empty and under 200 chars' });
@@ -230,6 +231,9 @@ router.patch('/products/:slug', async (req, res, next) => {
     if (stock_qty != null && (!Number.isInteger(Number(stock_qty)) || Number(stock_qty) < 0)) {
       return res.status(400).json({ error: 'stock_qty must be a non-negative integer' });
     }
+    if (category_id != null && (!Number.isInteger(Number(category_id)) || Number(category_id) < 1)) {
+      return res.status(400).json({ error: 'category_id must be a positive integer' });
+    }
 
     const updated = await pool.query(
       `UPDATE products
@@ -240,9 +244,10 @@ router.patch('/products/:slug', async (req, res, next) => {
               badge = COALESCE($5::varchar, badge),
               is_featured = COALESCE($6::boolean, is_featured),
               is_active = COALESCE($7::boolean, is_active),
+              category_id = COALESCE($8::int, category_id),
               updated_at = NOW()
-        WHERE slug = $8
-        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active`,
+        WHERE slug = $9
+        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active, category_id`,
       [
         name != null && name.trim() ? name.trim() : null,
         price != null ? Number(price) : null,
@@ -251,6 +256,7 @@ router.patch('/products/:slug', async (req, res, next) => {
         badge != null ? badge : null,
         is_featured != null ? is_featured : null,
         is_active != null ? is_active : null,
+        category_id != null ? Number(category_id) : null,
         req.params.slug,
       ]
     );

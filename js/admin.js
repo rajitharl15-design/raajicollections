@@ -180,11 +180,14 @@ function showLogin() {
   document.getElementById('adminDashboard').classList.add('hidden');
 }
 
+let adminCategories = [];
+
 async function loadAdminCategories() {
   const select = document.getElementById('pfCategory');
   if (!select) return;
   try {
     const data = await api('/api/admin/categories');
+    adminCategories = data.categories;
     select.innerHTML = data.categories.map(c =>
       `<option value="${c.id}">${c.name}</option>`).join('');
     const filter = document.getElementById('pmCategoryFilter');
@@ -224,7 +227,11 @@ function renderAdminProducts() {
       <img src="${p.image_url}" alt="${p.name}">
       <div class="pm-info">
         <h4 data-slug="${p.slug}">${p.name}</h4>
-        <p class="admin-order-meta">${p.category_name}</p>
+        <p class="admin-order-meta">Category
+          <select data-field="category_id" data-slug="${p.slug}">
+            ${adminCategories.map(c => `<option value="${c.id}" ${c.id === p.category_id ? 'selected' : ''}>${c.name}</option>`).join('')}
+          </select>
+        </p>
         <label>Name
           <input data-field="name" data-slug="${p.slug}" type="text" value="${escapeHtml(p.name)}">
         </label>
@@ -256,6 +263,8 @@ function renderAdminProducts() {
         else if (field === 'badge') payload.badge = val;
         else if (field === 'is_active') payload.is_active = inp.checked;
       });
+      const catSel = list.querySelector(`select[data-field="category_id"][data-slug="${slug}"]`);
+      if (catSel) payload.category_id = Number(catSel.value);
       const saved = document.getElementById(`pmSaved-${slug}`);
       try {
         const data = await api(`/api/admin/products/${slug}`, {
