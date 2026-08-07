@@ -529,6 +529,23 @@ nav {
   margin: 0 auto;
 }
 
+.product-grid-home {
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 840px;
+}
+
+@media (max-width: 700px) {
+  .product-grid-home {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.product-grid-home .product-card img {
+  aspect-ratio: auto;
+  border-radius: 8px;
+}
+
 .product-card {
   background: var(--white);
   border-radius: 12px;
