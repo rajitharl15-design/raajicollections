@@ -7,6 +7,7 @@ const apiBase = () => API_CONFIG.baseUrl || 'http://localhost:3000';
 let adminKey = localStorage.getItem(ADMIN_KEY_STORAGE) || '';
 let currentFilter = 'all';
 let orders = [];
+let selectedImages = [];
 
 function formatMoney(n) {
   return '₹' + Number(n).toLocaleString('en-IN');
@@ -505,7 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (pmRefresh) pmRefresh.addEventListener('click', loadAdminProducts);
 
   // Add product form
-  let selectedImages = [];
   const imgInput = document.getElementById('pfImages');
   const dropBtn = document.getElementById('pfDropBtn');
   if (imgInput && dropBtn) {
