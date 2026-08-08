@@ -1620,6 +1620,17 @@ footer {
   background: #1DA851;
 }
 
+.checkout-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+.checkout-hint strong {
+  color: #333;
+}
+
 .order-note {
   margin-top: 15px;
   padding: 12px;
