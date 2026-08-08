@@ -91,6 +91,7 @@ function renderOrders() {
           <span class="badge badge-status ${o.status}">${o.status}</span>
           <span class="badge badge-pay ${o.payment_status}">${o.payment_status}</span>
           ${o.tracking_number ? `<span class="badge badge-track">📦 ${escapeHtml(o.tracking_number)}</span>` : ''}
+          ${o.confirm_code ? `<span class="badge badge-code" title="Ask customer for this code with their payment screenshot">🔐 ${escapeHtml(o.confirm_code)}</span>` : ''}
         </div>
         <div class="admin-actions">
           <div class="admin-action-group">
