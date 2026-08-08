@@ -77,18 +77,19 @@ router.post('/', async (req, res, next) => {
 
     // 3. Create order
     const orderNumber = `RC${Date.now().toString(36).toUpperCase()}`;
+    const confirmCode = String(Math.floor(1000 + Math.random() * 9000));
     const orderRes = await client.query(
       `INSERT INTO orders (order_number, customer_id, status, payment_status,
                            subtotal, shipping_fee, discount, total,
                            shipping_name, shipping_phone, shipping_address,
-                           shipping_city, shipping_state, shipping_pincode, notes)
-       VALUES ($1, $2, 'pending', 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-       RETURNING id, order_number, total`,
+                           shipping_city, shipping_state, shipping_pincode, confirm_code, notes)
+       VALUES ($1, $2, 'pending', 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       RETURNING id, order_number, total, confirm_code`,
       [
         orderNumber, customerId, subtotal, shippingFee, discount, total,
         customer.first_name, customer.phone || null, shipping?.address || null,
         shipping?.city || null, shipping?.state || null, shipping?.pincode || null,
-        notes || null,
+        confirmCode, notes || null,
       ]
     );
     const order = orderRes.rows[0];
@@ -117,6 +118,7 @@ router.post('/', async (req, res, next) => {
       total,
       shipping_fee: shippingFee,
       status: 'pending',
+      confirm_code: order.confirm_code,
     });
   } catch (err) {
     await client.query('ROLLBACK');

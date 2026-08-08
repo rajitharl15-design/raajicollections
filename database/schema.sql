@@ -96,6 +96,7 @@ CREATE TABLE orders (
     shipping_pincode  VARCHAR(10),
     tracking_carrier  VARCHAR(100),
     tracking_number   VARCHAR(100),
+    confirm_code      VARCHAR(8),
     notes             TEXT,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()

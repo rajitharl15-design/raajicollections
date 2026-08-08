@@ -158,6 +158,7 @@ async function showOrderDetails(orderId) {
     <div class="admin-modal-box">
       <button class="admin-modal-close"><i class="fas fa-times"></i></button>
       <h2>${o.order_number}</h2>
+      ${o.confirm_code ? `<p class="admin-order-meta"><strong>Payment code:</strong> <span class="badge badge-track">${escapeHtml(o.confirm_code)}</span> — ask customer to include this with their payment screenshot</p>` : ''}
       <p class="admin-order-meta">${o.shipping_name || ''} · ${o.shipping_phone || ''}${o.shipping_city ? ' · ' + o.shipping_city : ''}${o.shipping_state ? ', ' + o.shipping_state : ''}${o.shipping_pincode ? ' - ' + o.shipping_pincode : ''}</p>
       <p class="admin-order-meta">${o.shipping_address || ''}</p>
       <h4>Items</h4>

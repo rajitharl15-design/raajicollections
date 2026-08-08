@@ -117,7 +117,7 @@ function openCheckout() {
   updateWhatsAppLink();
 }
 
-function updateWhatsAppLink(orderNumber) {
+function updateWhatsAppLink(orderNumber, confirmCode) {
   const link = document.getElementById('whatsappLink');
   if (!link) return;
   const wa = STORE_CONFIG.whatsappNumber;
@@ -128,7 +128,8 @@ function updateWhatsAppLink(orderNumber) {
   link.style.display = '';
   const items = Object.values(Cart.items).map(i => `${i.qty} x ${i.name}`).join(', ');
   const orderPart = orderNumber ? `My order number is ${orderNumber}. ` : '';
-  const msg = `Hello Raaji Collections! ${orderPart}I placed an order for: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. I will share the payment screenshot here to confirm.`;
+  const codePart = confirmCode ? `Payment code: ${confirmCode}. ` : '';
+  const msg = `Hello Raaji Collections! ${orderPart}${codePart}I placed an order for: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. I will send the payment screenshot here to confirm.`;
   link.href = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -180,13 +181,16 @@ async function placeOrder() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order failed');
       window._lastOrderNumber = data.order_number;
-      note.textContent = `Order placed! Your order number is ${data.order_number}. Now confirm on WhatsApp below with your payment screenshot.`;
+      window._lastConfirmCode = data.confirm_code;
+      note.textContent = data.confirm_code
+        ? `Order placed! Number ${data.order_number} · Payment code: ${data.confirm_code}. Send this code with your payment screenshot on WhatsApp to confirm.`
+        : `Order placed! Your order number is ${data.order_number}. Now confirm on WhatsApp below with your payment screenshot.`;
       note.classList.remove('hidden');
-      updateWhatsAppLink(data.order_number);
+      updateWhatsAppLink(data.order_number, data.confirm_code);
       setTimeout(() => {
         Cart.clear();
         closeCheckout();
-      }, 6000);
+      }, 7000);
     } catch (err) {
       note.textContent = `Order failed: ${err.message}`;
       note.classList.remove('hidden');
