@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Track Order - Raaji Collections</title>
+  <meta name="description" content="Track your Raaji Collections order status. Enter your order number to see where your order is.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8B1A2B">
+  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header / Navigation -->
+  <header>
+    <div class="header-top">
+      <p>Free shipping on orders above ₹999</p>
+    </div>
+    <nav>
+      <div class="logo">
+        <img src="images/peacock-logo.svg" alt="Raaji Collections peacock logo" class="logo-img">
+        <h1>Raaji Collections</h1>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="sarees.html">Sarees</a></li>
+        <li><a href="blouses.html">Blouses</a></li>
+        <li><a href="nightdresses.html">Night Dresses</a></li>
+        <li><a href="jewellery.html">Jewellery</a></li>
+      </ul>
+      <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Track Order Section -->
+  <section class="track-section">
+    <div class="track-box">
+      <h2>Track Your Order</h2>
+      <p class="track-sub">Enter your order number below (e.g. RCXXXXXXXX)</p>
+
+      <div class="track-form">
+        <input type="text" id="trackInput" placeholder="Order Number" autocomplete="off">
+        <button class="btn-primary" id="trackBtn"><i class="fas fa-search"></i> Track</button>
+      </div>
+      <p class="track-error" id="trackError"></p>
+
+      <div class="track-result hidden" id="trackResult">
+        <div class="track-head">
+          <div>
+            <h3 id="trackOrderNumber"></h3>
+            <p class="track-meta" id="trackMeta"></p>
+          </div>
+          <span class="badge badge-status" id="trackStatus"></span>
+        </div>
+        <div class="track-timeline" id="trackTimeline"></div>
+        <div class="track-amount">
+          <span>Order Total</span>
+          <strong id="trackTotal"></strong>
+        </div>
+        <p class="track-help">Questions? Message us on WhatsApp anytime.</p>
+        <a class="btn-whatsapp" id="trackWhatsapp" href="#" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Chat on WhatsApp</a>
+      </div>
+
+      <a href="index.html" class="track-back"><i class="fas fa-arrow-left"></i> Back to store</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img src="images/peacock-logo.svg" alt="Raaji Collections peacock logo" class="footer-logo">
+          <h3>Raaji Collections</h3>
+        </div>
+        <p>Your destination for authentic traditional women's wear. Celebrating Indian heritage through timeless fashion.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="sarees.html">Sarees</a></li>
+          <li><a href="blouses.html">Blouses</a></li>
+          <li><a href="nightdresses.html">Night Dresses</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Service</h4>
+        <ul>
+          <li><a href="track.html">Track Order</a></li>
+          <li><a href="#">Shipping Policy</a></li>
+          <li><a href="#">Return Policy</a></li>
+          <li><a href="#">Size Guide</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="#">WhatsApp</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Raaji Collections. All rights reserved. | <a href="admin.html">Admin</a></p>
+    </div>
+  </footer>
+
+  <script src="js/config.js?v=3"></script>
+  <script src="js/track.js?v=1"></script>
+  <script>
+    function toggleMenu() {
+      const navLinks = document.getElementById('navLinks');
+      const hamburger = document.getElementById('hamburger');
+      navLinks.classList.toggle('show');
+      hamburger.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>
