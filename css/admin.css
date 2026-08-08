@@ -249,6 +249,18 @@ body.admin-page {
 .badge-pay.refunded { background: #F3E5F5; color: #6A1B9A; }
 .badge-code { background: #FFF8E1; color: #B26A00; cursor: help; }
 
+.admin-code-note {
+  background: #FFF8E1;
+  border: 1px solid #FFE082;
+  border-left: 4px solid #B26A00;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6a4a00;
+}
+
 .admin-actions {
   display: flex;
   gap: 20px;
