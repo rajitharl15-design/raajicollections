@@ -474,7 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
       err.textContent = '';
       showDashboard();
     } catch (e) {
-      err.textContent = 'Invalid admin key.';
+      err.textContent = e.status === 429
+        ? 'Too many failed attempts. Try again in 15 minutes.'
+        : 'Invalid admin key.';
       adminKey = '';
     }
   });

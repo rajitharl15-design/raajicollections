@@ -6,11 +6,31 @@ const router = Router();
 const ALLOWED_ORDER_STATUS = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'];
 const ALLOWED_PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
 
+const FAIL_WINDOW_MS = 15 * 60 * 1000;
+const MAX_FAILURES = 10;
+const failedMap = new Map();
+
 function requireAdmin(req, res, next) {
   const key = req.get('x-admin-key');
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const rec = failedMap.get(ip);
+
+  if (rec && now - rec.windowStart <= FAIL_WINDOW_MS && rec.count >= MAX_FAILURES) {
+    return res.status(429).json({ error: 'Too many failed attempts. Try again in 15 minutes.' });
+  }
+
+  if (now - rec?.windowStart > FAIL_WINDOW_MS) failedMap.delete(ip);
+
   if (!process.env.ADMIN_API_KEY || key !== process.env.ADMIN_API_KEY) {
+    const nextRec = failedMap.get(ip) || { windowStart: now, count: 0 };
+    if (now - nextRec.windowStart > FAIL_WINDOW_MS) nextRec.windowStart = now;
+    if (key !== nextRec.lastKey) { nextRec.count += 1; nextRec.lastKey = key; }
+    failedMap.set(ip, nextRec);
     return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  failedMap.delete(ip);
   next();
 }
 
