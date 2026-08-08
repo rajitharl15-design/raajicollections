@@ -11,7 +11,7 @@
   <meta name="description" content="Track your Raaji Collections order status. Enter your order number to see where your order is.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8B1A2B">
-  <link rel="stylesheet" href="css/style.css?v=13">
+  <link rel="stylesheet" href="css/style.css?v=14">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -64,6 +64,7 @@
           <span class="badge badge-status" id="trackStatus"></span>
         </div>
         <div class="track-timeline" id="trackTimeline"></div>
+        <div class="track-tracking hidden" id="trackTracking"></div>
         <div class="track-amount">
           <span>Order Total</span>
           <strong id="trackTotal"></strong>
@@ -119,7 +120,7 @@
   </footer>
 
   <script src="js/config.js?v=3"></script>
-  <script src="js/track.js?v=1"></script>
+  <script src="js/track.js?v=2"></script>
   <script>
     function toggleMenu() {
       const navLinks = document.getElementById('navLinks');

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { hasTrackingColumns } from '../tracking-cols.js';
 
 const router = Router();
 
@@ -115,10 +116,14 @@ router.get('/orders', async (req, res, next) => {
       where.push(`o.status = $${params.length}`);
     }
 
+    const trackingCols = (await hasTrackingColumns())
+      ? ', o.tracking_carrier, o.tracking_number'
+      : '';
+
     const orders = await pool.query(
       `SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
               o.shipping_fee, o.discount, o.total, o.shipping_name, o.shipping_city,
-              o.shipping_state, o.shipping_pincode, o.created_at,
+              o.shipping_state, o.shipping_pincode${trackingCols}, o.created_at,
               c.first_name, c.phone, c.email,
               (SELECT COUNT(*)::int FROM order_items oi WHERE oi.order_id = o.id) AS item_count
          FROM orders o
@@ -136,10 +141,14 @@ router.get('/orders', async (req, res, next) => {
 // GET /api/admin/orders/:id  -> single order with items + payment
 router.get('/orders/:id', async (req, res, next) => {
   try {
+    const trackingCols = (await hasTrackingColumns())
+      ? ', o.tracking_carrier, o.tracking_number'
+      : '';
+
     const orderRes = await pool.query(
       `SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
               o.shipping_fee, o.discount, o.total, o.shipping_name, o.shipping_phone,
-              o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_pincode,
+              o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_pincode${trackingCols},
               o.notes, o.created_at, o.updated_at,
               c.id AS customer_id, c.first_name, c.last_name, c.email, c.phone
          FROM orders o
@@ -169,7 +178,7 @@ router.get('/orders/:id', async (req, res, next) => {
 // PATCH /api/admin/orders/:id  -> update status / payment_status / payment transaction
 router.patch('/orders/:id', async (req, res, next) => {
   try {
-    const { status, payment_status, transaction_id } = req.body;
+    const { status, payment_status, transaction_id, tracking_carrier, tracking_number } = req.body;
 
     if (status && !ALLOWED_ORDER_STATUS.includes(status)) {
       return res.status(400).json({ error: `status must be one of: ${ALLOWED_ORDER_STATUS.join(', ')}` });
@@ -188,12 +197,26 @@ router.patch('/orders/:id', async (req, res, next) => {
     const newStatus = status || order.status;
     const newPaymentStatus = payment_status || order.payment_status;
 
+    const canTrack = await hasTrackingColumns();
+    const args = [newStatus, newPaymentStatus];
+    if (canTrack) {
+      args.push(tracking_carrier != null ? tracking_carrier : null);
+      args.push(tracking_number != null ? tracking_number : null);
+    }
+    args.push(req.params.id);
+    const trackingSetSql = canTrack
+      ? `               tracking_carrier = CASE WHEN $3::text = '' THEN NULL ELSE COALESCE($3::varchar, tracking_carrier) END,
+               tracking_number  = CASE WHEN $4::text = '' THEN NULL ELSE COALESCE($4::varchar, tracking_number) END,`
+      : '';
+    const trackingRetSql = canTrack ? ', tracking_carrier, tracking_number' : '';
+
     const updated = await pool.query(
       `UPDATE orders
-          SET status = $1, payment_status = $2, updated_at = NOW()
-        WHERE id = $3
-        RETURNING id, order_number, status, payment_status, total, updated_at`,
-      [newStatus, newPaymentStatus, req.params.id]
+          SET status = $1, payment_status = $2,
+${trackingSetSql}              updated_at = NOW()
+        WHERE id = $${args.length}
+        RETURNING id, order_number, status, payment_status, total${trackingRetSql}, updated_at`,
+      args
     );
 
     if (transaction_id || (payment_status && payment_status === 'paid')) {

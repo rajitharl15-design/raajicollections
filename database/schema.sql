@@ -94,6 +94,8 @@ CREATE TABLE orders (
     shipping_city     VARCHAR(100),
     shipping_state    VARCHAR(100),
     shipping_pincode  VARCHAR(10),
+    tracking_carrier  VARCHAR(100),
+    tracking_number   VARCHAR(100),
     notes             TEXT,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()

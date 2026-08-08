@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db.js';
+import { hasTrackingColumns } from '../tracking-cols.js';
 
 const router = Router();
 
@@ -128,9 +129,13 @@ router.post('/', async (req, res, next) => {
 // GET /api/orders/:orderNumber
 router.get('/:orderNumber', async (req, res, next) => {
   try {
+    const tracking = await hasTrackingColumns();
+    const trackingCols = tracking
+      ? ', tracking_carrier, tracking_number'
+      : '';
     const { rows } = await pool.query(
       `SELECT id, order_number, status, payment_status, subtotal, shipping_fee,
-              discount, total, shipping_name, created_at
+              discount, total, shipping_name${trackingCols}, created_at
          FROM orders WHERE order_number = $1`,
       [req.params.orderNumber]
     );

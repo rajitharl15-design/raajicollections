@@ -90,6 +90,7 @@ function renderOrders() {
         <div class="admin-badges">
           <span class="badge badge-status ${o.status}">${o.status}</span>
           <span class="badge badge-pay ${o.payment_status}">${o.payment_status}</span>
+          ${o.tracking_number ? `<span class="badge badge-track">📦 ${escapeHtml(o.tracking_number)}</span>` : ''}
         </div>
         <div class="admin-actions">
           <div class="admin-action-group">
@@ -170,9 +171,43 @@ async function showOrderDetails(orderId) {
         <span><strong>Total</strong></span><span><strong>${formatMoney(o.total)}</strong></span>
       </div>
       <p class="admin-order-meta">${o.notes ? 'Notes: ' + o.notes : ''}</p>
+      <div class="admin-tracking">
+        <h4>Tracking</h4>
+        <label>Carrier
+          <input data-tracking="carrier" data-order="${o.id}" type="text" value="${escapeHtml(o.tracking_carrier || '')}" placeholder="e.g. Delhivery / India Post">
+        </label>
+        <label>Tracking / AWB Number
+          <input data-tracking="number" data-order="${o.id}" type="text" value="${escapeHtml(o.tracking_number || '')}" placeholder="e.g. DL1234567890">
+        </label>
+        <button class="btn-link" data-tracking-save="${o.id}"><i class="fas fa-save"></i> Save Tracking</button>
+        <span class="admin-saved" id="trackingSaved-${o.id}"></span>
+      </div>
     </div>`;
   modal.querySelector('.admin-modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  modal.querySelector(`[data-tracking-save="${o.id}"]`).addEventListener('click', async () => {
+    const box = modal.querySelector('.admin-tracking');
+    const saved = document.getElementById(`trackingSaved-${o.id}`);
+    const payload = {
+      tracking_carrier: box.querySelector('[data-tracking="carrier"]').value.trim(),
+      tracking_number: box.querySelector('[data-tracking="number"]').value.trim(),
+    };
+    try {
+      const data = await api(`/api/admin/orders/${o.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      });
+      saved.textContent = 'Tracking saved';
+      setTimeout(() => { saved.textContent = ''; }, 3000);
+      const idx = orders.findIndex(x => x.id === Number(o.id));
+      if (idx !== -1) {
+        orders[idx].tracking_carrier = data.order.tracking_carrier;
+        orders[idx].tracking_number = data.order.tracking_number;
+      }
+    } catch (err) {
+      saved.textContent = `Error: ${err.message}`;
+    }
+  });
   document.body.appendChild(modal);
 }
 

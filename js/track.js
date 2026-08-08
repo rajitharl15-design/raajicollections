@@ -21,6 +21,25 @@ function statusLabel(status) {
   return (status || 'pending').charAt(0).toUpperCase() + (status || 'pending').slice(1);
 }
 
+function trackingUrl(carrier, number) {
+  const c = (carrier || '').toLowerCase();
+  const n = encodeURIComponent(number);
+  if (c.includes('delhivery')) return `https://www.astark.in/track/${n}`;
+  if (c.includes('india post') || c.includes('dart')) return `https://www.indiapost.gov.in/EPO_Tracking.aspx`;
+  if (c.includes('dtdc')) return `https://www.dtdc.in/tracking.asp`;
+  if (c.includes('blue dart')) return `https://www.bluedart.com/tracking`;
+  if (c.includes('xpressbee')) return `https://www.xpressbees.com/track-order`;
+  if (c.includes('shiprocket')) return `https://shiprocket.co/tracking`;
+  if (c.includes('ekart')) return `https://www.ekartlogistics.com/tracking`;
+  if (c.includes('fedex')) return `https://www.fedex.com/fedextrack/?trknbr=${n}`;
+  if (c.includes('dhl')) return `https://www.dhl.com/in-en/home/tracking.html?tracking-id=${n}`;
+  return '';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function renderTimeline(order) {
   const current = statusIndex(order.status);
   const steps = [
@@ -76,6 +95,22 @@ async function trackOrder() {
     document.getElementById('trackStatus').className = 'badge badge-status ' + (order.status || 'pending');
     document.getElementById('trackTotal').textContent = formatMoney(order.total);
     document.getElementById('trackTimeline').innerHTML = renderTimeline(order);
+
+    const trackingBox = document.getElementById('trackTracking');
+    if (order.tracking_number && order.status === 'shipped') {
+      const carrier = order.tracking_carrier || 'Courier';
+      const url = trackingUrl(carrier, order.tracking_number);
+      trackingBox.innerHTML = `
+        <div class="track-tracking-box">
+          <span class="track-tracking-label">Shipment Tracking</span>
+          <strong>${escapeHtml(carrier)} — ${escapeHtml(order.tracking_number)}</strong>
+          ${url ? `<a class="track-tracking-link" href="${url}" target="_blank" rel="noopener">Track on courier site <i class="fas fa-external-link-alt"></i></a>` : ''}
+        </div>`;
+      trackingBox.classList.remove('hidden');
+    } else {
+      trackingBox.classList.add('hidden');
+      trackingBox.innerHTML = '';
+    }
 
     const waNum = (window.STORE_CONFIG && STORE_CONFIG.whatsappNumber) || '918125491097';
     const msg = encodeURIComponent(`Hi! I want to ask about my order ${order.order_number} (${statusLabel(order.status)}).`);

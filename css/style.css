@@ -2140,3 +2140,85 @@ body.admin-mode .product-card img {
 .track-back i {
   margin-right: 6px;
 }
+
+.track-tracking {
+  margin: 10px 0;
+}
+
+.track-tracking-box {
+  background: var(--beige);
+  border: 1px solid var(--secondary);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.track-tracking-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-light);
+}
+
+.track-tracking-box strong {
+  font-size: 15px;
+  color: var(--dark);
+  word-break: break-all;
+}
+
+.track-tracking-link {
+  margin-top: 6px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.track-tracking-link i {
+  margin-left: 4px;
+  font-size: 12px;
+}
+
+.badge-track {
+  background: #E3F2FD;
+  color: #1565C0;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.admin-tracking {
+  margin-top: 16px;
+  border-top: 1px solid var(--beige);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-tracking h4 {
+  font-size: 16px;
+  color: var(--dark);
+}
+
+.admin-tracking label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.admin-tracking input {
+  padding: 9px 12px;
+  border: 1px solid var(--beige);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+
+.admin-tracking input:focus {
+  border-color: var(--secondary);
+}
