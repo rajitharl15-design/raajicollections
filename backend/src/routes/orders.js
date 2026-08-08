@@ -23,32 +23,56 @@ router.post('/', async (req, res, next) => {
 
     await client.query('BEGIN');
 
-    // 1. Upsert customer
-    const customerRes = await client.query(
-      `INSERT INTO customers (first_name, last_name, email, phone,
-                              address_line1, city, state, pincode)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       ON CONFLICT (email) DO UPDATE
-         SET first_name = EXCLUDED.first_name,
-             last_name  = EXCLUDED.last_name,
-             phone      = EXCLUDED.phone,
-             address_line1 = EXCLUDED.address_line1,
-             city       = EXCLUDED.city,
-             state      = EXCLUDED.state,
-             pincode    = EXCLUDED.pincode
-       RETURNING id`,
-      [
-        customer.first_name || 'Guest',
-        customer.last_name || null,
-        customer.email || null,
-        customer.phone || null,
-        shipping?.address || null,
-        shipping?.city || null,
-        shipping?.state || null,
-        shipping?.pincode || null,
-      ]
+    // 1. Upsert customer (existing by phone or email, else insert)
+    const existingRes = await client.query(
+      `SELECT id FROM customers
+        WHERE phone = $1 OR (email IS NOT NULL AND email = $2)`,
+      [customer.phone || null, customer.email || null]
     );
-    const customerId = customerRes.rows[0].id;
+    let customerId = existingRes.rows[0]?.id;
+    if (customerId) {
+      await client.query(
+        `UPDATE customers
+           SET first_name = COALESCE($1, first_name),
+               last_name  = COALESCE($2, last_name),
+               email      = COALESCE($3, email),
+               phone      = COALESCE($4, phone),
+               address_line1 = COALESCE($5, address_line1),
+               city       = COALESCE($6, city),
+               state      = COALESCE($7, state),
+               pincode    = COALESCE($8, pincode)
+         WHERE id = $9`,
+        [
+          customer.first_name || null,
+          customer.last_name || null,
+          customer.email || null,
+          customer.phone || null,
+          shipping?.address || null,
+          shipping?.city || null,
+          shipping?.state || null,
+          shipping?.pincode || null,
+          customerId,
+        ]
+      );
+    } else {
+      const insertRes = await client.query(
+        `INSERT INTO customers (first_name, last_name, email, phone,
+                                address_line1, city, state, pincode)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id`,
+        [
+          customer.first_name || 'Guest',
+          customer.last_name || null,
+          customer.email || null,
+          customer.phone || null,
+          shipping?.address || null,
+          shipping?.city || null,
+          shipping?.state || null,
+          shipping?.pincode || null,
+        ]
+      );
+      customerId = insertRes.rows[0].id;
+    }
 
     // 2. Fetch product prices + stock
     const ids = items.map(i => i.product_id);
