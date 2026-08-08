@@ -24,29 +24,30 @@ router.post('/', async (req, res, next) => {
     await client.query('BEGIN');
 
     // 1. Upsert customer (existing by phone or email, else insert)
-    const existingRes = await client.query(
-      `SELECT id FROM customers
-        WHERE phone = $1 OR (email IS NOT NULL AND email = $2)`,
-      [customer.phone || null, customer.email || null]
-    );
-    let customerId = existingRes.rows[0]?.id;
+    //    Identity fields (phone, email) are never overwritten, so a returning
+    //    customer can never collide with another customer's unique constraint.
+    const byPhone = customer.phone
+      ? await client.query(`SELECT id FROM customers WHERE phone = $1`, [customer.phone])
+      : { rows: [] };
+    let customerId = byPhone.rows[0]?.id;
+    if (!customerId && customer.email) {
+      const byEmail = await client.query(`SELECT id FROM customers WHERE email = $1`, [customer.email]);
+      customerId = byEmail.rows[0]?.id;
+    }
+
     if (customerId) {
       await client.query(
         `UPDATE customers
            SET first_name = COALESCE($1, first_name),
                last_name  = COALESCE($2, last_name),
-               email      = COALESCE($3, email),
-               phone      = COALESCE($4, phone),
-               address_line1 = COALESCE($5, address_line1),
-               city       = COALESCE($6, city),
-               state      = COALESCE($7, state),
-               pincode    = COALESCE($8, pincode)
-         WHERE id = $9`,
+               address_line1 = COALESCE($3, address_line1),
+               city       = COALESCE($4, city),
+               state      = COALESCE($5, state),
+               pincode    = COALESCE($6, pincode)
+         WHERE id = $7`,
         [
           customer.first_name || null,
           customer.last_name || null,
-          customer.email || null,
-          customer.phone || null,
           shipping?.address || null,
           shipping?.city || null,
           shipping?.state || null,
@@ -55,23 +56,40 @@ router.post('/', async (req, res, next) => {
         ]
       );
     } else {
-      const insertRes = await client.query(
-        `INSERT INTO customers (first_name, last_name, email, phone,
-                                address_line1, city, state, pincode)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING id`,
-        [
-          customer.first_name || 'Guest',
-          customer.last_name || null,
-          customer.email || null,
-          customer.phone || null,
-          shipping?.address || null,
-          shipping?.city || null,
-          shipping?.state || null,
-          shipping?.pincode || null,
-        ]
-      );
-      customerId = insertRes.rows[0].id;
+      const address = shipping?.address || null;
+      const info = [
+        customer.first_name || 'Guest',
+        customer.last_name || null,
+        customer.email || null,
+        customer.phone || null,
+        address, shipping?.city || null, shipping?.state || null, shipping?.pincode || null,
+      ];
+      try {
+        const insertRes = await client.query(
+          `INSERT INTO customers (first_name, last_name, email, phone,
+                                  address_line1, city, state, pincode)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           RETURNING id`,
+          info
+        );
+        customerId = insertRes.rows[0].id;
+      } catch (err) {
+        // Two orders placed at the exact same moment: another row with this
+        // phone or email may have been inserted between our SELECT and INSERT.
+        if (err.code === '23505') {
+          const retry = await client.query(
+            `SELECT id FROM customers
+              WHERE ($1::text IS NOT NULL AND phone = $1)
+                 OR ($2::text IS NOT NULL AND email = $2)
+             LIMIT 1`,
+            [customer.phone || null, customer.email || null]
+          );
+          customerId = retry.rows[0]?.id;
+          if (!customerId) throw err;
+        } else {
+          throw err;
+        }
+      }
     }
 
     // 2. Fetch product prices + stock
