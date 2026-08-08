@@ -113,10 +113,11 @@ function openCheckout() {
     `${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}`;
   document.getElementById('checkoutModal').classList.add('show');
   document.body.style.overflow = 'hidden';
+  window._lastOrderNumber = null;
   updateWhatsAppLink();
 }
 
-function updateWhatsAppLink() {
+function updateWhatsAppLink(orderNumber) {
   const link = document.getElementById('whatsappLink');
   if (!link) return;
   const wa = STORE_CONFIG.whatsappNumber;
@@ -126,7 +127,8 @@ function updateWhatsAppLink() {
   }
   link.style.display = '';
   const items = Object.values(Cart.items).map(i => `${i.qty} x ${i.name}`).join(', ');
-  const msg = `Hello Raaji Collections! I would like to order: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. Please confirm my order and share payment details.`;
+  const orderPart = orderNumber ? `My order number is ${orderNumber}. ` : '';
+  const msg = `Hello Raaji Collections! ${orderPart}I placed an order for: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. I will share the payment screenshot here to confirm.`;
   link.href = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -177,12 +179,14 @@ async function placeOrder() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Order failed');
-      note.textContent = `Order placed! Your order number is ${data.order_number}. Share your payment screenshot on WhatsApp to confirm.`;
+      window._lastOrderNumber = data.order_number;
+      note.textContent = `Order placed! Your order number is ${data.order_number}. Now confirm on WhatsApp below with your payment screenshot.`;
       note.classList.remove('hidden');
+      updateWhatsAppLink(data.order_number);
       setTimeout(() => {
         Cart.clear();
         closeCheckout();
-      }, 4000);
+      }, 6000);
     } catch (err) {
       note.textContent = `Order failed: ${err.message}`;
       note.classList.remove('hidden');
@@ -191,12 +195,12 @@ async function placeOrder() {
     }
   } else {
     const upi = STORE_CONFIG.upiId ? `UPI: ${STORE_CONFIG.upiId}` : 'Scan the QR / contact us to pay';
-    note.textContent = `${upi} - share your order details on WhatsApp to confirm.`;
+    note.textContent = `${upi} - now share your payment screenshot on WhatsApp to confirm the order.`;
     note.classList.remove('hidden');
     setTimeout(() => {
       Cart.clear();
       closeCheckout();
-    }, 4000);
+    }, 6000);
   }
 }
 
