@@ -114,7 +114,8 @@ function openCheckout() {
   document.getElementById('checkoutModal').classList.add('show');
   document.body.style.overflow = 'hidden';
   window._lastOrderNumber = null;
-  updateWhatsAppLink();
+  const link = document.getElementById('whatsappLink');
+  if (link) link.style.display = 'none';
 }
 
 function updateWhatsAppLink(orderNumber, confirmCode) {
@@ -183,10 +184,12 @@ async function placeOrder() {
       window._lastOrderNumber = data.order_number;
       window._lastConfirmCode = data.confirm_code;
       note.textContent = data.confirm_code
-        ? `Order placed! Number ${data.order_number} · Payment code: ${data.confirm_code}. Send this code with your payment screenshot on WhatsApp to confirm.`
-        : `Order placed! Your order number is ${data.order_number}. Now confirm on WhatsApp below with your payment screenshot.`;
+        ? `Order placed! Number ${data.order_number} · Payment code: ${data.confirm_code}. Tap the WhatsApp button below to send your payment screenshot.`
+        : `Order placed! Your order number is ${data.order_number}. Tap the WhatsApp button below to confirm.`;
       note.classList.remove('hidden');
       updateWhatsAppLink(data.order_number, data.confirm_code);
+      const link = document.getElementById('whatsappLink');
+      if (link) link.style.display = '';
       setTimeout(() => {
         Cart.clear();
         closeCheckout();
