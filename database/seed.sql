@@ -10,7 +10,9 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4),
   ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery.svg', 5),
   ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightdress.svg', 6),
-  ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7)
+  ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7),
+  ('Boys', 'kids-boys', 'Shirts, shorts, sets, ethnic wear & more for boys', 'images/kids-boys.svg', 8),
+  ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
@@ -71,16 +73,20 @@ INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VA
   ((SELECT id FROM products WHERE slug='green-anarkali-dress'), 'Meera K.', 4, 'Beautiful Anarkali dress, the embroidery work is exquisite.', TRUE);
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
-  ((SELECT id FROM categories WHERE slug='kids-wear'), 'Kids Frock Dress', 'kids-frock-dress', 'Adorable frock dress for little girls with pretty detailing.', 799.00, 999.00, 'Sale', 'Cotton', TRUE, 12),
-  ((SELECT id FROM categories WHERE slug='kids-wear'), 'Kids Cotton Party Dress', 'kids-cotton-party-dress', 'Festive cotton party dress for girls.', 1099.00, NULL, 'New', 'Cotton', FALSE, 10),
-  ((SELECT id FROM categories WHERE slug='kids-wear'), 'Kids Two Piece Set', 'kids-two-piece-set', 'Comfy two piece kurta & pyjama set for boys.', 899.00, NULL, NULL, 'Cotton', FALSE, 15),
-  ((SELECT id FROM categories WHERE slug='kids-wear'), 'Kids Ethnic Lehenga', 'kids-ethnic-lehenga', 'Traditional lehenga set for little girls on special occasions.', 1599.00, 1999.00, 'Sale', 'Silk', FALSE, 8);
+  ((SELECT id FROM categories WHERE slug='kids-girls'), 'Kids Frock Dress', 'kids-frock-dress', 'Adorable frock dress for little girls with pretty detailing.', 799.00, 999.00, 'Sale', 'Cotton', TRUE, 12),
+  ((SELECT id FROM categories WHERE slug='kids-girls'), 'Kids Cotton Party Dress', 'kids-cotton-party-dress', 'Festive cotton party dress for girls.', 1099.00, NULL, 'New', 'Cotton', FALSE, 10),
+  ((SELECT id FROM categories WHERE slug='kids-girls'), 'Kids Ethnic Lehenga', 'kids-ethnic-lehenga', 'Traditional lehenga set for little girls on special occasions.', 1599.00, 1999.00, 'Sale', 'Silk', FALSE, 8),
+  ((SELECT id FROM categories WHERE slug='kids-boys'), 'Kids Two Piece Set', 'kids-two-piece-set', 'Comfy two piece kurta & pyjama set for boys.', 899.00, NULL, NULL, 'Cotton', FALSE, 15),
+  ((SELECT id FROM categories WHERE slug='kids-boys'), 'Boys Casual Shirt', 'boys-casual-shirt', 'Stylish cotton casual shirt for young boys.', 649.00, NULL, 'New', 'Cotton', FALSE, 15),
+  ((SELECT id FROM categories WHERE slug='kids-boys'), 'Boys Denim Set', 'boys-denim-set', 'Trendy denim shirt & jeans set for boys.', 1299.00, NULL, NULL, 'Denim', FALSE, 10);
 
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
   ((SELECT id FROM products WHERE slug='kids-frock-dress'), 'images/kids.svg', 'Kids Frock Dress', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='kids-cotton-party-dress'), 'images/kids.svg', 'Kids Print Set Dress', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='kids-cotton-party-dress'), 'images/kids.svg', 'Kids Cotton Party Dress', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='kids-ethnic-lehenga'), 'images/kids.svg', 'Kids Ethnic Lehenga', TRUE, 1),
   ((SELECT id FROM products WHERE slug='kids-two-piece-set'), 'images/kids.svg', 'Kids Two Piece Set', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='kids-ethnic-lehenga'), 'images/kids.svg', 'Kids Ethnic Lehenga', TRUE, 1);
+  ((SELECT id FROM products WHERE slug='boys-casual-shirt'), 'images/kids.svg', 'Boys Casual Shirt', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='boys-denim-set'), 'images/kids.svg', 'Boys Denim Set', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
   ((SELECT id FROM products WHERE slug='kids-frock-dress'), 'Divya M.', 5, 'My daughter loved the frock! Great quality and fits perfectly.', TRUE);
