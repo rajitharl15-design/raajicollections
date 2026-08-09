@@ -13,18 +13,51 @@ if ('serviceWorker' in navigator) {
 
 let deferredInstallPrompt = null;
 
+function isIOS() {
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+    !window.MSStream;
+}
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+}
+
 function isSamsungBrowser() {
   return /SamsungBrowser/i.test(navigator.userAgent);
 }
 
-function chromeOpenUrl() {
-  const fallback = encodeURIComponent(location.href);
-  return `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${fallback};end`;
+function isInAppBrowser() {
+  const ua = navigator.userAgent;
+  return /FBAN|FBAV|Instagram|Line\/|WhatsApp|Messenger|Twitter|MicroMessenger/i.test(ua);
 }
 
-function showInstallHelp() {
+const INSTALL_TIPS = {
+  ios: {
+    title: 'Install Raaji Collections App',
+    steps: [
+      'Tap the Share button at the bottom of your browser (or the Share icon in Safari).',
+      'Scroll down and tap "Add to Home Screen".',
+      'Tap "Add" in the top right. The app icon will appear on your home screen.',
+    ],
+  },
+  android: {
+    title: 'Install Raaji Collections App',
+    steps: [
+      'Tap the menu button (three dots ⋮) in the top right of your browser.',
+      'Tap "Add to Home screen" (or "Install app").',
+      'Tap "Add" / "Install". The app icon will appear on your home screen.',
+    ]
+  },
+};
+
+function getInstallTip() {
+  if (isIOS()) return INSTALL_TIPS.ios;
+  return INSTALL_TIPS.android;
+}
+
+function ensureInstallHelp() {
   let modal = document.getElementById('installHelp');
-  if (modal) modal.classList.add('open');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'installHelp';
@@ -34,20 +67,50 @@ function showInstallHelp() {
     modal.innerHTML = `
       <div class="install-help-box">
         <button class="install-help-close" aria-label="Close">&times;</button>
-        <h3>Install Raaji Collections App</h3>
-        <p>Some Android browsers (like <strong>Samsung Internet</strong>) may show a privacy warning when installing the app. For a smooth, secure installation, please use <strong>Google Chrome</strong>.</p>
-        <button class="btn-primary" id="installHelpChrome">Open in Chrome</button>
+        <h3 class="install-help-title"></h3>
+        <ol class="install-help-steps"></ol>
+        <p class="install-help-secure"><i class="fas fa-shield-alt"></i> No download, no files installed — this only adds a home-screen link to our secure website. Safe on any phone.</p>
         <button class="btn-outline" id="installHelpClose">Close</button>
       </div>`;
     document.body.appendChild(modal);
-    modal.classList.add('open');
-    modal.querySelector('#installHelpChrome').addEventListener('click', () => {
-      window.location.href = chromeOpenUrl();
-    });
     modal.querySelector('#installHelpClose').addEventListener('click', () => modal.classList.remove('open'));
     modal.querySelector('.install-help-close').addEventListener('click', () => modal.classList.remove('open'));
     modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
   }
+  return modal;
+}
+
+function showInstallHelp() {
+  if (isStandalone()) return;
+  const modal = ensureInstallHelp();
+  const tip = getInstallTip();
+
+  const stepsBox = modal.querySelector('.install-help-steps');
+  stepsBox.innerHTML = '';
+  tip.steps.forEach(step => {
+    const li = document.createElement('li');
+    li.textContent = step;
+    stepsBox.appendChild(li);
+  });
+
+  if (isInAppBrowser()) {
+    modal.querySelector('.install-help-title').textContent =
+      'Using an in-app browser — install from your main browser instead';
+    stepsBox.innerHTML = '';
+    const li = document.createElement('li');
+    li.textContent = 'It looks like you\'re viewing this inside an app (like Facebook, Instagram or a chat app). Please copy this link and open it in Chrome or Safari first, then install.';
+    stepsBox.appendChild(li);
+    modal.querySelector('.btn-outline').textContent = 'Got it';
+  } else {
+    modal.querySelector('.install-help-title').textContent = tip.title;
+    modal.querySelector('.btn-outline').textContent = 'Close';
+  }
+
+  modal.classList.add('open');
+}
+
+function isInChrome() {
+  return /Chrome|Chromium|Edg\//i.test(navigator.userAgent) && !isIOS();
 }
 
 window.addEventListener('beforeinstallprompt', e => {
@@ -61,6 +124,12 @@ window.addEventListener('appinstalled', () => {
   hideInstallButton();
 });
 
+if (isIOS() && !isStandalone()) {
+  window.addEventListener('load', () => {
+    setTimeout(showInstallButton, 2500);
+  });
+}
+
 function showInstallButton() {
   let btn = document.getElementById('installAppBtn');
   if (!btn) {
@@ -69,15 +138,20 @@ function showInstallButton() {
     btn.className = 'install-app-btn';
     btn.innerHTML = '<i class="fas fa-download"></i> Install App';
     btn.addEventListener('click', async () => {
-      if (!deferredInstallPrompt) return;
-      if (isSamsungBrowser()) {
+      if (isSamsungBrowser() && !deferredInstallPrompt) {
         showInstallHelp();
         return;
       }
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      hideInstallButton();
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        try {
+          await deferredInstallPrompt.userChoice;
+        } catch (_) {}
+        deferredInstallPrompt = null;
+        hideInstallButton();
+        return;
+      }
+      showInstallHelp();
     });
     document.body.appendChild(btn);
   }

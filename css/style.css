@@ -1916,6 +1916,23 @@ body.admin-mode .product-card img {
   margin-bottom: 22px;
 }
 
+.install-help-steps {
+  text-align: left;
+  margin: 0 0 18px;
+  padding: 0 0 0 20px;
+  color: var(--text-light);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.install-help-secure {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
 .install-help-box .btn-primary,
 .install-help-box .btn-outline {
   margin: 6px 4px;
