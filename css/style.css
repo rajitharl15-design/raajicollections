@@ -230,8 +230,8 @@ nav {
 }
 
 .subcategory-nav img {
-  width: 26px;
-  height: 30px;
+  width: 18px;
+  height: 22px;
   object-fit: contain;
 }
 
@@ -519,6 +519,11 @@ nav {
 
 .category-img img.category-icon {
   height: 65%;
+}
+
+.category-img img.kids-icon {
+  height: 52%;
+  padding: 16px;
 }
 
 .category-info {
