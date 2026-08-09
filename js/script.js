@@ -70,6 +70,7 @@ function ensureInstallHelp() {
         <h3 class="install-help-title"></h3>
         <ol class="install-help-steps"></ol>
         <p class="install-help-secure"><i class="fas fa-shield-alt"></i> No download, no files installed — this only adds a home-screen link to our secure website. Safe on any phone.</p>
+        <p class="install-help-playprotect hidden"><i class="fas fa-info-circle"></i> <strong>Saw "Unsafe app blocked"?</strong> That's Android's automatic scanner (Play Protect) — a standard message for many small websites, not a virus. Tap <strong>"Install / More"</strong> to continue, or use Chrome's <strong>⋮ → Add to Home screen</strong> — always works, no warning.</p>
         <button class="btn-outline" id="installHelpClose">Close</button>
       </div>`;
     document.body.appendChild(modal);
@@ -105,6 +106,11 @@ function showInstallHelp() {
     modal.querySelector('.install-help-title').textContent = tip.title;
     modal.querySelector('.btn-outline').textContent = 'Close';
   }
+
+  // Android installs go through Play Protect, which occasionally shows
+  // a "blocked" warning for small/new sites. Reassure instead of alarming.
+  const playNote = modal.querySelector('.install-help-playprotect');
+  playNote.classList.toggle('hidden', isIOS() || isInAppBrowser());
 
   modal.classList.add('open');
 }

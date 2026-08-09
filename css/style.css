@@ -2051,6 +2051,16 @@ body.admin-mode .product-card img {
   font-size: 13px;
 }
 
+.install-help-playprotect {
+  background: #FFF3E0;
+  color: #B26A00;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
 .install-help-box .btn-primary,
 .install-help-box .btn-outline {
   margin: 6px 4px;
