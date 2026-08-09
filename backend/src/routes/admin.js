@@ -11,6 +11,15 @@ async function confirmCodeExists() {
   return rows.length > 0;
 }
 
+async function hasAreaColumn() {
+  const { rows } = await pool.query(
+    `SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'orders'
+        AND column_name = 'shipping_area' LIMIT 1`
+  );
+  return rows.length > 0;
+}
+
 const router = Router();
 
 const ALLOWED_ORDER_STATUS = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'refunded'];
@@ -132,10 +141,14 @@ router.get('/orders', async (req, res, next) => {
       ? ', o.confirm_code'
       : '';
 
+    const areaCol = (await hasAreaColumn())
+      ? ', o.shipping_area'
+      : '';
+
     const orders = await pool.query(
       `SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
               o.shipping_fee, o.discount, o.total, o.shipping_name, o.shipping_city,
-              o.shipping_state, o.shipping_pincode${trackingCols}${confirmCol}, o.created_at,
+              o.shipping_state, o.shipping_pincode${trackingCols}${confirmCol}${areaCol}, o.created_at,
               c.first_name, c.phone, c.email,
               (SELECT COUNT(*)::int FROM order_items oi WHERE oi.order_id = o.id) AS item_count
          FROM orders o
@@ -159,11 +172,14 @@ router.get('/orders/:id', async (req, res, next) => {
     const confirmCol = (await confirmCodeExists())
       ? ', o.confirm_code'
       : '';
+    const areaCol = (await hasAreaColumn())
+      ? ', o.shipping_area'
+      : '';
 
     const orderRes = await pool.query(
       `SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
               o.shipping_fee, o.discount, o.total, o.shipping_name, o.shipping_phone,
-              o.shipping_address, o.shipping_city, o.shipping_state, o.shipping_pincode${trackingCols}${confirmCol},
+              o.shipping_address, o.shipping_area, o.shipping_city, o.shipping_state, o.shipping_pincode${trackingCols}${confirmCol},
               o.notes, o.created_at, o.updated_at,
               c.id AS customer_id, c.first_name, c.last_name, c.email, c.phone
          FROM orders o

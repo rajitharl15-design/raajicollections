@@ -10,7 +10,7 @@ router.post('/', async (req, res, next) => {
   try {
     const {
       customer,           // { first_name, last_name, email, phone }
-      shipping,           // { address, city, state, pincode }
+      shipping,           // { address, area, city, state, pincode }
       items,              // [{ product_id, quantity }]
       paymentMethod = 'upi',
       upiId,
@@ -124,14 +124,14 @@ router.post('/', async (req, res, next) => {
       `INSERT INTO orders (order_number, customer_id, status, payment_status,
                            subtotal, shipping_fee, discount, total,
                            shipping_name, shipping_phone, shipping_address,
-                           shipping_city, shipping_state, shipping_pincode, confirm_code, notes)
-       VALUES ($1, $2, 'pending', 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                           shipping_area, shipping_city, shipping_state, shipping_pincode, confirm_code, notes)
+       VALUES ($1, $2, 'pending', 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING id, order_number, total, confirm_code`,
       [
         orderNumber, customerId, subtotal, shippingFee, discount, total,
         customer.first_name, customer.phone || null, shipping?.address || null,
-        shipping?.city || null, shipping?.state || null, shipping?.pincode || null,
-        confirmCode, notes || null,
+        shipping?.area || null, shipping?.city || null, shipping?.state || null,
+        shipping?.pincode || null, confirmCode, notes || null,
       ]
     );
     const order = orderRes.rows[0];

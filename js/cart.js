@@ -161,6 +161,7 @@ async function placeOrder() {
     },
     shipping: {
       address: fd.get('address'),
+      area: fd.get('area'),
       city: fd.get('city'),
       state: fd.get('state'),
       pincode: fd.get('pincode'),

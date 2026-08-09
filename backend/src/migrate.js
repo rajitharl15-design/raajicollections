@@ -52,7 +52,8 @@ export async function migrate() {
       ALTER TABLE orders
         ADD COLUMN IF NOT EXISTS tracking_carrier VARCHAR(100),
         ADD COLUMN IF NOT EXISTS tracking_number  VARCHAR(100),
-        ADD COLUMN IF NOT EXISTS confirm_code     VARCHAR(8);
+        ADD COLUMN IF NOT EXISTS confirm_code     VARCHAR(8),
+        ADD COLUMN IF NOT EXISTS shipping_area    VARCHAR(100);
     `);
     console.log('[migrate] column migrations done.');
   } catch (err) {

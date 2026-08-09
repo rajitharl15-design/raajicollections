@@ -91,6 +91,7 @@ CREATE TABLE orders (
     shipping_name     VARCHAR(200),
     shipping_phone    VARCHAR(20),
     shipping_address  TEXT,
+    shipping_area     VARCHAR(100),
     shipping_city     VARCHAR(100),
     shipping_state    VARCHAR(100),
     shipping_pincode  VARCHAR(10),

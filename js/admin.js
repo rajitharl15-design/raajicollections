@@ -161,7 +161,7 @@ async function showOrderDetails(orderId) {
       <h2>${o.order_number}</h2>
       ${o.confirm_code ? `<p class="admin-order-meta"><strong>Payment code:</strong> <span class="badge badge-track">${escapeHtml(o.confirm_code)}</span> — ask customer to include this with their payment screenshot</p>` : ''}
       <p class="admin-order-meta">${o.shipping_name || ''} · ${o.shipping_phone || ''}${o.shipping_city ? ' · ' + o.shipping_city : ''}${o.shipping_state ? ', ' + o.shipping_state : ''}${o.shipping_pincode ? ' - ' + o.shipping_pincode : ''}</p>
-      <p class="admin-order-meta">${o.shipping_address || ''}</p>
+      <p class="admin-order-meta">${o.shipping_address || ''}${o.shipping_area ? (o.shipping_address ? ', ' : '') + escapeHtml(o.shipping_area) : ''}</p>
       <h4>Items</h4>
       <ul>${items || '<li>None</li>'}</ul>
       <h4>Payments</h4>
