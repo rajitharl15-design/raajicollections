@@ -184,6 +184,13 @@ async function showOrderDetails(orderId) {
         <button class="btn-link" data-tracking-save="${o.id}"><i class="fas fa-save"></i> Save Tracking</button>
         <span class="admin-saved" id="trackingSaved-${o.id}"></span>
       </div>
+      <div class="admin-whatsapp-msg">
+        <h4>WhatsApp update for customer</h4>
+        <button class="btn-link" data-wa-ship="${o.id}" data-phone="${escapeHtml(o.shipping_phone || '')}"><i class="fab fa-whatsapp"></i> Copy Shipped message</button>
+        <button class="btn-link" data-wa-deliver="${o.id}" data-phone="${escapeHtml(o.shipping_phone || '')}"><i class="fab fa-whatsapp"></i> Copy Delivered message</button>
+        <span class="admin-saved" id="waSaved-${o.id}"></span>
+        <p class="admin-wa-hint">Copies a message — paste it in your WhatsApp chat with the customer.</p>
+      </div>
     </div>`;
   modal.querySelector('.admin-modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
@@ -210,7 +217,48 @@ async function showOrderDetails(orderId) {
       saved.textContent = `Error: ${err.message}`;
     }
   });
+  modal.querySelectorAll('[data-wa-ship], [data-wa-deliver]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isShip = btn.hasAttribute('data-wa-ship');
+      const tracking = {
+        carrier: modal.querySelector('[data-tracking="carrier"]').value.trim(),
+        number: modal.querySelector('[data-tracking="number"]').value.trim(),
+      };
+      const total = formatMoney(o.total);
+      const trackingPart = tracking.number
+        ? `\nTracking: ${tracking.carrier || 'Courier'} — ${tracking.number}`
+        : '\nI will share the tracking number as soon as it is dispatched.';
+      const msg = isShip
+        ? `Hello ${o.shipping_name || ''}! Your order ${o.order_number} has been SHIPPED 🚚\nItems: ${o.items.map(i => `${i.quantity} x ${i.product_name}`).join(', ')}\nTotal: ${total}${trackingPart}\nThank you for shopping with Raaji Collections!`
+        : `Hello ${o.shipping_name || ''}! Your order ${o.order_number} has been DELIVERED 🎉\nWe hope you love your items! If you need anything, just message us anytime.\n— Raaji Collections`;
+      copyText(msg);
+      const saved = document.getElementById(`waSaved-${o.id}`);
+      if (saved) {
+        saved.textContent = 'Copied! Paste it in WhatsApp.';
+        setTimeout(() => { saved.textContent = ''; }, 3000);
+      }
+    });
+  });
   document.body.appendChild(modal);
+}
+
+function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (_) {}
+  document.body.removeChild(ta);
 }
 
 function showLogin() {
