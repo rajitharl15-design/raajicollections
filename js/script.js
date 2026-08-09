@@ -163,6 +163,26 @@ function hideInstallButton() {
   if (btn) btn.classList.remove('visible');
 }
 
+async function triggerInstall() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    try {
+      await deferredInstallPrompt.userChoice;
+    } catch (_) {}
+    deferredInstallPrompt = null;
+    hideInstallButton();
+    return;
+  }
+  showInstallHelp();
+}
+
+document.addEventListener('click', e => {
+  const trigger = e.target.closest('[data-install-trigger]');
+  if (!trigger) return;
+  e.preventDefault();
+  triggerInstall();
+});
+
 document.querySelectorAll('.nav-links a').forEach(link => {
   link.addEventListener('click', () => {
     document.getElementById('navLinks').classList.remove('show');

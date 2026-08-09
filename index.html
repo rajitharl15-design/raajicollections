@@ -11,7 +11,7 @@
   <meta name="description" content="Raaji Collections - Authentic traditional women's wear. Shop ready-made blouses, dresses, jewellery & night dresses at the best prices.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8B1A2B">
-  <link rel="stylesheet" href="css/style.css?v=16">
+  <link rel="stylesheet" href="css/style.css?v=17">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -55,7 +55,10 @@
       <span class="hero-tag">New Collection 2026</span>
       <h1>Elegance in Every Thread</h1>
       <p>Discover our exquisite range of traditional dresses, tops, ready-made blouses & jewellery</p>
-      <a href="#categories" class="btn-primary">Shop Now</a>
+      <div class="hero-actions">
+        <a href="#categories" class="btn-primary">Shop Now</a>
+        <button type="button" class="btn-install-hero" id="installAppBtnInline" data-install-trigger><i class="fas fa-download"></i> Install App</button>
+      </div>
     </div>
     <div class="hero-categories" id="categories">
       <div class="category-card">
@@ -348,7 +351,7 @@
 
   <div class="cart-toast" id="cartToast"></div>
 
-  <script src="js/script.js?v=7"></script>
+  <script src="js/script.js?v=8"></script>
   <div class="admin-bar" id="adminBar">
     <span>Admin Mode</span>
     <button data-admin-copy>Copy changes</button>
