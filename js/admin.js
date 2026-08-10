@@ -1,6 +1,19 @@
 const ADMIN_KEY_STORAGE = 'raaji_admin_key';
 const ORDER_STATUSES = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'];
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
+const CARRIERS = [
+  'Delhivery',
+  'Blue Dart',
+  'India Post',
+  'DTDC',
+  'XpressBees',
+  'Rapido',
+  'Shiprocket',
+  'EKart',
+  'FedEx',
+  'DHL',
+  'Other',
+];
 
 const apiBase = () => API_CONFIG.baseUrl || 'http://localhost:3000';
 
@@ -45,6 +58,21 @@ async function loadOrders() {
         `<p class="admin-loading">Failed to load orders: ${err.message}</p>`;
     }
   }
+}
+
+function carrierOptions(selected) {
+  const s = String(selected || '');
+  const known = CARRIERS.some(c => String(c).toLowerCase() === s.toLowerCase());
+  return CARRIERS.map(c => {
+    const isOther = c === 'Other';
+    let match;
+    if (s !== '') {
+      match = isOther ? !known : String(c).toLowerCase() === s.toLowerCase();
+    } else {
+      match = isOther;
+    }
+    return `<option value="${escapeHtml(c)}"${match ? ' selected' : ''}>${escapeHtml(c)}${isOther && !known && s ? ` — ${escapeHtml(s)}` : ''}</option>`;
+  }).join('');
 }
 
 function render() {
@@ -176,7 +204,13 @@ async function showOrderDetails(orderId) {
       <div class="admin-tracking">
         <h4>Tracking</h4>
         <label>Carrier
-          <input data-tracking="carrier" data-order="${o.id}" type="text" value="${escapeHtml(o.tracking_carrier || '')}" placeholder="e.g. Delhivery / India Post">
+          <select data-tracking="carrier" data-order="${o.id}">
+            ${o.tracking_carrier ? '' : '<option value="" selected disabled>Select courier</option>'}
+            ${carrierOptions(o.tracking_carrier)}
+          </select>
+        </label>
+        <label class="admin-other-carrier hidden" data-carrier-other="${o.id}">Other Carrier Name
+          <input data-tracking="carrier-other" type="text" value="${CARRIERS.some(c => String(c).toLowerCase() === String(o.tracking_carrier || '').toLowerCase()) ? '' : escapeHtml(o.tracking_carrier || '')}" placeholder="Type courier name">
         </label>
         <label>Tracking / AWB Number
           <input data-tracking="number" data-order="${o.id}" type="text" value="${escapeHtml(o.tracking_number || '')}" placeholder="e.g. DL1234567890">
@@ -194,11 +228,33 @@ async function showOrderDetails(orderId) {
     </div>`;
   modal.querySelector('.admin-modal-close').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  const carrierSel = modal.querySelector(`[data-tracking="carrier"]`);
+  const otherBox = modal.querySelector(`[data-carrier-other="${o.id}"]`);
+  const toggleOther = () => {
+    if (carrierSel.value === 'Other') {
+      otherBox.classList.remove('hidden');
+    } else {
+      otherBox.classList.add('hidden');
+    }
+  };
+  if (carrierSel) carrierSel.addEventListener('change', toggleOther);
+  const initialCarrier = String(o.tracking_carrier || '');
+  if (carrierSel) {
+    if (initialCarrier === '' || CARRIERS.some(c => String(c).toLowerCase() === initialCarrier.toLowerCase())) {
+      otherBox.classList.add('hidden');
+    } else {
+      carrierSel.value = 'Other';
+      toggleOther();
+    }
+  }
+
   modal.querySelector(`[data-tracking-save="${o.id}"]`).addEventListener('click', async () => {
     const box = modal.querySelector('.admin-tracking');
     const saved = document.getElementById(`trackingSaved-${o.id}`);
+    const others = box.querySelector('[data-tracking="carrier-other"]');
     const payload = {
-      tracking_carrier: box.querySelector('[data-tracking="carrier"]').value.trim(),
+      tracking_carrier: (carrierSel.value === 'Other' ? (others && others.value.trim()) : carrierSel.value) || '',
       tracking_number: box.querySelector('[data-tracking="number"]').value.trim(),
     };
     try {
@@ -220,8 +276,10 @@ async function showOrderDetails(orderId) {
   modal.querySelectorAll('[data-wa-ship], [data-wa-deliver]').forEach(btn => {
     btn.addEventListener('click', () => {
       const isShip = btn.hasAttribute('data-wa-ship');
+      const carrierSel = modal.querySelector('[data-tracking="carrier"]');
+      const others = modal.querySelector('[data-tracking="carrier-other"]');
       const tracking = {
-        carrier: modal.querySelector('[data-tracking="carrier"]').value.trim(),
+        carrier: (carrierSel && carrierSel.value === 'Other' ? (others && others.value.trim()) : (carrierSel && carrierSel.value)) || '',
         number: modal.querySelector('[data-tracking="number"]').value.trim(),
       };
       const total = formatMoney(o.total);
