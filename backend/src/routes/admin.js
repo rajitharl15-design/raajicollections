@@ -341,4 +341,18 @@ router.patch('/products/:slug', async (req, res, next) => {
   }
 });
 
+// DELETE /api/admin/products/:slug  -> delete product (images cascade)
+router.delete('/products/:slug', async (req, res, next) => {
+  try {
+    const del = await pool.query(
+      `DELETE FROM products WHERE slug = $1 RETURNING id, name, slug`,
+      [req.params.slug]
+    );
+    if (del.rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+    res.json({ deleted: del.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

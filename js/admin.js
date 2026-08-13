@@ -387,6 +387,7 @@ function renderAdminProducts() {
           <input data-field="is_active" data-slug="${p.slug}" type="checkbox" ${p.is_active ? 'checked' : ''}>
         </label>
         <button class="btn-link" data-save="${p.slug}"><i class="fas fa-save"></i> Save</button>
+        <button class="btn-link btn-delete" data-delete="${p.slug}"><i class="fas fa-trash-alt"></i> Delete</button>
         <span class="pm-saved" id="pmSaved-${p.slug}"></span>
       </div>
     </div>
@@ -399,6 +400,23 @@ function renderAdminProducts() {
       if (el) { el.textContent = 'Saving...'; }
       const result = await saveAdminProduct(slug);
       if (el) { el.textContent = (result && result.name) ? `Saved: ${result.name}` : `Error: ${result}`; setTimeout(() => { el.textContent = ''; }, 3000); }
+    });
+  });
+
+  list.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const slug = btn.dataset.delete;
+      const product = adminProducts.find(p => p.slug === slug);
+      const name = product ? product.name : slug;
+      if (!confirm(`Delete "${name}" permanently? This also removes its images.`)) return;
+      const el = document.getElementById(`pmSaved-${slug}`);
+      try {
+        await api(`/api/admin/products/${slug}`, { method: 'DELETE' });
+        adminProducts = adminProducts.filter(p => p.slug !== slug);
+        loadAdminProducts();
+      } catch (err) {
+        if (el) { el.textContent = `Error: ${err.message}`; setTimeout(() => { el.textContent = ''; }, 3000); }
+      }
     });
   });
 
@@ -659,13 +677,12 @@ document.addEventListener('DOMContentLoaded', () => {
       imgInput.click();
     });
     imgInput.addEventListener('change', () => {
-      selectedImages = [];
       const preview = document.getElementById('pfPreview');
-      preview.innerHTML = '';
       const files = Array.from(imgInput.files);
+      imgInput.value = '';
       if (files.length === 0) return;
       const label = document.getElementById('pfDropLabel');
-      if (label) label.textContent = files.length + ' image(s) selected';
+      const added = [];
       files.forEach(file => {
         if (!file.type.startsWith('image/')) {
           imgLabelHint(file.name + ' is not an image');
@@ -673,9 +690,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const url = URL.createObjectURL(file);
         selectedImages.push(url);
+        added.push(url);
+      });
+      if (added.length && label) label.textContent = selectedImages.length + ' image(s) selected';
+      added.forEach(url => {
         const img = document.createElement('img');
         img.src = url;
-        img.alt = file.name;
         img.className = 'pf-prev-img';
         img.title = 'Click to zoom';
         img.addEventListener('click', e => {

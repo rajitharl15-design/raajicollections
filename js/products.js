@@ -68,7 +68,8 @@ window.ProductsRenderer = {
         <div class="product-card">
           ${badgeHtml}
           <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
-            <img src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
+            <img class="product-img-main" src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
+            ${p.image_url_2 ? `<img class="product-img-hover" src="${escapeAttr(p.image_url_2)}" alt="${p.name}" loading="lazy">` : ''}
           </a>
           <div class="product-info">
             <h3>${p.name}</h3>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Shipping Policy - Raaji Collections</title>
+  <meta name="description" content="Shipping charges and delivery times for Raaji Collections orders.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8B1A2B">
+  <link rel="stylesheet" href="css/style.css?v=37">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="header-top">
+    <p>Free shipping on orders above ₹999</p>
+  </div>
+  <nav>
+    <div class="logo">
+      <img src="images/peacock-logo.svg" alt="Raaji Collections peacock logo" class="logo-img">
+      <h1>Raaji Collections</h1>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#categories">Categories</a></li>
+      <li><a href="index.html#products">Featured</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="nav-icons">
+      <a href="#"><i class="fas fa-search"></i></a>
+      <a href="#"><i class="fas fa-heart"></i></a>
+      <a href="#" class="cart-icon" id="cartOpen"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
+    </div>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <section class="policy-section">
+    <div class="policy-box">
+      <h1>Shipping Policy</h1>
+      <p class="policy-date">Last updated: August 2026</p>
+
+      <h2>Shipping Charges</h2>
+      <ul>
+        <li><strong>Free shipping</strong> on all orders above ₹999.</li>
+        <li>A flat <strong>₹49</strong> shipping charge applies to orders of ₹999 or less.</li>
+      </ul>
+
+      <h2>Processing Time</h2>
+      <p>Orders are processed within 1&ndash;2 working days after payment confirmation. During festive seasons, processing may take slightly longer.</p>
+
+      <h2>Delivery Time</h2>
+      <p>Delivery usually takes 3&ndash;7 working days depending on your location. Remote areas may take a little longer.</p>
+
+      <h2>How Your Order Is Delivered</h2>
+      <p>Orders are shipped through trusted courier partners. Once shipped, you will receive a tracking number, and you can follow your order on our <a href="track.html">Track Order</a> page.</p>
+
+      <h2>Order Tracking</h2>
+      <p>Enter your order number on the <a href="track.html">Track Order</a> page any time to see the latest status of your order.</p>
+
+      <h2>Incorrect Address</h2>
+      <p>Please double-check your address and phone number at checkout. Any reshipment or extra courier charges due to incorrect address details will be borne by the customer.</p>
+
+      <h2>Lost or Damaged Parcels</h2>
+      <p>If your parcel is lost or arrives damaged, contact us within 48 hours on WhatsApp +91 81254 91097 and we will resolve it promptly.</p>
+
+      <a href="index.html" class="policy-back"><i class="fas fa-arrow-left"></i> Back to store</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img src="images/peacock-logo.svg" alt="Raaji Collections peacock logo" class="footer-logo">
+          <h3>Raaji Collections</h3>
+        </div>
+        <p>Your destination for authentic traditional women's wear. Celebrating Indian heritage through timeless fashion.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="index.html#categories">Categories</a></li>
+          <li><a href="index.html#products">Featured</a></li>
+          <li><a href="index.html#about">About Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Service</h4>
+        <ul>
+          <li><a href="track.html">Track Order</a></li>
+          <li><a href="shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="return-policy.html">Return Policy</a></li>
+          <li><a href="size-guide.html">Size Guide</a></li>
+          <li><a href="faqs.html">FAQs</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="https://wa.me/918125491097" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Raaji Collections. All rights reserved. | <a href="admin.html">Admin</a></p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const navLinks = document.getElementById('navLinks');
+      const hamburger = document.getElementById('hamburger');
+      navLinks.classList.toggle('show');
+      hamburger.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

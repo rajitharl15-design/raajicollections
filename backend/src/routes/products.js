@@ -23,7 +23,8 @@ router.get('/', async (req, res, next) => {
       `SELECT p.id, p.name, p.slug, p.description, p.price, p.old_price,
               p.badge, p.material, p.is_featured, p.stock_qty,
               c.name AS category_name, c.slug AS category_slug,
-              COALESCE(img.image_url, '/images/dress.svg') AS image_url
+              COALESCE(img.image_url, '/images/dress.svg') AS image_url,
+              img2.image_url AS image_url_2
          FROM products p
          JOIN categories c ON c.id = p.category_id
          LEFT JOIN LATERAL (
@@ -31,6 +32,11 @@ router.get('/', async (req, res, next) => {
            WHERE product_id = p.id AND is_primary = TRUE
            ORDER BY sort_order LIMIT 1
          ) img ON TRUE
+         LEFT JOIN LATERAL (
+           SELECT image_url FROM product_images
+           WHERE product_id = p.id AND NOT is_primary
+           ORDER BY sort_order LIMIT 1
+         ) img2 ON TRUE
         WHERE ${where.join(' AND ')}
         ORDER BY p.is_featured DESC, p.id`,
       params

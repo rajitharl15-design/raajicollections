@@ -311,6 +311,14 @@ body.admin-page {
   text-decoration: underline;
 }
 
+.btn-delete {
+  color: #C62828;
+}
+
+.btn-delete:hover {
+  color: #8B1A2B;
+}
+
 .admin-saved {
   font-size: 12px;
   color: #2E7D32;

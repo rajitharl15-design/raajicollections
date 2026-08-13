@@ -9,7 +9,7 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Tops', 'tops', 'Kurtis, Tunics, Crop Tops', 'images/top.svg', 3),
   ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4),
   ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery.svg', 5),
-  ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightdress.svg', 6),
+  ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightwear-2.jpg', 6),
   ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7),
   ('Boys', 'kids-boys', 'Shirts, shorts, sets, ethnic wear & more for boys', 'images/kids-boys.svg', 8),
   ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9)
@@ -38,8 +38,7 @@ INSERT INTO products (category_id, name, slug, description, price, old_price, ba
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
   ((SELECT id FROM categories WHERE slug='night-dresses'), 'Cotton Night Dress', 'cotton-night-dress', 'Soft cotton night dress with full sleeves.', 699.00, 999.00, 'Sale', 'Cotton', FALSE, 10),
-  ((SELECT id FROM categories WHERE slug='night-dresses'), 'Silk Satin Night Gown', 'silk-satin-night-gown', 'Elegant silk satin night gown with lace trim.', 1199.00, NULL, 'New', 'Silk Satin', TRUE, 8),
-  ((SELECT id FROM categories WHERE slug='night-dresses'), 'Two Piece Night Set', 'two-piece-night-set', 'Comfortable two piece night set with shorts.', 799.00, NULL, NULL, 'Cotton', FALSE, 12);
+  ((SELECT id FROM categories WHERE slug='night-dresses'), 'Silk Satin Night Gown', 'silk-satin-night-gown', 'Elegant silk satin night gown with lace trim.', 1199.00, NULL, 'New', 'Silk Satin', TRUE, 8);
 
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-saree'), 'images/product-1.svg', 'Red Banarasi Saree', TRUE, 1),
@@ -64,8 +63,7 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
 
 INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
   ((SELECT id FROM products WHERE slug='cotton-night-dress'), 'images/nightwear-1.jpg', 'Cotton Night Dress', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='silk-satin-night-gown'), 'images/nightwear-2.jpg', 'Silk Satin Night Gown', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='two-piece-night-set'), 'images/nightdress.svg', 'Two Piece Night Set', TRUE, 1);
+  ((SELECT id FROM products WHERE slug='silk-satin-night-gown'), 'images/nightwear-2.jpg', 'Silk Satin Night Gown', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
   ((SELECT id FROM products WHERE slug='red-banarasi-silk-saree'), 'Priya S.', 5, 'Absolutely stunning saree! The fabric is so rich and the colors are exactly as pictured.', TRUE),
