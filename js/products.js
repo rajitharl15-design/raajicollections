@@ -231,7 +231,9 @@ function initInlinePicker(card, product) {
     selectColor(v, colorSel.value);
   });
 
-  addBtn.addEventListener('click', () => {
+  addBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const v = (bySize[sizeSel.value] || []).find(x => normalizeKey(x.color) === activeColorKey);
     if (!v) return;
     const price = v.price != null ? Number(v.price) : Number(product.price);
@@ -286,7 +288,8 @@ window.ProductsRenderer = {
       }
 
       grid.innerHTML = products.map(p => {
-        const hasVariants = Array.isArray(p.variants) && p.variants.length > 0;
+        const forcePlain = grid.hasAttribute('data-no-variants');
+        const hasVariants = !forcePlain && Array.isArray(p.variants) && p.variants.length > 0;
         const sizes = hasVariants ? [...new Set(p.variants.map(v => v.size))] : [];
         const price = Number(p.price);
         const old = p.old_price != null ? Number(p.old_price) : null;
