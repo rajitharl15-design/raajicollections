@@ -1,6 +1,10 @@
 const ADMIN_KEY_STORAGE = 'raaji_admin_key';
 const ORDER_STATUSES = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'];
 const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
+const KIDS_AGE_SIZES = [
+  '0-3M', '3-6M', '6-9M', '9-12M', '1-2Y', '2-3Y', '3-4Y', '4-5Y',
+  '5-6Y', '6-7Y', '7-8Y', '8-9Y', '9-10Y', '10-11Y', '11-12Y', '12-13Y'
+];
 const CARRIERS = [
   'Delhivery',
   'Blue Dart',
@@ -403,7 +407,7 @@ function renderAdminProducts() {
           <input data-field="is_active" data-slug="${p.slug}" type="checkbox" ${p.is_active ? 'checked' : ''}>
         </label>
         <button class="btn-link" data-save="${p.slug}"><i class="fas fa-save"></i> Save</button>
-        <button class="btn-link" data-variants="${p.id}" data-vname="${escapeHtml(p.name)}"><i class="fas fa-th-large"></i> Sizes &amp; Colors</button>
+        <button class="btn-link" data-variants="${p.id}" data-vname="${escapeHtml(p.name)}" data-kids="${/kids/i.test(p.category_name || '') ? '1' : '0'}"><i class="fas fa-th-large"></i> Sizes &amp; Colors</button>
         <button class="btn-link btn-delete" data-delete="${p.slug}"><i class="fas fa-trash-alt"></i> Delete</button>
         <span class="pm-saved" id="pmSaved-${p.slug}"></span>
       </div>
@@ -438,7 +442,7 @@ function renderAdminProducts() {
   });
 
   list.querySelectorAll('[data-variants]').forEach(btn => {
-    btn.addEventListener('click', () => openVariantEditor(btn.dataset.variants, btn.dataset.vname));
+    btn.addEventListener('click', () => openVariantEditor(btn.dataset.variants, btn.dataset.vname, btn.dataset.kids === '1'));
   });
 
   list.querySelectorAll('#pmList input[data-field], #pmList select[data-field]').forEach(inp => {
@@ -502,12 +506,20 @@ function escapeHtml(s) {
 
 // === Variant editor (sizes & colors) ===
 let vmProductId = null;
+let vmIsKids = false;
 
 function vmRowHTML(v) {
   v = v || {};
+  const sizeField = vmIsKids
+    ? `<select class="vm-size">
+        <option value="" ${!v.size ? 'selected' : ''}>Select age/size...</option>
+        ${KIDS_AGE_SIZES.map(s => `<option value="${s}" ${v.size === s ? 'selected' : ''}>${s}</option>`).join('')}
+        ${v.size && !KIDS_AGE_SIZES.includes(v.size) ? `<option value="${escapeHtml(v.size)}" selected>${escapeHtml(v.size)}</option>` : ''}
+      </select>`
+    : `<input class="vm-size" type="text" placeholder="Size (e.g. 1-2Y)" value="${escapeHtml(v.size || '')}">`;
   return `
     <div class="vm-row">
-      <input class="vm-size" type="text" placeholder="Size (e.g. 1-2Y)" value="${escapeHtml(v.size || '')}">
+      ${sizeField}
       <input class="vm-color" type="text" placeholder="Color (e.g. Pink)" value="${escapeHtml(v.color || '')}">
       <input class="vm-price" type="number" min="0" step="0.01" placeholder="Price (opt)" value="${v.price != null ? v.price : ''}">
       <input class="vm-stock" type="number" min="0" placeholder="Stock (opt)" value="${v.stock_qty != null ? v.stock_qty : ''}">
@@ -516,8 +528,9 @@ function vmRowHTML(v) {
     </div>`;
 }
 
-async function openVariantEditor(productId, name) {
+async function openVariantEditor(productId, name, isKids) {
   vmProductId = productId;
+  vmIsKids = !!isKids;
   document.getElementById('vmProductName').textContent = name;
   document.getElementById('vmStatus').textContent = '';
   const modal = document.getElementById('variantModal');

@@ -721,7 +721,8 @@ body.admin-page {
   border-bottom: 1px dashed var(--beige);
 }
 
-.vm-row input {
+.vm-row input,
+.vm-row select {
   width: 100%;
   box-sizing: border-box;
   padding: 8px 10px;
@@ -730,6 +731,7 @@ body.admin-page {
   font-family: inherit;
   font-size: 13px;
   color: var(--text);
+  background: #fff;
 }
 
 .vm-row .vm-img {
