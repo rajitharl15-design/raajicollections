@@ -179,6 +179,7 @@ function openQuickView(product, isKids) {
 
   const price = Number(product.price);
   const old = product.old_price != null ? Number(product.old_price) : null;
+  const noSize = !isKids && variants.length === 0;
 
   overlay.innerHTML = `
     <div class="quickview-box">
@@ -188,14 +189,14 @@ function openQuickView(product, isKids) {
         <h2>${escapeAttr(product.name)}</h2>
         <p class="product-category">${escapeAttr(product.category_name || '')}</p>
         <p class="quickview-price">${old && old > price ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ` : ''}₹${price.toLocaleString('en-IN')}</p>
+        ${noSize ? '' : `
         <label class="quickview-label">Size${isKids ? ' (for age)' : ''}</label>
-        <select class="quickview-size"><option value="">Select Size...</option>${sizeOptions}</select>
+        <select class="quickview-size"><option value="">Select Size...</option>${sizeOptions}</select>`}
         <p class="quickview-note"></p>
-        <button class="btn-add quickview-add" disabled>Add to Cart</button>
+        <button class="btn-add quickview-add" ${noSize ? '' : 'disabled'}>Add to Cart</button>
       </div>
     </div>`;
 
-  const box = overlay.querySelector('.quickview-box');
   const sizeSel = overlay.querySelector('.quickview-size');
   const addBtn = overlay.querySelector('.quickview-add');
   const note = overlay.querySelector('.quickview-note');
@@ -203,8 +204,10 @@ function openQuickView(product, isKids) {
   let picked = null;
 
   const pickVariant = () => {
-    const s = sizeSel.value;
-    if (isKids) {
+    const s = sizeSel ? sizeSel.value : '';
+    if (noSize) {
+      picked = { size: '', color: '', image: product.image_url, price, variantLabel: '' };
+    } else if (isKids) {
       picked = { size: `${s} yr`, color: '', image: product.image_url, price, variantLabel: `Size ${s} yr` };
     } else {
       const v = variants.find(x => String(x.size).trim().toLowerCase() === String(s).trim().toLowerCase());
@@ -219,15 +222,17 @@ function openQuickView(product, isKids) {
       };
     }
     addBtn.disabled = !picked;
-    note.textContent = picked ? `Selected: ${picked.variantLabel} · ₹${picked.price.toLocaleString('en-IN')}` : '';
+    note.textContent = picked ? (picked.variantLabel ? `Selected: ${picked.variantLabel} · ₹${picked.price.toLocaleString('en-IN')}` : '') : '';
     if (picked && (isKids ? false : picked.src)) imgEl.src = picked.src;
   };
 
-  sizeSel.addEventListener('change', pickVariant);
+  if (sizeSel) sizeSel.addEventListener('change', pickVariant);
+  if (noSize) pickVariant();
 
   addBtn.addEventListener('click', () => {
     if (!picked) return;
-    const key = `p${product.productId || product.id}_${String(sizeSel.value).replace(/[^a-z0-9_-]+/g, '-')}`.replace(/[^a-z0-9_-]+/g, '-');
+    const sizeKey = picked.variantLabel ? String(sizeSel.value) : '';
+    const key = `p${product.productId || product.id}_${String(sizeKey).replace(/[^a-z0-9_-]+/g, '-')}`.replace(/[^a-z0-9_-]+/g, '-');
     if (typeof Cart !== 'undefined') {
       Cart.add({
         id: key,
@@ -305,9 +310,7 @@ window.ProductsRenderer = {
         const variantMeta = hasVariants
           ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
           : '';
-        const actionHtml = (isKids || hasVariants)
-          ? `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`
-          : `<button class="btn-add">Add to Cart</button>`;
+        const actionHtml = `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
         return `
         <div class="product-card${hasVariants ? ' has-variants' : ''}">
           ${badgeHtml}
@@ -341,7 +344,7 @@ window.ProductsRenderer = {
           const card = link.closest('.product-card');
           const qvBtn = card.querySelector('.quickview-open');
           const product = products.find(pr => String(pr.id) === (qvBtn || {}).dataset.pid);
-          if (product && qvBtn) {
+          if (product) {
             openQuickView(product, grid.hasAttribute('data-kids-sizes'));
           } else {
             openProductLightbox(link.dataset.img, link.querySelector('img').alt);
