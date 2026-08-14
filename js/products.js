@@ -168,6 +168,89 @@ const KIDS_STORE_SIZES = [
   '8-9', '9-10', '10-11', '11-12', '12-13', '13-14'
 ];
 
+function openQuickView(product, isKids) {
+  const overlay = document.createElement('div');
+  overlay.className = 'quickview-modal';
+
+  const variants = (product.variants || []).filter(v => v && v.size && v.color);
+  const sizeOptions = isKids
+    ? KIDS_STORE_SIZES.map(s => `<option value="${s}">${s} yr</option>`).join('')
+    : [...new Set(variants.map(v => v.size))].map(s => `<option value="${escapeAttr(s)}">${escapeAttr(s)}</option>`).join('');
+
+  const price = Number(product.price);
+  const old = product.old_price != null ? Number(product.old_price) : null;
+
+  overlay.innerHTML = `
+    <div class="quickview-box">
+      <button class="quickview-close" title="Close">&times;</button>
+      <div class="quickview-img-wrap"><img class="quickview-img" src="${escapeAttr(product.image_url || 'images/dress.svg')}" alt="${escapeAttr(product.name)}"></div>
+      <div class="quickview-body">
+        <h2>${escapeAttr(product.name)}</h2>
+        <p class="product-category">${escapeAttr(product.category_name || '')}</p>
+        <p class="quickview-price">${old && old > price ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ` : ''}₹${price.toLocaleString('en-IN')}</p>
+        <label class="quickview-label">Size${isKids ? ' (for age)' : ''}</label>
+        <select class="quickview-size"><option value="">Select Size...</option>${sizeOptions}</select>
+        <p class="quickview-note"></p>
+        <button class="btn-add quickview-add" disabled>Add to Cart</button>
+      </div>
+    </div>`;
+
+  const box = overlay.querySelector('.quickview-box');
+  const sizeSel = overlay.querySelector('.quickview-size');
+  const addBtn = overlay.querySelector('.quickview-add');
+  const note = overlay.querySelector('.quickview-note');
+  const imgEl = overlay.querySelector('.quickview-img');
+  let picked = null;
+
+  const pickVariant = () => {
+    const s = sizeSel.value;
+    if (isKids) {
+      picked = { size: `${s} yr`, color: '', image: product.image_url, price, variantLabel: `Size ${s} yr` };
+    } else {
+      const v = variants.find(x => String(x.size).trim().toLowerCase() === String(s).trim().toLowerCase());
+      if (!v) picked = null;
+      else picked = {
+        size: v.size,
+        color: v.color,
+        image: v.image_url || product.image_url,
+        price: v.price != null ? Number(v.price) : price,
+        variantLabel: `${v.size} · ${v.color}`,
+        src: v.image_url,
+      };
+    }
+    addBtn.disabled = !picked;
+    note.textContent = picked ? `Selected: ${picked.variantLabel} · ₹${picked.price.toLocaleString('en-IN')}` : '';
+    if (picked && (isKids ? false : picked.src)) imgEl.src = picked.src;
+  };
+
+  sizeSel.addEventListener('change', pickVariant);
+
+  addBtn.addEventListener('click', () => {
+    if (!picked) return;
+    const key = `p${product.productId || product.id}_${String(sizeSel.value).replace(/[^a-z0-9_-]+/g, '-')}`.replace(/[^a-z0-9_-]+/g, '-');
+    if (typeof Cart !== 'undefined') {
+      Cart.add({
+        id: key,
+        name: product.name,
+        price: picked.price,
+        image: picked.image || 'images/dress.svg',
+        productId: product.productId || product.id,
+        size: picked.size,
+        color: picked.color,
+        variantLabel: picked.variantLabel,
+      });
+    }
+    overlay.remove();
+  });
+
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('.quickview-close').addEventListener('click', () => overlay.remove());
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', esc); }
+  });
+  document.body.appendChild(overlay);
+}
+
 function initKidsSizePicker(card, product) {
   if (!product) return;
   const sizeSel = card.querySelector('.pc-size');
@@ -375,7 +458,15 @@ window.ProductsRenderer = {
         link.addEventListener('click', e => {
           e.preventDefault();
           e.stopPropagation();
-          openProductLightbox(link.dataset.img, link.querySelector('img').alt);
+          const card = link.closest('.product-card');
+          const product = products.find(pr => String(pr.id) === (card.querySelector('.pc-var') || {}).dataset.pid) ||
+            products.find(pr => String(pr.id) === card.dataset.pid);
+          const hasQv = card.querySelector('.pc-var');
+          if (product && (hasQv || grid.hasAttribute('data-kids-sizes'))) {
+            openQuickView(product, grid.hasAttribute('data-kids-sizes'));
+          } else {
+            openProductLightbox(link.dataset.img, link.querySelector('img').alt);
+          }
         });
       });
       grid.querySelectorAll('.pc-var').forEach(card => {

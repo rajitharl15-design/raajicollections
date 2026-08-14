@@ -1,4 +1,4 @@
-const CACHE = 'raaji-cache-v10';
+const CACHE = 'raaji-cache-v11';
 const ASSETS = [
   '/raajicollections/',
   '/raajicollections/index.html',
