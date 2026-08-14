@@ -255,74 +255,6 @@ function openQuickView(product, isKids) {
   document.body.appendChild(overlay);
 }
 
-function initInlinePicker(card, product) {
-  if (!product) return;
-  const variants = (product.variants || []).filter(v => v && v.size && v.color);
-  if (variants.length === 0) return;
-
-  const bySize = {};
-  const sizeOrder = [];
-  for (const v of variants) {
-    const size = normalizeKey(v.size);
-    if (!bySize[size]) { bySize[size] = []; sizeOrder.push(size); }
-    bySize[size].push(v);
-  }
-
-  const sizeSel = card.querySelector('.pc-size');
-  const addBtn = card.querySelector('.pc-add');
-  const note = card.querySelector('.pc-note');
-  const imgLink = card.querySelector('.product-img-link');
-  const imgEl = card.querySelector('.product-img-main');
-  let selected = null;
-
-  const pickFirst = (size) => {
-    const list = bySize[size] || [];
-    selected = list[0] || null;
-    return selected;
-  };
-
-  sizeSel.innerHTML = '<option value="">Select Size...</option>' +
-    sizeOrder.map(size => `<option value="${escapeAttr(size)}">${escapeAttr(size)}</option>`).join('');
-
-  sizeSel.addEventListener('change', () => {
-    if (!sizeSel.value) {
-      selected = null;
-      addBtn.disabled = true;
-      note.textContent = '';
-      if (imgLink.dataset.orig) { imgEl.src = imgLink.dataset.orig; imgLink.dataset.img = imgLink.dataset.orig; }
-      return;
-    }
-    const v = pickFirst(sizeSel.value);
-    if (!v) { note.textContent = 'No options for this size.'; return; }
-    addBtn.disabled = false;
-    const price = v.price != null ? Number(v.price) : Number(product.price);
-    note.textContent = `${v.size} · ${v.color} · ₹${price.toLocaleString('en-IN')}`;
-    if (!imgLink.dataset.orig) imgLink.dataset.orig = imgEl.src;
-    if (v.image_url) { imgEl.src = v.image_url; imgLink.dataset.img = v.image_url; }
-  });
-
-  addBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const v = selected;
-    if (!v) return;
-    const price = v.price != null ? Number(v.price) : Number(product.price);
-    const key = `p${product.productId || product.id}_${normalizeKey(v.size)}_${normalizeKey(v.color)}`.replace(/[^a-z0-9_-]+/g, '-');
-    if (typeof Cart !== 'undefined') {
-      Cart.add({
-        id: key,
-        name: product.name,
-        price,
-        image: v.image_url || product.image_url || 'images/dress.svg',
-        productId: product.productId || product.id,
-        size: v.size,
-        color: v.color,
-        variantLabel: `${v.size} · ${v.color}`,
-      });
-    }
-  });
-}
-
 window.ProductsRenderer = {
   apiBase: () => API_CONFIG.baseUrl || '',
   loaded: false,
@@ -373,17 +305,9 @@ window.ProductsRenderer = {
         const variantMeta = hasVariants
           ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
           : '';
-        const actionHtml = isKids
-          ? `<button class="btn-add quickview-open" data-pid="${p.id}">Add to Cart</button>`
-          : hasVariants
-            ? `<div class="pc-var" data-pid="${p.id}">
-                <select class="pc-size" aria-label="Size">
-                  <option value="">Select Size...</option>
-                </select>
-                <button class="btn-add pc-add" disabled>Add to Cart</button>
-                <span class="pc-note"></span>
-              </div>`
-            : `<button class="btn-add">Add to Cart</button>`;
+        const actionHtml = (isKids || hasVariants)
+          ? `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`
+          : `<button class="btn-add">Add to Cart</button>`;
         return `
         <div class="product-card${hasVariants ? ' has-variants' : ''}">
           ${badgeHtml}
@@ -415,26 +339,21 @@ window.ProductsRenderer = {
           e.preventDefault();
           e.stopPropagation();
           const card = link.closest('.product-card');
-          const product = products.find(pr => String(pr.id) === (card.querySelector('.pc-var') || {}).dataset.pid) ||
-            products.find(pr => String(pr.id) === card.dataset.pid);
-          const hasQv = card.querySelector('.pc-var');
-          if (product && (hasQv || grid.hasAttribute('data-kids-sizes'))) {
+          const qvBtn = card.querySelector('.quickview-open');
+          const product = products.find(pr => String(pr.id) === (qvBtn || {}).dataset.pid);
+          if (product && qvBtn) {
             openQuickView(product, grid.hasAttribute('data-kids-sizes'));
           } else {
             openProductLightbox(link.dataset.img, link.querySelector('img').alt);
           }
         });
       });
-      grid.querySelectorAll('.pc-var').forEach(card => {
-        const product = products.find(pr => String(pr.id) === card.dataset.pid);
-        initInlinePicker(card, product);
-      });
       grid.querySelectorAll('.quickview-open').forEach(btn => {
         btn.addEventListener('click', e => {
           e.preventDefault();
           e.stopPropagation();
           const product = products.find(pr => String(pr.id) === btn.dataset.pid);
-          if (product) openQuickView(product, true);
+          if (product) openQuickView(product, grid.hasAttribute('data-kids-sizes'));
         });
       });
       grid.querySelectorAll('.btn-var').forEach(btn => {
