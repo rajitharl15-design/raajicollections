@@ -255,48 +255,6 @@ function openQuickView(product, isKids) {
   document.body.appendChild(overlay);
 }
 
-function initKidsSizePicker(card, product) {
-  if (!product) return;
-  const sizeSel = card.querySelector('.pc-size');
-  const addBtn = card.querySelector('.pc-add');
-  const note = card.querySelector('.pc-note');
-  if (!sizeSel || !addBtn) return;
-
-  sizeSel.innerHTML = '<option value="">Select Size (Age)...</option>' +
-    KIDS_STORE_SIZES.map(s => `<option value="${s}">${s} yr</option>`).join('');
-
-  const update = () => {
-    if (!sizeSel.value) {
-      addBtn.disabled = true;
-      note.textContent = '';
-      return;
-    }
-    addBtn.disabled = false;
-    note.textContent = `Size ${sizeSel.value} yr`;
-  };
-  sizeSel.addEventListener('change', update);
-
-  addBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!sizeSel.value) return;
-    const price = Number(product.price);
-    const key = `p${product.productId || product.id}_${sizeSel.value}`.replace(/[^a-z0-9_-]+/g, '-');
-    if (typeof Cart !== 'undefined') {
-      Cart.add({
-        id: key,
-        name: product.name,
-        price,
-        image: product.image_url || 'images/dress.svg',
-        productId: product.productId || product.id,
-        size: `${sizeSel.value} yr`,
-        color: '',
-        variantLabel: `Size ${sizeSel.value} yr`,
-      });
-    }
-  });
-}
-
 function initInlinePicker(card, product) {
   if (!product) return;
   const variants = (product.variants || []).filter(v => v && v.size && v.color);
@@ -416,13 +374,7 @@ window.ProductsRenderer = {
           ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
           : '';
         const actionHtml = isKids
-          ? `<div class="pc-var" data-pid="${p.id}">
-              <select class="pc-size" aria-label="Select Size (Age)">
-                <option value="">Select Size (Age)...</option>
-              </select>
-              <button class="btn-add pc-add" disabled>Add to Cart</button>
-              <span class="pc-note"></span>
-            </div>`
+          ? `<button class="btn-add quickview-open" data-pid="${p.id}">Add to Cart</button>`
           : hasVariants
             ? `<div class="pc-var" data-pid="${p.id}">
                 <select class="pc-size" aria-label="Size">
@@ -475,8 +427,15 @@ window.ProductsRenderer = {
       });
       grid.querySelectorAll('.pc-var').forEach(card => {
         const product = products.find(pr => String(pr.id) === card.dataset.pid);
-        if (grid.hasAttribute('data-kids-sizes')) initKidsSizePicker(card, product);
-        else initInlinePicker(card, product);
+        initInlinePicker(card, product);
+      });
+      grid.querySelectorAll('.quickview-open').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const product = products.find(pr => String(pr.id) === btn.dataset.pid);
+          if (product) openQuickView(product, true);
+        });
       });
       grid.querySelectorAll('.btn-var').forEach(btn => {
         btn.addEventListener('click', e => {
