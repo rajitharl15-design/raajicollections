@@ -41,7 +41,8 @@ router.get('/', async (req, res, next) => {
          LEFT JOIN LATERAL (
            SELECT json_agg(
              json_build_object('id', v.id, 'size', v.size, 'color', v.color,
-                               'image_url', v.image_url, 'price', v.price)
+                               'image_url', v.image_url, 'price', v.price,
+                               'stock_qty', v.stock_qty)
              ORDER BY v.size, v.color
            ) AS variants
            FROM product_variants v
@@ -80,6 +81,10 @@ router.get('/:slug', async (req, res, next) => {
         ORDER BY size, color`,
       [rows[0].id]
     );
+    // expose only sizes that still have stock, plus kip original list for reference
+    rows[0].available_sizes = variants.rows
+      .filter(v => v.stock_qty > 0)
+      .map(v => v.size);
 
     const images = await pool.query(
       `SELECT id, image_url, alt_text, is_primary, sort_order

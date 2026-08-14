@@ -173,13 +173,26 @@ function openQuickView(product, isKids) {
   overlay.className = 'quickview-modal';
 
   const variants = (product.variants || []).filter(v => v && v.size && v.color);
+  const productStock = Number(product.stock_qty) || 0;
+  const sizeHasStock = (s) => (variants || []).some(v =>
+    String(v.size).trim().toLowerCase() === String(s).trim().toLowerCase() &&
+    Number(v.stock_qty) > 0);
   const sizeOptions = isKids
-    ? KIDS_STORE_SIZES.map(s => `<option value="${s}">${s} yr</option>`).join('')
-    : [...new Set(variants.map(v => v.size))].map(s => `<option value="${escapeAttr(s)}">${escapeAttr(s)}</option>`).join('');
+    ? (() => {
+      const allOut = productStock <= 0;
+      return KIDS_STORE_SIZES.map(s =>
+        `<option value="${s}" ${allOut ? 'disabled' : ''}>${s} yr${allOut ? ' (Out of Stock)' : ''}</option>`).join('');
+    })()
+    : [...new Set(variants.map(v => v.size))].map(s => {
+        const inStock = sizeHasStock(s);
+        return `<option value="${escapeAttr(s)}" ${inStock ? '' : 'disabled'}>${escapeAttr(s)}${inStock ? '' : ' (Out of Stock)'}</option>`;
+      }).join('');
 
   const price = Number(product.price);
   const old = product.old_price != null ? Number(product.old_price) : null;
   const noSize = !isKids && variants.length === 0;
+  const allSizesGone = !isKids && variants.length > 0 && !variants.some(v => Number(v.stock_qty) > 0);
+  const allKidsGone = isKids && productStock <= 0;
 
   overlay.innerHTML = `
     <div class="quickview-box">
@@ -208,9 +221,12 @@ function openQuickView(product, isKids) {
     if (noSize) {
       picked = { size: '', color: '', image: product.image_url, price, variantLabel: '' };
     } else if (isKids) {
-      picked = { size: `${s} yr`, color: '', image: product.image_url, price, variantLabel: `Size ${s} yr` };
+      if (!s || productStock <= 0) picked = null;
+      else picked = { size: `${s} yr`, color: '', image: product.image_url, price, variantLabel: `Size ${s} yr` };
     } else {
-      const v = variants.find(x => String(x.size).trim().toLowerCase() === String(s).trim().toLowerCase());
+      const v = (variants || []).find(x =>
+        String(x.size).trim().toLowerCase() === String(s).trim().toLowerCase() &&
+        Number(x.stock_qty) > 0);
       if (!v) picked = null;
       else picked = {
         size: v.size,
@@ -221,13 +237,18 @@ function openQuickView(product, isKids) {
         src: v.image_url,
       };
     }
-    addBtn.disabled = !picked;
+    addBtn.disabled = !picked || (allSizesGone && !isKids) || allKidsGone;
     note.textContent = picked ? (picked.variantLabel ? `Selected: ${picked.variantLabel} · ₹${picked.price.toLocaleString('en-IN')}` : '') : '';
     if (picked && (isKids ? false : picked.src)) imgEl.src = picked.src;
   };
 
   if (sizeSel) sizeSel.addEventListener('change', pickVariant);
   if (noSize) pickVariant();
+  if (allSizesGone || allKidsGone || (noSize && productStock <= 0)) {
+    note.textContent = 'Out of Stock';
+    note.style.color = '#C62828';
+    addBtn.disabled = true;
+  }
 
   addBtn.addEventListener('click', () => {
     if (!picked) return;
