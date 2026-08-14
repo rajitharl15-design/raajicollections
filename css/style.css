@@ -1125,48 +1125,31 @@ nav {
   background: var(--primary-dark);
 }
 
-/* === INLINE SIZE / COLOR PICKER (Amazon-style) === */
+/* === INLINE SIZE / COLOR PICKER (dropdown style) === */
 .pc-var {
   margin-top: 6px;
 }
 
-.pc-sizes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.pc-size {
-  padding: 5px 12px;
-  border: 2px solid var(--beige);
-  background: var(--cream);
+.pc-size,
+.pc-color {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  margin-bottom: 6px;
+  border: 1px solid var(--beige);
+  border-radius: 6px;
+  background: #fff;
   color: var(--dark);
   font-size: 12px;
-  font-weight: 600;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: var(--transition);
+  font-weight: 500;
   font-family: 'Poppins', sans-serif;
+  cursor: pointer;
 }
 
-.pc-size.active,
-.pc-size:hover {
-  border-color: var(--primary);
-  background: var(--primary);
-  color: var(--white);
-}
-
-.pc-colors {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.pc-colors .vm-swatch {
-  width: 40px;
-  height: 48px;
+.pc-color:disabled {
+  background: #f1ebe3;
+  color: var(--text-light);
+  cursor: not-allowed;
 }
 
 .pc-add {

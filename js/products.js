@@ -176,38 +176,28 @@ function initInlinePicker(card, product) {
     bySize[size].push(v);
   }
 
-  const sizeWrap = card.querySelector('.pc-sizes');
-  const colorWrap = card.querySelector('.pc-colors');
+  const sizeSel = card.querySelector('.pc-size');
+  const colorSel = card.querySelector('.pc-color');
   const addBtn = card.querySelector('.pc-add');
   const note = card.querySelector('.pc-note');
   const imgLink = card.querySelector('.product-img-link');
   const imgEl = card.querySelector('.product-img-main');
-  const showSizes = () => {
-    sizeWrap.innerHTML = sizeOrder.map(size =>
-      `<button class="pc-size ${size === activeSize ? 'active' : ''}" data-size="${escapeAttr(size)}">${escapeAttr(size)}</button>`
-    ).join('');
-    sizeWrap.querySelectorAll('.pc-size').forEach(chip => {
-      chip.addEventListener('click', () => {
-        activeSize = chip.dataset.size;
-        activeColorKey = null;
-        addBtn.disabled = true;
-        note.textContent = '';
-        showSizes();
-        showColors();
-      });
-    });
-  };
+  let activeColorKey = null;
+
   const colorArr = (size) => {
     const list = (bySize[size] || []).map(v => ({ v, key: normalizeKey(v.color) }));
     const seen = {};
     return list.filter(x => seen[x.key] ? false : (seen[x.key] = 1));
   };
-  let activeSize = sizeOrder[0] || null;
-  let activeColorKey = null;
-  const paint = () => {
-    colorWrap.querySelectorAll('.vm-swatch').forEach(sw =>
-      sw.classList.toggle('active', sw.title === activeColorKey));
+
+  const reset = (msg) => {
+    activeColorKey = null;
+    addBtn.disabled = true;
+    colorSel.disabled = true;
+    colorSel.innerHTML = '<option value="">Select Color...</option>';
+    note.textContent = msg || '';
   };
+
   const selectColor = (v, key) => {
     activeColorKey = key;
     addBtn.disabled = false;
@@ -217,25 +207,32 @@ function initInlinePicker(card, product) {
       imgEl.src = v.image_url;
       imgLink.dataset.img = v.image_url;
     }
-    paint();
   };
-  const showColors = () => {
-    const list = colorArr(activeSize);
-    colorWrap.innerHTML = list.map(({ v, key }) =>
-      colorSwatch(v, key)
-    ).join('');
-    colorWrap.querySelectorAll('.vm-swatch').forEach(sw => {
-      sw.addEventListener('click', () => selectColor(bySize[activeSize].find(v => normalizeKey(v.color) === sw.title), sw.title));
-    });
-    if (!activeColorKey) {
-      const first = list[0];
-      if (first) selectColor(first.v, first.key);
-    } else {
-      paint();
-    }
+
+  const fillColors = () => {
+    const list = colorArr(sizeSel.value);
+    colorSel.disabled = false;
+    colorSel.innerHTML = '<option value="">Select Color...</option>' +
+      list.map(({ v }) => `<option value="${escapeAttr(normalizeKey(v.color))}">${escapeAttr(v.color)}</option>`).join('');
+    if (list.length === 0) reset('No colors for this size.');
   };
+
+  sizeSel.innerHTML = '<option value="">Select Size...</option>' +
+    sizeOrder.map(size => `<option value="${escapeAttr(size)}">${escapeAttr(size)}</option>`).join('');
+
+  sizeSel.addEventListener('change', () => {
+    reset('');
+    if (sizeSel.value) fillColors();
+  });
+
+  colorSel.addEventListener('change', () => {
+    const v = (bySize[sizeSel.value] || []).find(x => normalizeKey(x.color) === colorSel.value);
+    if (!v) { reset(''); return; }
+    selectColor(v, colorSel.value);
+  });
+
   addBtn.addEventListener('click', () => {
-    const v = (bySize[activeSize] || []).find(x => normalizeKey(x.color) === activeColorKey);
+    const v = (bySize[sizeSel.value] || []).find(x => normalizeKey(x.color) === activeColorKey);
     if (!v) return;
     const price = v.price != null ? Number(v.price) : Number(product.price);
     const key = `p${product.productId || product.id}_${normalizeKey(v.size)}_${normalizeKey(v.color)}`.replace(/[^a-z0-9_-]+/g, '-');
@@ -252,8 +249,6 @@ function initInlinePicker(card, product) {
       });
     }
   });
-  showSizes();
-  showColors();
 }
 
 window.ProductsRenderer = {
@@ -306,9 +301,13 @@ window.ProductsRenderer = {
           : '';
         const actionHtml = hasVariants
           ? `<div class="pc-var" data-pid="${p.id}">
-              <div class="pc-sizes"></div>
-              <div class="pc-colors"></div>
-              <button class="btn-add pc-add" disabled>Select size &amp; color</button>
+              <select class="pc-size" aria-label="Size">
+                <option value="">Select Size...</option>
+              </select>
+              <select class="pc-color" aria-label="Color" disabled>
+                <option value="">Select Color...</option>
+              </select>
+              <button class="btn-add pc-add" disabled>Add to Cart</button>
               <span class="pc-note"></span>
             </div>`
           : `<button class="btn-add">Add to Cart</button>`;
