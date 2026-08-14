@@ -11,7 +11,7 @@
   <meta name="description" content="Raaji Collections admin dashboard - manage orders, products & payments.">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#8B1A2B">
-  <link rel="stylesheet" href="css/style.css?v=11">
+  <link rel="stylesheet" href="css/style.css?v=12">
   <link rel="stylesheet" href="css/admin.css?v=5">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
@@ -135,9 +135,9 @@
       <button class="admin-modal-close" data-vm-close>&times;</button>
       <h2>Sizes &amp; Colors</h2>
       <h4 id="vmProductName" class="vm-edit-name"></h4>
-      <p class="admin-order-meta">One row per size + color. Examples: Size "1-2Y" + Color "Pink". Image URL optional (use the colour's photo). Price/Stock optional.</p>
+      <p class="admin-order-meta">Add a Size, then add its available Colors underneath. Repeat for each size. Image URL optional (use the colour's photo). Price/Stock optional.</p>
       <div id="vmRows"></div>
-      <button id="vmAddRow" class="btn-outline" type="button"><i class="fas fa-plus"></i> Add Size / Color</button>
+      <button id="vmAddRow" class="btn-outline" type="button"><i class="fas fa-plus"></i> Add Another Size</button>
       <div id="vmStatus" class="pf-status"></div>
       <div class="pf-submit">
         <button id="vmSave" class="btn-primary" type="button">Save Variants</button>
@@ -146,6 +146,6 @@
   </div>
 
   <script src="js/config.js?v=3"></script>
-  <script src="js/admin.js?v=28"></script>
+  <script src="js/admin.js?v=29"></script>
 </body>
 </html>

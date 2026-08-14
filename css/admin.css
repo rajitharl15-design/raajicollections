@@ -711,6 +711,74 @@ body.admin-page {
   color: var(--primary);
 }
 
+.vm-group {
+  border: 1px solid var(--beige);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fdfbf6;
+}
+
+.vm-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.vm-group-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--primary);
+}
+
+.vm-group-head .vm-size {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--beige);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: #fff;
+}
+
+.vm-group-del {
+  background: none;
+  border: none;
+  color: #C62828;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.vm-group-colors {
+  padding-left: 2px;
+}
+
+.vm-group-colors-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.vm-group-colors-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+}
+
+.vm-color-add {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
 .vm-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr auto;
@@ -750,4 +818,13 @@ body.admin-page {
 
 #vmAddRow {
   margin: 4px 0 14px;
+}
+
+@media (max-width: 700px) {
+  .vm-row {
+    grid-template-columns: 1fr 1fr auto;
+  }
+  .vm-row .vm-img {
+    grid-column: auto;
+  }
 }

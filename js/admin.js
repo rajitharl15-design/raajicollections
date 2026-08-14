@@ -508,23 +508,43 @@ function escapeHtml(s) {
 let vmProductId = null;
 let vmIsKids = false;
 
-function vmRowHTML(v) {
-  v = v || {};
+function vmGroupHTML(size, colors) {
+  (colors = colors || []).forEach(c => { c = c || {}; });
   const sizeField = vmIsKids
     ? `<select class="vm-size">
-        <option value="" ${!v.size ? 'selected' : ''}>Select age/size...</option>
-        ${KIDS_AGE_SIZES.map(s => `<option value="${s}" ${v.size === s ? 'selected' : ''}>${s}</option>`).join('')}
-        ${v.size && !KIDS_AGE_SIZES.includes(v.size) ? `<option value="${escapeHtml(v.size)}" selected>${escapeHtml(v.size)}</option>` : ''}
+        <option value="" ${!size ? 'selected' : ''}>Select age/size...</option>
+        ${KIDS_AGE_SIZES.map(s => `<option value="${s}" ${size === s ? 'selected' : ''}>${s}</option>`).join('')}
+        ${size && !KIDS_AGE_SIZES.includes(size) ? `<option value="${escapeHtml(size)}" selected>${escapeHtml(size)}</option>` : ''}
       </select>`
-    : `<input class="vm-size" type="text" placeholder="Size (e.g. 1-2Y)" value="${escapeHtml(v.size || '')}">`;
+    : `<input class="vm-size" type="text" placeholder="Size (e.g. S / M / L / Free)" value="${escapeHtml(size || '')}">`;
+  const colorRows = colors.map((c, i) => vmColorRowHTML(c, i, false)).join('') ||
+    vmColorRowHTML({}, 0, false);
+  return `
+    <div class="vm-group">
+      <div class="vm-group-head">
+        <span class="vm-group-tag">Size</span>
+        ${sizeField}
+        <button type="button" class="vm-group-del" title="Remove this size">&times;</button>
+      </div>
+      <div class="vm-group-colors">
+        <div class="vm-group-colors-head">
+          <span class="vm-group-colors-tag">Colors</span>
+          <button type="button" class="vm-color-add btn-outline">+ Add Color</button>
+        </div>
+        ${colorRows}
+      </div>
+    </div>`;
+}
+
+function vmColorRowHTML(c, i, fromAdd) {
+  c = c || {};
   return `
     <div class="vm-row">
-      ${sizeField}
-      <input class="vm-color" type="text" placeholder="Color (e.g. Pink)" value="${escapeHtml(v.color || '')}">
-      <input class="vm-price" type="number" min="0" step="0.01" placeholder="Price (opt)" value="${v.price != null ? v.price : ''}">
-      <input class="vm-stock" type="number" min="0" placeholder="Stock (opt)" value="${v.stock_qty != null ? v.stock_qty : ''}">
-      <button type="button" class="vm-row-del" title="Remove">&times;</button>
-      <input class="vm-img" type="text" placeholder="Image URL for this color (optional)" value="${escapeHtml(v.image_url || '')}">
+      <input class="vm-color" type="text" placeholder="Color (e.g. Pink)" value="${escapeHtml(c.color || '')}">
+      <input class="vm-price" type="number" min="0" step="0.01" placeholder="Price (opt)" value="${c.price != null ? c.price : ''}">
+      <input class="vm-stock" type="number" min="0" placeholder="Stock (opt)" value="${c.stock_qty != null ? c.stock_qty : ''}">
+      <input class="vm-img" type="text" placeholder="Image URL for this color (optional)" value="${escapeHtml(c.image_url || '')}">
+      <button type="button" class="vm-row-del" title="Remove this color">&times;</button>
     </div>`;
 }
 
@@ -539,36 +559,74 @@ async function openVariantEditor(productId, name, isKids) {
   rows.innerHTML = '<p class="admin-loading">Loading variants...</p>';
   try {
     const data = await api(`/api/admin/products/${productId}/variants`);
-    rows.innerHTML = data.variants.length
-      ? data.variants.map(vmRowHTML).join('')
-      : '';
-    if (data.variants.length === 0) addVariantRow();
-    bindVariantRowDeletes();
+    if (data.variants.length) {
+      const bySize = {};
+      const order = [];
+      for (const v of data.variants) {
+        const s = String(v.size || '').trim().toLowerCase();
+        if (!bySize[s]) { bySize[s] = { size: s, colors: [] }; order.push(s); }
+        bySize[s].colors.push(v);
+      }
+      rows.innerHTML = order.map(s => vmGroupHTML(bySize[s].size, bySize[s].colors)).join('');
+    } else {
+      rows.innerHTML = vmGroupHTML('', [{}, {}]);
+    }
+    bindVariantEditor();
   } catch (err) {
     rows.innerHTML = `<p class="admin-loading">Failed to load: ${err.message}</p>`;
   }
 }
 
-function bindVariantRowDeletes() {
+function bindVariantEditor() {
+  document.querySelectorAll('#vmRows .vm-group-del').forEach(del => {
+    del.addEventListener('click', () => {
+      const group = del.closest('.vm-group');
+      if (group && confirm('Remove this size and all its colors?')) group.remove();
+    });
+  });
+  document.querySelectorAll('#vmRows .vm-color-add').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.vm-group-colors').insertAdjacentHTML('beforeend', vmColorRowHTML({}, -1));
+      bindColorRowDeletes();
+    });
+  });
+  bindColorRowDeletes();
+}
+
+function bindColorRowDeletes() {
   document.querySelectorAll('#vmRows .vm-row-del').forEach(del => {
-    del.addEventListener('click', () => del.closest('.vm-row').remove());
+    del.removeEventListener('click', __vmDelColor);
+    del.addEventListener('click', __vmDelColor);
   });
 }
 
-function addVariantRow() {
-  document.getElementById('vmRows').insertAdjacentHTML('beforeend', vmRowHTML());
-  bindVariantRowDeletes();
+function __vmDelColor(e) {
+  e.currentTarget.closest('.vm-row').remove();
+}
+
+function addVariantGroup() {
+  const rows = document.getElementById('vmRows');
+  rows.insertAdjacentHTML('beforeend', vmGroupHTML('', [{}]));
+  bindVariantEditor();
 }
 
 async function saveVariants() {
-  const rows = [...document.querySelectorAll('#vmRows .vm-row')].map(r => ({
-    size: r.querySelector('.vm-size').value.trim(),
-    color: r.querySelector('.vm-color').value.trim(),
-    image_url: r.querySelector('.vm-img').value.trim(),
-    price: r.querySelector('.vm-price').value,
-    stock_qty: r.querySelector('.vm-stock').value,
-  })).filter(v => v.size && v.color);
   const status = document.getElementById('vmStatus');
+  const rows = [];
+  document.querySelectorAll('#vmRows .vm-group').forEach(group => {
+    const size = group.querySelector('.vm-size').value.trim();
+    group.querySelectorAll('.vm-row').forEach(r => {
+      const color = r.querySelector('.vm-color').value.trim();
+      if (!size || !color) return;
+      rows.push({
+        size,
+        color,
+        image_url: r.querySelector('.vm-img').value.trim(),
+        price: r.querySelector('.vm-price').value,
+        stock_qty: r.querySelector('.vm-stock').value,
+      });
+    });
+  });
   if (rows.length === 0) {
     status.textContent = 'Add at least one size + color.';
     status.style.color = '#C62828';
@@ -764,7 +822,7 @@ document.addEventListener('DOMContentLoaded', () => {
     vmModal.addEventListener('click', e => { if (e.target === vmModal) vmModal.classList.add('hidden'); });
   }
   const vmAddRow = document.getElementById('vmAddRow');
-  if (vmAddRow) vmAddRow.addEventListener('click', addVariantRow);
+  if (vmAddRow) vmAddRow.addEventListener('click', addVariantGroup);
   const vmSave = document.getElementById('vmSave');
   if (vmSave) vmSave.addEventListener('click', saveVariants);
 
