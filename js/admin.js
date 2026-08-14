@@ -649,6 +649,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportBtn = document.getElementById('adminExportBtn');
   if (exportBtn) exportBtn.addEventListener('click', exportOrdersCsv);
 
+  const clearBtn = document.getElementById('adminClearBtn');
+  if (clearBtn) clearBtn.addEventListener('click', async () => {
+    const n = orders.length;
+    if (n === 0) return alert('No orders to clear.');
+    if (!confirm(`Delete ALL ${n} orders? This cannot be undone.`)) return;
+    if (!confirm('Are you absolutely sure? All order history will be permanently removed.')) return;
+    try {
+      const res = await api('/api/admin/orders', { method: 'DELETE' });
+      alert(`Cleared ${res.deleted} order(s).`);
+      orders = [];
+      renderStats();
+      renderOrders();
+    } catch (err) {
+      alert('Failed to clear orders: ' + err.message);
+    }
+  });
+
   // Tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {

@@ -163,6 +163,26 @@ router.get('/orders', async (req, res, next) => {
   }
 });
 
+// DELETE /api/admin/orders -> clear ALL orders (and orphan customers)
+router.delete('/orders', async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const del = await client.query('DELETE FROM orders');
+    await client.query(
+      `DELETE FROM customers
+        WHERE id NOT IN (SELECT DISTINCT customer_id FROM orders)`
+    );
+    await client.query('COMMIT');
+    res.json({ deleted: del.rowCount });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 // GET /api/admin/orders/:id  -> single order with items + payment
 router.get('/orders/:id', async (req, res, next) => {
   try {

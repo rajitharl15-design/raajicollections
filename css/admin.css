@@ -130,6 +130,16 @@ body.admin-page {
   color: var(--dark);
 }
 
+.admin-header .btn-danger {
+  border-color: #dc3545;
+  color: #ff8b94;
+}
+
+.admin-header .btn-danger:hover {
+  background: #dc3545;
+  color: #fff;
+}
+
 /* === MAIN === */
 .admin-main {
   max-width: 1200px;
