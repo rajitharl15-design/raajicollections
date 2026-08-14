@@ -362,12 +362,18 @@ nav {
 .hero-categories {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 24px;
   max-width: 1200px;
   width: 100%;
   margin-top: 50px;
+}
+
+.hero-categories .category-card {
+  flex: 0 0 calc(25% - 18px);
+  min-width: 200px;
 }
 
 .hero-categories .category-card {
@@ -1429,8 +1435,11 @@ footer {
     grid-template-columns: 1fr;
   }
   .hero-categories {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
     max-width: 640px;
+  }
+  .hero-categories .category-card {
+    flex: 0 0 calc(50% - 10px);
   }
 }
 
@@ -1480,9 +1489,12 @@ footer {
   }
 
   .hero-categories {
-    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     margin-top: 40px;
+  }
+  .hero-categories .category-card {
+    flex: 0 0 calc(50% - 8px);
+    min-width: 0;
   }
 
   .product-grid {
@@ -1505,8 +1517,11 @@ footer {
 
 @media (max-width: 480px) {
   .hero-categories {
-    grid-template-columns: 1fr;
     gap: 14px;
+  }
+  .hero-categories .category-card {
+    flex: 0 0 100%;
+    min-width: 0;
   }
 
   .product-grid {
