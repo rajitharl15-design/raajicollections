@@ -1130,8 +1130,7 @@ nav {
   margin-top: 6px;
 }
 
-.pc-size,
-.pc-color {
+.pc-size {
   width: 100%;
   box-sizing: border-box;
   padding: 7px 8px;
@@ -1144,12 +1143,6 @@ nav {
   font-weight: 500;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
-}
-
-.pc-color:disabled {
-  background: #f1ebe3;
-  color: var(--text-light);
-  cursor: not-allowed;
 }
 
 .pc-add {

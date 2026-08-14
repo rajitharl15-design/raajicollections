@@ -177,64 +177,42 @@ function initInlinePicker(card, product) {
   }
 
   const sizeSel = card.querySelector('.pc-size');
-  const colorSel = card.querySelector('.pc-color');
   const addBtn = card.querySelector('.pc-add');
   const note = card.querySelector('.pc-note');
   const imgLink = card.querySelector('.product-img-link');
   const imgEl = card.querySelector('.product-img-main');
-  let activeColorKey = null;
+  let selected = null;
 
-  const colorArr = (size) => {
-    const list = (bySize[size] || []).map(v => ({ v, key: normalizeKey(v.color) }));
-    const seen = {};
-    return list.filter(x => seen[x.key] ? false : (seen[x.key] = 1));
-  };
-
-  const reset = (msg) => {
-    activeColorKey = null;
-    addBtn.disabled = true;
-    colorSel.disabled = true;
-    colorSel.innerHTML = '<option value="">Select Color...</option>';
-    note.textContent = msg || '';
-  };
-
-  const selectColor = (v, key) => {
-    activeColorKey = key;
-    addBtn.disabled = false;
-    const price = v.price != null ? Number(v.price) : Number(product.price);
-    note.textContent = `${v.size} · ${v.color} · ₹${price.toLocaleString('en-IN')}`;
-    if (v.image_url) {
-      imgEl.src = v.image_url;
-      imgLink.dataset.img = v.image_url;
-    }
-  };
-
-  const fillColors = () => {
-    const list = colorArr(sizeSel.value);
-    colorSel.disabled = false;
-    colorSel.innerHTML = '<option value="">Select Color...</option>' +
-      list.map(({ v }) => `<option value="${escapeAttr(normalizeKey(v.color))}">${escapeAttr(v.color)}</option>`).join('');
-    if (list.length === 0) reset('No colors for this size.');
+  const pickFirst = (size) => {
+    const list = bySize[size] || [];
+    selected = list[0] || null;
+    return selected;
   };
 
   sizeSel.innerHTML = '<option value="">Select Size...</option>' +
     sizeOrder.map(size => `<option value="${escapeAttr(size)}">${escapeAttr(size)}</option>`).join('');
 
   sizeSel.addEventListener('change', () => {
-    reset('');
-    if (sizeSel.value) fillColors();
-  });
-
-  colorSel.addEventListener('change', () => {
-    const v = (bySize[sizeSel.value] || []).find(x => normalizeKey(x.color) === colorSel.value);
-    if (!v) { reset(''); return; }
-    selectColor(v, colorSel.value);
+    if (!sizeSel.value) {
+      selected = null;
+      addBtn.disabled = true;
+      note.textContent = '';
+      if (imgLink.dataset.orig) { imgEl.src = imgLink.dataset.orig; imgLink.dataset.img = imgLink.dataset.orig; }
+      return;
+    }
+    const v = pickFirst(sizeSel.value);
+    if (!v) { note.textContent = 'No options for this size.'; return; }
+    addBtn.disabled = false;
+    const price = v.price != null ? Number(v.price) : Number(product.price);
+    note.textContent = `${v.size} · ${v.color} · ₹${price.toLocaleString('en-IN')}`;
+    if (!imgLink.dataset.orig) imgLink.dataset.orig = imgEl.src;
+    if (v.image_url) { imgEl.src = v.image_url; imgLink.dataset.img = v.image_url; }
   });
 
   addBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const v = (bySize[sizeSel.value] || []).find(x => normalizeKey(x.color) === activeColorKey);
+    const v = selected;
     if (!v) return;
     const price = v.price != null ? Number(v.price) : Number(product.price);
     const key = `p${product.productId || product.id}_${normalizeKey(v.size)}_${normalizeKey(v.color)}`.replace(/[^a-z0-9_-]+/g, '-');
@@ -306,9 +284,6 @@ window.ProductsRenderer = {
           ? `<div class="pc-var" data-pid="${p.id}">
               <select class="pc-size" aria-label="Size">
                 <option value="">Select Size...</option>
-              </select>
-              <select class="pc-color" aria-label="Color" disabled>
-                <option value="">Select Color...</option>
               </select>
               <button class="btn-add pc-add" disabled>Add to Cart</button>
               <span class="pc-note"></span>
