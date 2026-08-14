@@ -1480,6 +1480,24 @@ nav {
   font-size: 16px;
 }
 
+.contact-wa-link {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.contact-wa-link:hover {
+  color: #25D366;
+}
+
+.contact-form-note {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 18px;
+}
+
 .social-links {
   display: flex;
   gap: 14px;

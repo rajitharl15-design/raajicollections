@@ -330,3 +330,24 @@ document.querySelector('.newsletter-form')?.addEventListener('submit', async fun
     input.value = '';
   }
 });
+
+document.querySelector('#contactForm')?.addEventListener('submit', function (e) {
+  e.preventDefault();
+  const name = (document.getElementById('cfName')?.value || '').trim();
+  const phone = (document.getElementById('cfPhone')?.value || '').trim();
+  const message = (document.getElementById('cfMessage')?.value || '').trim();
+  const note = document.getElementById('cfNote');
+  const wa = (window.STORE_CONFIG && STORE_CONFIG.whatsappNumber) || '918125491097';
+  const msg =
+    `Hello Raaji Collections!%0A%0A` +
+    `Name: ${encodeURIComponent(name)}%0A` +
+    `${phone ? `Phone: ${encodeURIComponent(phone)}%0A` : ''}%0A` +
+    `Message: ${encodeURIComponent(message)}`;
+  if (note) {
+    note.textContent = 'Opening WhatsApp to send your message...';
+    note.style.color = '#2E7D32';
+  }
+  window.open(`https://wa.me/${wa}?text=${msg}`, '_blank');
+  this.reset();
+  if (note) setTimeout(() => { note.textContent = ''; }, 6000);
+});
