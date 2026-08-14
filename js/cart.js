@@ -77,6 +77,7 @@ const Cart = {
           <img src="${i.image}" alt="${i.name}">
           <div class="cart-item-info">
             <h4>${i.name}</h4>
+            ${i.variantLabel ? `<p class="cart-variant">${i.variantLabel}</p>` : ''}
             <p>${STORE_CONFIG.currency}${i.price.toLocaleString('en-IN')}</p>
             <div class="cart-qty">
               <button onclick="Cart.setQty('${i.id}', ${i.qty - 1})">−</button>
@@ -107,7 +108,7 @@ function openCheckout() {
   if (Cart.count() === 0) return;
   document.getElementById('cartDrawer').classList.remove('show');
   document.getElementById('orderItems').innerHTML = Object.values(Cart.items).map(i =>
-    `<p>${i.qty} x ${i.name} <span>${STORE_CONFIG.currency}${(i.qty * i.price).toLocaleString('en-IN')}</span></p>`
+    `<p>${i.qty} x ${i.name}${i.variantLabel ? ' (' + i.variantLabel + ')' : ''} <span>${STORE_CONFIG.currency}${(i.qty * i.price).toLocaleString('en-IN')}</span></p>`
   ).join('');
   document.getElementById('orderTotal').textContent =
     `${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}`;
@@ -127,7 +128,7 @@ function updateWhatsAppLink(orderNumber, confirmCode) {
     return;
   }
   link.style.display = '';
-  const items = Object.values(Cart.items).map(i => `${i.qty} x ${i.name}`).join(', ');
+  const items = Object.values(Cart.items).map(i => `${i.qty} x ${i.name}${i.variantLabel ? ' (' + i.variantLabel + ')' : ''}`).join(', ');
   const orderPart = orderNumber ? `My order number is ${orderNumber}. ` : '';
   const codePart = confirmCode ? `Payment code: ${confirmCode}. ` : '';
   const msg = `Hello Raaji Collections! ${orderPart}${codePart}I placed an order for: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. I will send the payment screenshot here to confirm.`;
@@ -152,6 +153,8 @@ async function placeOrder() {
   const items = Object.values(Cart.items).map(i => ({
     product_id: i.productId || i.id,
     quantity: i.qty,
+    size: i.size || null,
+    color: i.color || null,
   }));
 
   const payload = {

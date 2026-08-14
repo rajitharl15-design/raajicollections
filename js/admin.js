@@ -193,7 +193,7 @@ async function showOrderDetails(orderId) {
   const data = await api(`/api/admin/orders/${orderId}`);
   const o = data.order;
   const items = o.items.map(i =>
-    `<li>${i.quantity} × ${i.product_name} — ${formatMoney(i.line_total)}</li>`).join('');
+    `<li>${i.quantity} × ${i.product_name}${i.size || i.color ? ` <span class="badge badge-code">${i.size ? i.size : ''}${i.size && i.color ? ' · ' : ''}${i.color ? i.color : ''}</span>` : ''} — ${formatMoney(i.line_total)}</li>`).join('');
   const payments = (o.payments || []).map(p =>
     `<li>${p.method} · ${p.status}${p.transaction_id ? ' · TXN: ' + p.transaction_id : ''} — ${formatMoney(p.amount)}</li>`).join('');
 
@@ -403,6 +403,7 @@ function renderAdminProducts() {
           <input data-field="is_active" data-slug="${p.slug}" type="checkbox" ${p.is_active ? 'checked' : ''}>
         </label>
         <button class="btn-link" data-save="${p.slug}"><i class="fas fa-save"></i> Save</button>
+        <button class="btn-link" data-variants="${p.id}" data-vname="${escapeHtml(p.name)}"><i class="fas fa-th-large"></i> Sizes &amp; Colors</button>
         <button class="btn-link btn-delete" data-delete="${p.slug}"><i class="fas fa-trash-alt"></i> Delete</button>
         <span class="pm-saved" id="pmSaved-${p.slug}"></span>
       </div>
@@ -434,6 +435,10 @@ function renderAdminProducts() {
         if (el) { el.textContent = `Error: ${err.message}`; setTimeout(() => { el.textContent = ''; }, 3000); }
       }
     });
+  });
+
+  list.querySelectorAll('[data-variants]').forEach(btn => {
+    btn.addEventListener('click', () => openVariantEditor(btn.dataset.variants, btn.dataset.vname));
   });
 
   list.querySelectorAll('#pmList input[data-field], #pmList select[data-field]').forEach(inp => {
@@ -493,6 +498,81 @@ async function saveAdminProduct(slug) {
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// === Variant editor (sizes & colors) ===
+let vmProductId = null;
+
+function vmRowHTML(v) {
+  v = v || {};
+  return `
+    <div class="vm-row">
+      <input class="vm-size" type="text" placeholder="Size (e.g. 1-2Y)" value="${escapeHtml(v.size || '')}">
+      <input class="vm-color" type="text" placeholder="Color (e.g. Pink)" value="${escapeHtml(v.color || '')}">
+      <input class="vm-price" type="number" min="0" step="0.01" placeholder="Price (opt)" value="${v.price != null ? v.price : ''}">
+      <input class="vm-stock" type="number" min="0" placeholder="Stock (opt)" value="${v.stock_qty != null ? v.stock_qty : ''}">
+      <button type="button" class="vm-row-del" title="Remove">&times;</button>
+      <input class="vm-img" type="text" placeholder="Image URL for this color (optional)" value="${escapeHtml(v.image_url || '')}">
+    </div>`;
+}
+
+async function openVariantEditor(productId, name) {
+  vmProductId = productId;
+  document.getElementById('vmProductName').textContent = name;
+  document.getElementById('vmStatus').textContent = '';
+  const modal = document.getElementById('variantModal');
+  const rows = document.getElementById('vmRows');
+  modal.classList.remove('hidden');
+  rows.innerHTML = '<p class="admin-loading">Loading variants...</p>';
+  try {
+    const data = await api(`/api/admin/products/${productId}/variants`);
+    rows.innerHTML = data.variants.length
+      ? data.variants.map(vmRowHTML).join('')
+      : '';
+    if (data.variants.length === 0) addVariantRow();
+    bindVariantRowDeletes();
+  } catch (err) {
+    rows.innerHTML = `<p class="admin-loading">Failed to load: ${err.message}</p>`;
+  }
+}
+
+function bindVariantRowDeletes() {
+  document.querySelectorAll('#vmRows .vm-row-del').forEach(del => {
+    del.addEventListener('click', () => del.closest('.vm-row').remove());
+  });
+}
+
+function addVariantRow() {
+  document.getElementById('vmRows').insertAdjacentHTML('beforeend', vmRowHTML());
+  bindVariantRowDeletes();
+}
+
+async function saveVariants() {
+  const rows = [...document.querySelectorAll('#vmRows .vm-row')].map(r => ({
+    size: r.querySelector('.vm-size').value.trim(),
+    color: r.querySelector('.vm-color').value.trim(),
+    image_url: r.querySelector('.vm-img').value.trim(),
+    price: r.querySelector('.vm-price').value,
+    stock_qty: r.querySelector('.vm-stock').value,
+  })).filter(v => v.size && v.color);
+  const status = document.getElementById('vmStatus');
+  if (rows.length === 0) {
+    status.textContent = 'Add at least one size + color.';
+    status.style.color = '#C62828';
+    return;
+  }
+  try {
+    const data = await api(`/api/admin/products/${vmProductId}/variants`, {
+      method: 'PUT',
+      body: JSON.stringify({ variants: rows }),
+    });
+    status.textContent = `Saved ${data.count} variant(s).`;
+    status.style.color = '#2E7D32';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  } catch (err) {
+    status.textContent = `Error: ${err.message}`;
+    status.style.color = '#C62828';
+  }
 }
 
 function imgLabelHint(msg) {
@@ -664,6 +744,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const exportBtn = document.getElementById('adminExportBtn');
   if (exportBtn) exportBtn.addEventListener('click', exportOrdersCsv);
+
+  const vmModal = document.getElementById('variantModal');
+  if (vmModal) {
+    vmModal.querySelector('[data-vm-close]').addEventListener('click', () => vmModal.classList.add('hidden'));
+    vmModal.addEventListener('click', e => { if (e.target === vmModal) vmModal.classList.add('hidden'); });
+  }
+  const vmAddRow = document.getElementById('vmAddRow');
+  if (vmAddRow) vmAddRow.addEventListener('click', addVariantRow);
+  const vmSave = document.getElementById('vmSave');
+  if (vmSave) vmSave.addEventListener('click', saveVariants);
 
   const clearBtn = document.getElementById('adminClearBtn');
   if (clearBtn) clearBtn.addEventListener('click', async () => {

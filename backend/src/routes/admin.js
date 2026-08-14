@@ -234,7 +234,7 @@ router.get('/orders/:id', async (req, res, next) => {
     if (orderRes.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
 
     const itemsRes = await pool.query(
-      `SELECT id, product_id, product_name, unit_price, quantity, line_total
+      `SELECT id, product_id, product_name, unit_price, quantity, line_total, size, color
          FROM order_items WHERE order_id = $1`,
       [req.params.id]
     );
@@ -396,6 +396,88 @@ router.delete('/products/:slug', async (req, res, next) => {
     res.json({ deleted: del.rows[0] });
   } catch (err) {
     next(err);
+  }
+});
+
+// GET /api/admin/products/:id/variants -> list variants for a product
+router.get('/products/:id/variants', async (req, res, next) => {
+  try {
+    const prod = await pool.query(
+      `SELECT id, name FROM products WHERE id = $1`,
+      [req.params.id]
+    );
+    if (prod.rows.length === 0) return res.status(404).json({ error: 'Product not found' });
+    const variants = await pool.query(
+      `SELECT id, size, color, image_url, price, stock_qty FROM product_variants
+        WHERE product_id = $1 ORDER BY size, color`,
+      [req.params.id]
+    );
+    res.json({ product: prod.rows[0], variants: variants.rows });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/admin/products/:id/variants -> replace all variants for a product
+router.put('/products/:id/variants', async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    const { variants } = req.body;
+    if (!Array.isArray(variants)) {
+      return res.status(400).json({ error: 'variants must be an array' });
+    }
+    for (const v of variants) {
+      if (!v.size || !String(v.size).trim() || !v.color || !String(v.color).trim()) {
+        return res.status(400).json({ error: 'Each variant needs a size and color' });
+      }
+    }
+
+    await client.query('BEGIN');
+    const prod = await client.query(
+      `SELECT id FROM products WHERE id = $1`,
+      [req.params.id]
+    );
+    if (prod.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    await client.query(`DELETE FROM product_variants WHERE product_id = $1`, [req.params.id]);
+
+    // Dedupe by (size, color) to respect the unique constraint
+    const seen = new Set();
+    const unique = [];
+    for (const v of variants) {
+      const size = String(v.size).trim();
+      const color = String(v.color).trim();
+      const key = `${size}__${color}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(v);
+    }
+
+    for (const v of unique) {
+      await client.query(
+        `INSERT INTO product_variants (product_id, size, color, image_url, price, stock_qty)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          req.params.id,
+          String(v.size).trim(),
+          String(v.color).trim(),
+          v.image_url ? String(v.image_url).trim() : null,
+          v.price != null && v.price !== '' ? Number(v.price) : null,
+          v.stock_qty != null && v.stock_qty !== '' ? Number(v.stock_qty) : 0,
+        ]
+      );
+    }
+
+    await client.query('COMMIT');
+    res.json({ count: unique.length });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
   }
 });
 

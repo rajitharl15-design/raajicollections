@@ -11,7 +11,7 @@ router.post('/', async (req, res, next) => {
     const {
       customer,           // { first_name, last_name, email, phone }
       shipping,           // { address, area, city, state, pincode }
-      items,              // [{ product_id, quantity }]
+      items,              // [{ product_id, quantity, size?, color? }]
       paymentMethod = 'upi',
       upiId,
       notes,
@@ -108,9 +108,42 @@ router.post('/', async (req, res, next) => {
       if (item.quantity > product.stock_qty) {
         throw Object.assign(new Error(`Insufficient stock for ${product.name}`), { status: 400 });
       }
-      const lineTotal = product.price * item.quantity;
+
+      let unitPrice = product.price;
+      let variant = null;
+      if (item.size != null && item.color != null) {
+        const vRes = await client.query(
+          `SELECT id, price, stock_qty FROM product_variants
+            WHERE product_id = $1 AND size = $2 AND color = $3 AND is_active = TRUE`,
+          [item.product_id, item.size, item.color]
+        );
+        variant = vRes.rows[0];
+        if (!variant) {
+          throw Object.assign(
+            new Error(`"${product.name}" is not available in ${item.size} / ${item.color}`),
+            { status: 400 }
+          );
+        }
+        if (item.quantity > variant.stock_qty) {
+          throw Object.assign(
+            new Error(`Insufficient stock for ${product.name} (${item.size}, ${item.color})`),
+            { status: 400 }
+          );
+        }
+        if (variant.price != null) unitPrice = Number(variant.price);
+      }
+
+      const lineTotal = unitPrice * item.quantity;
       subtotal += lineTotal;
-      orderLines.push({ product, quantity: item.quantity, lineTotal });
+      orderLines.push({
+        product,
+        quantity: item.quantity,
+        unitPrice,
+        lineTotal,
+        size: item.size || null,
+        color: item.color || null,
+        variant,
+      });
     }
 
     const shippingFee = subtotal >= 999 ? 0 : 49;
@@ -139,11 +172,14 @@ router.post('/', async (req, res, next) => {
     // 4. Insert order items + decrement stock
     for (const line of orderLines) {
       await client.query(
-        `INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [order.id, line.product.id, line.product.name, line.product.price, line.quantity, line.lineTotal]
+        `INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total, size, color)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [order.id, line.product.id, line.product.name, line.unitPrice, line.quantity, line.lineTotal, line.size, line.color]
       );
       await client.query(`UPDATE products SET stock_qty = stock_qty - $1 WHERE id = $2`, [line.quantity, line.product.id]);
+      if (line.variant) {
+        await client.query(`UPDATE product_variants SET stock_qty = stock_qty - $1 WHERE id = $2`, [line.quantity, line.variant.id]);
+      }
     }
 
     // 5. Record payment

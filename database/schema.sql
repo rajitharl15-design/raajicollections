@@ -53,6 +53,23 @@ CREATE TABLE product_images (
 );
 
 -- ============================================================
+-- PRODUCT VARIANTS (size + color)
+-- ============================================================
+CREATE TABLE product_variants (
+    id            SERIAL PRIMARY KEY,
+    product_id    INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    size          VARCHAR(50) NOT NULL,
+    color         VARCHAR(100) NOT NULL,
+    image_url     TEXT,
+    price         NUMERIC(10, 2),
+    stock_qty     INT NOT NULL DEFAULT 0 CHECK (stock_qty >= 0),
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (product_id, size, color)
+);
+
+-- ============================================================
 -- CUSTOMERS
 -- ============================================================
 CREATE TABLE customers (
@@ -113,7 +130,9 @@ CREATE TABLE order_items (
     product_name  VARCHAR(200) NOT NULL,
     unit_price    NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
     quantity      INT NOT NULL CHECK (quantity > 0),
-    line_total    NUMERIC(10, 2) NOT NULL CHECK (line_total >= 0)
+    line_total    NUMERIC(10, 2) NOT NULL CHECK (line_total >= 0),
+    size          VARCHAR(50),
+    color         VARCHAR(100)
 );
 
 -- ============================================================
@@ -164,6 +183,7 @@ CREATE TABLE newsletter_subscribers (
 CREATE INDEX idx_products_category    ON products(category_id);
 CREATE INDEX idx_products_featured    ON products(is_featured) WHERE is_featured;
 CREATE INDEX idx_product_images_prod  ON product_images(product_id);
+CREATE INDEX idx_product_variants_prod ON product_variants(product_id);
 CREATE INDEX idx_orders_customer      ON orders(customer_id);
 CREATE INDEX idx_orders_status        ON orders(status);
 CREATE INDEX idx_orders_created       ON orders(created_at DESC);

@@ -700,3 +700,52 @@ body.admin-page {
     flex-wrap: wrap;
   }
 }
+
+/* === VARIANT EDITOR === */
+.admin-modal-box.vm-edit {
+  max-width: 740px;
+}
+
+.vm-edit-name {
+  margin-top: 0;
+  color: var(--primary);
+}
+
+.vm-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--beige);
+}
+
+.vm-row input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--beige);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.vm-row .vm-img {
+  grid-column: 1 / -1;
+}
+
+.vm-row-del {
+  background: none;
+  border: none;
+  color: #C62828;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+#vmAddRow {
+  margin: 4px 0 14px;
+}
