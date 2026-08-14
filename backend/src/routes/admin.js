@@ -183,6 +183,30 @@ router.delete('/orders', async (req, res, next) => {
   }
 });
 
+// DELETE /api/admin/orders/:id -> delete a single order
+router.delete('/orders/:id', async (req, res, next) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const del = await client.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
+    if (del.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+    await client.query(
+      `DELETE FROM customers
+        WHERE id NOT IN (SELECT DISTINCT customer_id FROM orders)`
+    );
+    await client.query('COMMIT');
+    res.json({ deleted: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    next(err);
+  } finally {
+    client.release();
+  }
+});
+
 // GET /api/admin/orders/:id  -> single order with items + payment
 router.get('/orders/:id', async (req, res, next) => {
   try {

@@ -138,6 +138,7 @@ function renderOrders() {
       </div>
       <div class="admin-order-foot">
         <button class="btn-link" data-view="${o.id}"><i class="fas fa-eye"></i> Details</button>
+        <button class="btn-link btn-delete" data-del="${o.id}"><i class="fas fa-trash"></i> Delete</button>
         <span class="admin-saved" id="saved-${o.id}"></span>
       </div>
     </div>
@@ -170,6 +171,21 @@ function renderOrders() {
 
   container.querySelectorAll('[data-view]').forEach(btn => {
     btn.addEventListener('click', () => showOrderDetails(btn.dataset.view));
+  });
+
+  container.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.del;
+      if (!confirm(`Delete order #${id}? This cannot be undone.`)) return;
+      try {
+        await api(`/api/admin/orders/${id}`, { method: 'DELETE' });
+        orders = orders.filter(x => x.id !== Number(id));
+        renderStats();
+        renderOrders();
+      } catch (err) {
+        alert('Failed to delete order: ' + err.message);
+      }
+    });
   });
 }
 
