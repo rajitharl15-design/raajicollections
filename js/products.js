@@ -173,13 +173,15 @@ function openQuickView(product, isKids) {
   overlay.className = 'quickview-modal';
 
   const variants = (product.variants || []).filter(v => v && v.size && v.color);
+  const inStock = (q) => q == null ? true : Number(q) > 0;
   const productStock = Number(product.stock_qty) || 0;
+  const productStockKnown = product.stock_qty != null;
   const sizeHasStock = (s) => (variants || []).some(v =>
     String(v.size).trim().toLowerCase() === String(s).trim().toLowerCase() &&
-    Number(v.stock_qty) > 0);
+    inStock(v.stock_qty));
   const sizeOptions = isKids
     ? (() => {
-      const allOut = productStock <= 0;
+      const allOut = productStockKnown && productStock <= 0;
       return KIDS_STORE_SIZES.map(s =>
         `<option value="${s}" ${allOut ? 'disabled' : ''}>${s} yr${allOut ? ' (Out of Stock)' : ''}</option>`).join('');
     })()
@@ -191,8 +193,10 @@ function openQuickView(product, isKids) {
   const price = Number(product.price);
   const old = product.old_price != null ? Number(product.old_price) : null;
   const noSize = !isKids && variants.length === 0;
-  const allSizesGone = !isKids && variants.length > 0 && !variants.some(v => Number(v.stock_qty) > 0);
-  const allKidsGone = isKids && productStock <= 0;
+  const allSizesGone = !isKids && variants.length > 0 &&
+    variants.some(v => v.stock_qty != null) &&
+    !variants.some(v => inStock(v.stock_qty));
+  const allKidsGone = isKids && productStockKnown && productStock <= 0;
 
   overlay.innerHTML = `
     <div class="quickview-box">
@@ -221,7 +225,7 @@ function openQuickView(product, isKids) {
     if (noSize) {
       picked = { size: '', color: '', image: product.image_url, price, variantLabel: '' };
     } else if (isKids) {
-      if (!s || productStock <= 0) picked = null;
+      if (!s || productStockKnown && productStock <= 0) picked = null;
       else picked = { size: `${s} yr`, color: '', image: product.image_url, price, variantLabel: `Size ${s} yr` };
     } else {
       const v = (variants || []).find(x =>
@@ -244,7 +248,7 @@ function openQuickView(product, isKids) {
 
   if (sizeSel) sizeSel.addEventListener('change', pickVariant);
   if (noSize) pickVariant();
-  if (allSizesGone || allKidsGone || (noSize && productStock <= 0)) {
+  if (allSizesGone || allKidsGone || (noSize && productStockKnown && productStock <= 0)) {
     note.textContent = 'Out of Stock';
     note.style.color = '#C62828';
     addBtn.disabled = true;
