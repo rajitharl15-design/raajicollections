@@ -890,15 +890,13 @@ nav {
 
 .quickview-box {
   position: relative;
-  display: flex;
-  gap: 24px;
   background: #fff;
   border-radius: 10px;
-  max-width: 860px;
+  max-width: 520px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow: auto;
-  padding: 28px;
+  padding: 0 0 24px;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.35);
 }
 
@@ -906,48 +904,62 @@ nav {
   position: absolute;
   top: 10px;
   right: 16px;
-  background: none;
+  background: rgba(0, 0, 0, 0.55);
   border: none;
-  font-size: 32px;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  color: #666;
+  color: #fff;
+  z-index: 2;
 }
 
 .quickview-img-wrap {
-  flex: 0 0 46%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--beige);
-  border-radius: 8px;
   overflow: hidden;
+  cursor: zoom-in;
 }
 
 .quickview-img {
   width: 100%;
   height: auto;
-  max-height: 520px;
+  max-height: 460px;
   object-fit: contain;
   display: block;
 }
 
+.quickview-tap {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 11px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 8px;
+  border-radius: 20px;
+}
+
 .quickview-body {
-  flex: 1;
-  align-self: center;
+  padding: 18px 24px 0;
 }
 
 .quickview-body h2 {
-  font-size: 22px;
+  font-size: 20px;
   color: var(--dark);
   margin-bottom: 4px;
 }
 
 .quickview-price {
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
   color: var(--primary);
-  margin: 6px 0 16px;
+  margin: 6px 0 12px;
 }
 
 .quickview-label {
@@ -979,20 +991,6 @@ nav {
   font-weight: 600;
   color: var(--primary);
   margin: 10px 0 8px;
-}
-
-@media (max-width: 640px) {
-  .quickview-box {
-    flex-direction: column;
-    padding: 18px;
-    max-height: 92vh;
-  }
-  .quickview-img-wrap {
-    flex: none;
-  }
-  .quickview-img {
-    max-height: 320px;
-  }
 }
 
 /* === VARIANT PICKER MODAL === */

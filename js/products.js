@@ -183,7 +183,7 @@ function openQuickView(product, isKids) {
   overlay.innerHTML = `
     <div class="quickview-box">
       <button class="quickview-close" title="Close">&times;</button>
-      <div class="quickview-img-wrap"><img class="quickview-img" src="${escapeAttr(product.image_url || 'images/dress.svg')}" alt="${escapeAttr(product.name)}"></div>
+      <div class="quickview-img-wrap"><img class="quickview-img" src="${escapeAttr(product.image_url || 'images/dress.svg')}" alt="${escapeAttr(product.name)}"><span class="quickview-tap">Click image to enlarge</span></div>
       <div class="quickview-body">
         <h2>${escapeAttr(product.name)}</h2>
         <p class="product-category">${escapeAttr(product.category_name || '')}</p>
@@ -243,6 +243,10 @@ function openQuickView(product, isKids) {
     overlay.remove();
   });
 
+  overlay.querySelector('.quickview-img-wrap').addEventListener('click', e => {
+    e.stopPropagation();
+    openProductLightbox(imgEl.src, imgEl.alt);
+  });
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   overlay.querySelector('.quickview-close').addEventListener('click', () => overlay.remove());
   document.addEventListener('keydown', function esc(e) {
