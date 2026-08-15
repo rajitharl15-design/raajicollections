@@ -8,7 +8,7 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Dresses', 'dresses', 'Anarkali, Lehenga, Indo-Western', 'images/dress.svg', 2),
   ('Tops', 'tops', 'Kurtis, Tunics, Crop Tops', 'images/top.svg', 3),
   ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4),
-  ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery.svg', 5),
+  ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery-category.jpg', 5),
   ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightwear-2.jpg', 6),
   ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7),
   ('Boys', 'kids-boys', 'Shirts, shorts, sets, ethnic wear & more for boys', 'images/kids-boys.svg', 8),

@@ -62,6 +62,16 @@ export async function migrate() {
     console.warn('[migrate] column migrations skipped (no ALTER privilege):', err.message);
   }
 
+  console.log('[migrate] updating category images...');
+  try {
+    await pool.query(`
+      UPDATE categories SET image_url = 'images/jewellery-category.jpg' WHERE slug = 'jewellery';
+    `);
+    console.log('[migrate] category images done.');
+  } catch (err) {
+    console.warn('[migrate] category image update skipped:', err.message);
+  }
+
   console.log('[migrate] adding new categories...');
   try {
     await pool.query(`
