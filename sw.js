@@ -8,6 +8,7 @@ const ASSETS = [
   '/raajicollections/blouses.html',
   '/raajicollections/jewellery.html',
   '/raajicollections/nightdresses.html',
+  '/raajicollections/makeup-gifts.html',
   '/raajicollections/kidswear.html',
   '/raajicollections/boys.html',
   '/raajicollections/girls.html',
