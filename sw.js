@@ -1,4 +1,4 @@
-const CACHE = 'raaji-cache-v19';
+const CACHE = 'raaji-cache-v18';
 const ASSETS = [
   '/raajicollections/',
   '/raajicollections/index.html',
@@ -14,8 +14,6 @@ const ASSETS = [
   '/raajicollections/girls.html',
   '/raajicollections/css/style.css',
   '/raajicollections/images/jewellery-category.jpg',
-  '/raajicollections/images/rakhi.svg',
-  '/raajicollections/rakhi.html',
   '/raajicollections/js/config.js',
   '/raajicollections/js/cart.js',
   '/raajicollections/js/prices.js',

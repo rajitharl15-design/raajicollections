@@ -76,8 +76,7 @@ export async function migrate() {
   try {
     await pool.query(`
       INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
-        ('Makeup & Gifts', 'makeup-gifts', 'Cosmetics, beauty essentials, gift sets & more', 'images/makeup-gifts.svg', 10),
-        ('Rakhi', 'rakhi', 'Designer rakhis, rakhi sets, return gifts & more', 'images/rakhi.svg', 11)
+        ('Makeup & Gifts', 'makeup-gifts', 'Cosmetics, beauty essentials, gift sets & more', 'images/makeup-gifts.svg', 10)
       ON CONFLICT (slug) DO NOTHING;
     `);
     console.log('[migrate] categories done.');
@@ -111,31 +110,6 @@ export async function migrate() {
     }
   } catch (err) {
     console.warn('[migrate] makeup & gifts product migration skipped:', err.message);
-  }
-
-  console.log('[migrate] adding sample rakhi products...');
-  try {
-    const rakhiCat = await pool.query(`SELECT id FROM categories WHERE slug = 'rakhi'`);
-    if (rakhiCat.rows.length > 0) {
-      const catId = rakhiCat.rows[0].id;
-      await pool.query(`
-        INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
-          ($1, 'Designer Silk Rakhi', 'designer-silk-rakhi', 'Elegant designer silk rakhi with golden zari thread.', 99.00, 149.00, 'New', 'Silk', TRUE, 100),
-          ($1, 'Pearl Rakhi Set', 'pearl-rakhi-set', 'Beautiful pearl rakhi set with matching return gift.', 199.00, 299.00, 'Sale', 'Pearl', TRUE, 80),
-          ($1, 'Kids Rakhi Combo', 'kids-rakhi-combo', 'Colourful rakhi combo pack for kids, 5 pieces.', 149.00, NULL, NULL, 'Cotton', FALSE, 60)
-        ON CONFLICT (slug) DO NOTHING;
-      `);
-      for (const slug of ['designer-silk-rakhi', 'pearl-rakhi-set', 'kids-rakhi-combo']) {
-        await pool.query(`
-          INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order)
-          SELECT id, 'images/rakhi.svg', name, TRUE, 1 FROM products WHERE slug = $1
-          ON CONFLICT DO NOTHING
-        `, [slug]);
-      }
-      console.log('[migrate] rakhi products done.');
-    }
-  } catch (err) {
-    console.warn('[migrate] rakhi product migration skipped:', err.message);
   }
 
   console.log('[migrate] applying variant migrations...');
