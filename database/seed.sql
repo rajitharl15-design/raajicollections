@@ -13,7 +13,8 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7),
   ('Boys', 'kids-boys', 'Shirts, shorts, sets, ethnic wear & more for boys', 'images/kids-boys.svg', 8),
   ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9),
-  ('Makeup & Gifts', 'makeup-gifts', 'Cosmetics, beauty essentials, gift sets & more', 'images/makeup-gifts.svg', 10)
+  ('Makeup & Gifts', 'makeup-gifts', 'Cosmetics, beauty essentials, gift sets & more', 'images/makeup-gifts.svg', 10),
+  ('Rakhi', 'rakhi', 'Designer rakhis, rakhi sets, return gifts & more', 'images/rakhi.svg', 11)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
@@ -102,6 +103,16 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
   ((SELECT id FROM products WHERE slug='compact-mirror-comb'), 'images/makeup-gifts.svg', 'Compact Mirror with Comb', TRUE, 1),
   ((SELECT id FROM products WHERE slug='silk-eyeshadow-palette'), 'images/makeup-gifts.svg', 'Silk Eye Shadow Palette', TRUE, 1),
   ((SELECT id FROM products WHERE slug='golden-gift-box-set'), 'images/makeup-gifts.svg', 'Golden Gift Box Set', TRUE, 1);
+
+INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
+  ((SELECT id FROM categories WHERE slug='rakhi'), 'Designer Silk Rakhi', 'designer-silk-rakhi', 'Elegant designer silk rakhi with golden zari thread.', 99.00, 149.00, 'New', 'Silk', TRUE, 100),
+  ((SELECT id FROM categories WHERE slug='rakhi'), 'Pearl Rakhi Set', 'pearl-rakhi-set', 'Beautiful pearl rakhi set with matching return gift.', 199.00, 299.00, 'Sale', 'Pearl', TRUE, 80),
+  ((SELECT id FROM categories WHERE slug='rakhi'), 'Kids Rakhi Combo', 'kids-rakhi-combo', 'Colourful rakhi combo pack for kids, 5 pieces.', 149.00, NULL, NULL, 'Cotton', FALSE, 60);
+
+INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
+  ((SELECT id FROM products WHERE slug='designer-silk-rakhi'), 'images/rakhi.svg', 'Designer Silk Rakhi', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='pearl-rakhi-set'), 'images/rakhi.svg', 'Pearl Rakhi Set', TRUE, 1),
+  ((SELECT id FROM products WHERE slug='kids-rakhi-combo'), 'images/rakhi.svg', 'Kids Rakhi Combo', TRUE, 1);
 
 INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
   ((SELECT id FROM products WHERE slug='matte-lipstick-trio'), 'Sneha R.', 5, 'Lovely shades and they stay on all day. Great value for money!', TRUE),
