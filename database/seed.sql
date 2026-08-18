@@ -12,8 +12,7 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightwear-2.jpg', 6),
   ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7),
   ('Boys', 'kids-boys', 'Shirts, shorts, sets, ethnic wear & more for boys', 'images/kids-boys.svg', 8),
-  ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9),
-  ('Makeup & Gifts', 'makeup-gifts', 'Cosmetics, beauty essentials, gift sets & more', 'images/makeup-gifts.svg', 10)
+  ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
@@ -86,26 +85,6 @@ INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_or
   ((SELECT id FROM products WHERE slug='kids-two-piece-set'), 'images/kids.svg', 'Kids Two Piece Set', TRUE, 1),
   ((SELECT id FROM products WHERE slug='boys-casual-shirt'), 'images/kids.svg', 'Boys Casual Shirt', TRUE, 1),
   ((SELECT id FROM products WHERE slug='boys-denim-set'), 'images/kids.svg', 'Boys Denim Set', TRUE, 1);
-
-INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
-  ((SELECT id FROM categories WHERE slug='makeup-gifts'), 'Matte Lipstick Trio', 'matte-lipstick-trio', 'Set of three long-wear matte lipsticks in beautiful festive shades.', 549.00, 799.00, 'Sale', 'Makeup', TRUE, 20),
-  ((SELECT id FROM categories WHERE slug='makeup-gifts'), 'Rose Gold Makeup Brush Set', 'rose-gold-makeup-brush-set', 'Premium 10-piece rose gold makeup brush set with soft synthetic bristles.', 899.00, NULL, 'New', 'Makeup', FALSE, 15),
-  ((SELECT id FROM categories WHERE slug='makeup-gifts'), 'Handcrafted Gift Hamper', 'handcrafted-gift-hamper', 'Elegant gift hamper with assortment of beauty essentials and treats.', 1499.00, 1999.00, 'Sale', 'Gift', TRUE, 10),
-  ((SELECT id FROM categories WHERE slug='makeup-gifts'), 'Compact Mirror with Comb', 'compact-mirror-comb', 'Stylish foldable compact mirror with comb, perfect for travel & gifting.', 399.00, NULL, NULL, 'Gift', FALSE, 30),
-  ((SELECT id FROM categories WHERE slug='makeup-gifts'), 'Silk Eye Shadow Palette', 'silk-eyeshadow-palette', '12 rich shades of silky eye shadow with smooth blendable texture.', 749.00, NULL, 'New', 'Makeup', FALSE, 12),
-  ((SELECT id FROM categories WHERE slug='makeup-gifts'), 'Golden Gift Box Set', 'golden-gift-box-set', 'Luxurious golden gift box with curated women gift items.', 999.00, 1299.00, 'Sale', 'Gift', FALSE, 8);
-
-INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order) VALUES
-  ((SELECT id FROM products WHERE slug='matte-lipstick-trio'), 'images/makeup-gifts.svg', 'Matte Lipstick Trio', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='rose-gold-makeup-brush-set'), 'images/makeup-gifts.svg', 'Rose Gold Makeup Brush Set', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='handcrafted-gift-hamper'), 'images/makeup-gifts.svg', 'Handcrafted Gift Hamper', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='compact-mirror-comb'), 'images/makeup-gifts.svg', 'Compact Mirror with Comb', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='silk-eyeshadow-palette'), 'images/makeup-gifts.svg', 'Silk Eye Shadow Palette', TRUE, 1),
-  ((SELECT id FROM products WHERE slug='golden-gift-box-set'), 'images/makeup-gifts.svg', 'Golden Gift Box Set', TRUE, 1);
-
-INSERT INTO reviews (product_id, customer_name, rating, comment, is_verified) VALUES
-  ((SELECT id FROM products WHERE slug='matte-lipstick-trio'), 'Sneha R.', 5, 'Lovely shades and they stay on all day. Great value for money!', TRUE),
-  ((SELECT id FROM products WHERE slug='handcrafted-gift-hamper'), 'Anita K.', 5, 'Beautifully packed gift hamper, my friend loved it.', TRUE);
 
 INSERT INTO newsletter_subscribers (email) VALUES
   ('priya@example.com'),

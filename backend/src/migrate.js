@@ -72,46 +72,6 @@ export async function migrate() {
     console.warn('[migrate] category image update skipped:', err.message);
   }
 
-  console.log('[migrate] adding new categories...');
-  try {
-    await pool.query(`
-      INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
-        ('Makeup & Gifts', 'makeup-gifts', 'Cosmetics, beauty essentials, gift sets & more', 'images/makeup-gifts.svg', 10)
-      ON CONFLICT (slug) DO NOTHING;
-    `);
-    console.log('[migrate] categories done.');
-  } catch (err) {
-    console.warn('[migrate] category migration skipped:', err.message);
-  }
-
-  console.log('[migrate] adding sample makeup & gifts products...');
-  try {
-    const makeupCat = await pool.query(`SELECT id FROM categories WHERE slug = 'makeup-gifts'`);
-    if (makeupCat.rows.length > 0) {
-      const catId = makeupCat.rows[0].id;
-      await pool.query(`
-        INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES
-          ($1, 'Matte Lipstick Trio', 'matte-lipstick-trio', 'Set of three long-wear matte lipsticks in beautiful festive shades.', 549.00, 799.00, 'Sale', 'Makeup', TRUE, 20),
-          ($1, 'Rose Gold Makeup Brush Set', 'rose-gold-makeup-brush-set', 'Premium 10-piece rose gold makeup brush set with soft synthetic bristles.', 899.00, NULL, 'New', 'Makeup', FALSE, 15),
-          ($1, 'Handcrafted Gift Hamper', 'handcrafted-gift-hamper', 'Elegant gift hamper with assortment of beauty essentials and treats.', 1499.00, 1999.00, 'Sale', 'Gift', TRUE, 10),
-          ($1, 'Compact Mirror with Comb', 'compact-mirror-comb', 'Stylish foldable compact mirror with comb, perfect for travel & gifting.', 399.00, NULL, NULL, 'Gift', FALSE, 30),
-          ($1, 'Silk Eye Shadow Palette', 'silk-eyeshadow-palette', '12 rich shades of silky eye shadow with smooth blendable texture.', 749.00, NULL, 'New', 'Makeup', FALSE, 12),
-          ($1, 'Golden Gift Box Set', 'golden-gift-box-set', 'Luxurious golden gift box with curated women gift items.', 999.00, 1299.00, 'Sale', 'Gift', FALSE, 8)
-        ON CONFLICT (slug) DO NOTHING;
-      `);
-      for (const slug of ['matte-lipstick-trio', 'rose-gold-makeup-brush-set', 'handcrafted-gift-hamper', 'compact-mirror-comb', 'silk-eyeshadow-palette', 'golden-gift-box-set']) {
-        await pool.query(`
-          INSERT INTO product_images (product_id, image_url, alt_text, is_primary, sort_order)
-          SELECT id, 'images/makeup-gifts.svg', name, TRUE, 1 FROM products WHERE slug = $1
-          ON CONFLICT DO NOTHING
-        `, [slug]);
-      }
-      console.log('[migrate] makeup & gifts products done.');
-    }
-  } catch (err) {
-    console.warn('[migrate] makeup & gifts product migration skipped:', err.message);
-  }
-
   console.log('[migrate] applying variant migrations...');
   try {
     await pool.query(`
