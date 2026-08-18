@@ -1,8 +1,9 @@
-const CACHE = 'raaji-cache-v19';
+const CACHE = 'raaji-cache-v20';
 const ASSETS = [
   '/raajicollections/',
   '/raajicollections/index.html',
   '/raajicollections/sarees.html',
+  '/raajicollections/dresses.html',
   '/raajicollections/videos/saree-1.mp4',
   '/raajicollections/videos/saree-2.mp4',
   '/raajicollections/blouses.html',
