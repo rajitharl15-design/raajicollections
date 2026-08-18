@@ -687,6 +687,41 @@ nav {
   border-radius: 8px;
 }
 
+.subcat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0 auto 30px;
+}
+
+.subcat-tabs .subcat-tab {
+  padding: 8px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--white);
+  background: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 30px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.subcat-tabs .subcat-tab:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--dark);
+}
+
+.subcat-tabs .subcat-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--dark);
+}
+
 .product-card {
   background: var(--white);
   border-radius: 12px;

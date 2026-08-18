@@ -319,71 +319,118 @@ window.ProductsRenderer = {
         return;
       }
 
-      grid.innerHTML = products.map(p => {
-        const isKids = grid.hasAttribute('data-kids-sizes');
-        const forcePlain = grid.hasAttribute('data-no-variants');
-        const hasVariants = !forcePlain && Array.isArray(p.variants) && p.variants.length > 0;
-        const sizes = hasVariants ? [...new Set(p.variants.map(v => v.size))] : [];
-        const price = Number(p.price);
-        const old = p.old_price != null ? Number(p.old_price) : null;
-        const priceHtml = (old && old > price)
-          ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ₹${price.toLocaleString('en-IN')}`
-          : `₹${price.toLocaleString('en-IN')}`;
-        const badgeHtml = p.badge
-          ? `<div class="product-badge ${p.badge.toLowerCase() === 'sale' ? 'sale' : ''}">${p.badge}</div>`
-          : '';
-        const variantMeta = hasVariants
-          ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
-          : '';
-        const actionHtml = `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
-        return `
-        <div class="product-card${hasVariants ? ' has-variants' : ''}">
-          ${badgeHtml}
-          <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
-            <img class="product-img-main" src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
-            ${p.image_url_2 ? `<img class="product-img-hover" src="${escapeAttr(p.image_url_2)}" alt="${p.name}" loading="lazy">` : ''}
-          </a>
-          <div class="product-info">
-            <h3>${p.name}</h3>
-            <p class="product-category">${p.category_name}</p>
-            <p class="product-price">${priceHtml}</p>
-            ${variantMeta}
-            ${actionHtml}
-          </div>
-        </div>`;
-      }).join('');
+      const renderGrid = (list) => {
+        grid.innerHTML = list.map(p => {
+          const isKids = grid.hasAttribute('data-kids-sizes');
+          const forcePlain = grid.hasAttribute('data-no-variants');
+          const hasVariants = !forcePlain && Array.isArray(p.variants) && p.variants.length > 0;
+          const sizes = hasVariants ? [...new Set(p.variants.map(v => v.size))] : [];
+          const price = Number(p.price);
+          const old = p.old_price != null ? Number(p.old_price) : null;
+          const priceHtml = (old && old > price)
+            ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ₹${price.toLocaleString('en-IN')}`
+            : `₹${price.toLocaleString('en-IN')}`;
+          const badgeHtml = p.badge
+            ? `<div class="product-badge ${p.badge.toLowerCase() === 'sale' ? 'sale' : ''}">${p.badge}</div>`
+            : '';
+          const variantMeta = hasVariants
+            ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
+            : '';
+          const actionHtml = `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
+          return `
+          <div class="product-card${hasVariants ? ' has-variants' : ''}">
+            ${badgeHtml}
+            <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
+              <img class="product-img-main" src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
+              ${p.image_url_2 ? `<img class="product-img-hover" src="${escapeAttr(p.image_url_2)}" alt="${p.name}" loading="lazy">` : ''}
+            </a>
+            <div class="product-info">
+              <h3>${p.name}</h3>
+              <p class="product-category">${p.category_name}</p>
+              <p class="product-price">${priceHtml}</p>
+              ${variantMeta}
+              ${actionHtml}
+            </div>
+          </div>`;
+        }).join('');
+        if (list.length === 0) {
+          grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
+        }
+        if (typeof observer !== 'undefined') {
+          document.querySelectorAll('.product-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            observer.observe(el);
+          });
+        }
+        document.dispatchEvent(new CustomEvent('products:rendered'));
+      };
 
-      // Re-run the observer for animations
-      if (typeof observer !== 'undefined') {
-        document.querySelectorAll('.product-card').forEach(el => {
-          el.style.opacity = '0';
-          el.style.transform = 'translateY(30px)';
-          observer.observe(el);
+      const wireCardEvents = (list) => {
+        grid.querySelectorAll('.product-img-link').forEach(link => {
+          link.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = link.closest('.product-card');
+            const qvBtn = card.querySelector('.quickview-open');
+            const product = list.find(pr => String(pr.id) === (qvBtn || {}).dataset.pid);
+            if (product) {
+              openQuickView(product, grid.hasAttribute('data-kids-sizes'));
+            } else {
+              openProductLightbox(link.dataset.img, link.querySelector('img').alt);
+            }
+          });
         });
+        grid.querySelectorAll('.quickview-open').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            const product = list.find(pr => String(pr.id) === btn.dataset.pid);
+            if (product) openQuickView(product, grid.hasAttribute('data-kids-sizes'));
+          });
+        });
+      };
+
+      const subcats = grid.getAttribute('data-subcats');
+      if (subcats) {
+        let parsed;
+        try { parsed = JSON.parse(subcats); } catch (err) { parsed = []; }
+        const groups = Array.isArray(parsed) ? parsed : [];
+        const matchSubcat = (p, rules) => {
+          const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();
+          return rules.some(r => text.includes(r.toLowerCase()));
+        };
+        const tabWrap = document.createElement('div');
+        tabWrap.className = 'subcat-tabs';
+        const allGroup = { label: 'All', rules: [] };
+        const showGroup = (group) => {
+          tabWrap.querySelectorAll('.subcat-tab').forEach(t => t.classList.toggle('active', t.dataset.label === group.label));
+          renderGrid(group.rules.length === 0 ? products : products.filter(p => matchSubcat(p, group.rules)));
+          wireCardEvents(group.rules.length === 0 ? products : products.filter(p => matchSubcat(p, group.rules)));
+        };
+        for (const g of [allGroup, ...groups]) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'subcat-tab';
+          btn.dataset.label = g.label;
+          btn.textContent = g.label;
+          btn.addEventListener('click', () => showGroup(g));
+          tabWrap.appendChild(btn);
+        }
+        grid.parentNode.insertBefore(tabWrap, grid);
+        if (typeof observer !== 'undefined') {
+          document.querySelectorAll('.product-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            observer.observe(el);
+          });
+        }
+        showGroup(allGroup);
+        return;
       }
-      document.dispatchEvent(new CustomEvent('products:rendered'));
-      grid.querySelectorAll('.product-img-link').forEach(link => {
-        link.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const card = link.closest('.product-card');
-          const qvBtn = card.querySelector('.quickview-open');
-          const product = products.find(pr => String(pr.id) === (qvBtn || {}).dataset.pid);
-          if (product) {
-            openQuickView(product, grid.hasAttribute('data-kids-sizes'));
-          } else {
-            openProductLightbox(link.dataset.img, link.querySelector('img').alt);
-          }
-        });
-      });
-      grid.querySelectorAll('.quickview-open').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const product = products.find(pr => String(pr.id) === btn.dataset.pid);
-          if (product) openQuickView(product, grid.hasAttribute('data-kids-sizes'));
-        });
-      });
+
+      renderGrid(products);
+      wireCardEvents(products);
       grid.querySelectorAll('.btn-var').forEach(btn => {
         btn.addEventListener('click', e => {
           e.preventDefault();
