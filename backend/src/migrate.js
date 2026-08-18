@@ -73,6 +73,14 @@ export async function migrate() {
     console.warn('[migrate] category image update skipped:', err.message);
   }
 
+  console.log('[migrate] applying subcategory column...');
+  try {
+    await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS subcategory VARCHAR(50)`);
+    console.log('[migrate] subcategory column done.');
+  } catch (err) {
+    console.warn('[migrate] subcategory migration skipped:', err.message);
+  }
+
   console.log('[migrate] applying variant migrations...');
   try {
     await pool.query(`

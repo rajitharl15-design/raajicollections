@@ -396,7 +396,20 @@ window.ProductsRenderer = {
         let parsed;
         try { parsed = JSON.parse(subcats); } catch (err) { parsed = []; }
         const groups = Array.isArray(parsed) ? parsed : [];
-        const matchSubcat = (p, rules) => {
+        const norm = (s) => String(s || '').trim().toLowerCase();
+        const assignedSubcat = (p) => {
+          if (!p.subcategory) return null;
+          const want = norm(p.subcategory);
+          for (const g of groups) {
+            if (norm(g.label) === want || g.rules.some(r => norm(r) === want)) return g.label;
+          }
+          return null;
+        };
+        const matchSubcat = (p, group) => {
+          const assigned = assignedSubcat(p);
+          if (assigned) return assigned === group.label;
+          const rules = group.rules;
+          if (rules.length === 0) return true;
           const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();
           return rules.some(r => text.includes(r.toLowerCase()));
         };
@@ -405,8 +418,9 @@ window.ProductsRenderer = {
         const allGroup = { label: 'All', rules: [] };
         const showGroup = (group) => {
           tabWrap.querySelectorAll('.subcat-tab').forEach(t => t.classList.toggle('active', t.dataset.label === group.label));
-          renderGrid(group.rules.length === 0 ? products : products.filter(p => matchSubcat(p, group.rules)));
-          wireCardEvents(group.rules.length === 0 ? products : products.filter(p => matchSubcat(p, group.rules)));
+          const list = products.filter(p => matchSubcat(p, group));
+          renderGrid(list);
+          wireCardEvents(list);
         };
         for (const g of [allGroup, ...groups]) {
           const btn = document.createElement('button');

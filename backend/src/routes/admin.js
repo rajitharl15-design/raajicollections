@@ -78,6 +78,7 @@ router.post('/products', async (req, res, next) => {
       badge = null,
       material = null,
       description = null,
+      subcategory = null,
       images = [],          // [{ dataUrl, alt }]
       is_featured = false,
       is_active = true,
@@ -92,12 +93,12 @@ router.post('/products', async (req, res, next) => {
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     const productRes = await client.query(
       `INSERT INTO products (name, slug, category_id, description, price, old_price,
-                             badge, material, is_featured, is_active, stock_qty)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING id, name, slug, price, old_price, badge, stock_qty`,
+                             badge, material, subcategory, is_featured, is_active, stock_qty)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING id, name, slug, price, old_price, badge, stock_qty, subcategory`,
       [name, slug, category_id, description || null,
        Number(price), old_price != null ? Number(old_price) : null,
-       badge || null, material || null, is_featured, is_active, Number(stock_qty)]
+       badge || null, material || null, subcategory || null, is_featured, is_active, Number(stock_qty)]
     );
     const product = productRes.rows[0];
 
@@ -316,7 +317,7 @@ router.get('/products', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock_qty, p.badge, p.is_featured, p.is_active,
-              p.category_id,
+              p.category_id, p.subcategory,
               c.name AS category_name,
               COALESCE(img.image_url, '/images/dress.svg') AS image_url
          FROM products p
@@ -335,7 +336,7 @@ router.get('/products', async (req, res, next) => {
 // PATCH /api/admin/products/:slug  -> update name / price / old_price / stock / badge
 router.patch('/products/:slug', async (req, res, next) => {
   try {
-    const { name, price, old_price, stock_qty, badge, is_featured, is_active, category_id } = req.body;
+    const { name, price, old_price, stock_qty, badge, is_featured, is_active, category_id, subcategory } = req.body;
 
     if (name != null && (!name.trim() || name.length > 200)) {
       return res.status(400).json({ error: 'name must be non-empty and under 200 chars' });
@@ -363,9 +364,10 @@ router.patch('/products/:slug', async (req, res, next) => {
               is_featured = COALESCE($6::boolean, is_featured),
               is_active = COALESCE($7::boolean, is_active),
               category_id = COALESCE($8::int, category_id),
+              subcategory = CASE WHEN $10::text = '' THEN NULL ELSE COALESCE($10::varchar, subcategory) END,
               updated_at = NOW()
         WHERE slug = $9
-        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active, category_id`,
+        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active, category_id, subcategory`,
       [
         name != null && name.trim() ? name.trim() : null,
         price != null ? Number(price) : null,
@@ -376,6 +378,7 @@ router.patch('/products/:slug', async (req, res, next) => {
         is_active != null ? is_active : null,
         category_id != null ? Number(category_id) : null,
         req.params.slug,
+        subcategory,
       ]
     );
     if (updated.rows.length === 0) return res.status(404).json({ error: 'Product not found' });

@@ -21,7 +21,7 @@ router.get('/', async (req, res, next) => {
 
     const { rows } = await pool.query(
       `SELECT p.id, p.name, p.slug, p.description, p.price, p.old_price,
-              p.badge, p.material, p.is_featured, p.stock_qty,
+              p.badge, p.material, p.is_featured, p.stock_qty, p.subcategory,
               c.name AS category_name, c.slug AS category_slug,
               COALESCE(img.image_url, '/images/dress.svg') AS image_url,
               img2.image_url AS image_url_2,
@@ -65,7 +65,7 @@ router.get('/:slug', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `SELECT p.id, p.name, p.slug, p.description, p.price, p.old_price,
-              p.badge, p.material, p.is_featured, p.stock_qty,
+              p.badge, p.material, p.is_featured, p.stock_qty, p.subcategory,
               c.name AS category_name, c.slug AS category_slug
          FROM products p
          JOIN categories c ON c.id = p.category_id

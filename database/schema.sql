@@ -32,6 +32,7 @@ CREATE TABLE products (
     old_price     NUMERIC(10, 2) CHECK (old_price IS NULL OR old_price >= price),
     badge         VARCHAR(50),
     material      VARCHAR(100),
+    subcategory   VARCHAR(50),
     is_featured   BOOLEAN NOT NULL DEFAULT FALSE,
     is_active     BOOLEAN NOT NULL DEFAULT TRUE,
     stock_qty     INT NOT NULL DEFAULT 0 CHECK (stock_qty >= 0),

@@ -359,6 +359,14 @@ async function loadAdminCategories() {
       filter.innerHTML = `<option value="">All</option>` +
         data.categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     }
+    const toggleSubcat = () => {
+      const wrap = document.getElementById('pfSubcatWrap');
+      if (!wrap) return;
+      const cat = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+      wrap.classList.toggle('hidden', !/jewell/i.test(cat));
+    };
+    select.addEventListener('change', toggleSubcat);
+    toggleSubcat();
   } catch (err) {
     select.innerHTML = `<option value="">Categories failed to load</option>`;
   }
@@ -396,6 +404,13 @@ function renderAdminProducts() {
             ${adminCategories.map(c => `<option value="${c.id}" ${c.id === p.category_id ? 'selected' : ''}>${c.name}</option>`).join('')}
           </select>
         </p>
+        ${/jewell/i.test(p.category_name || '') ? `
+        <p class="admin-order-meta">Jewellery Subcategory
+          <select data-field="subcategory" data-slug="${p.slug}">
+            <option value="">None</option>
+            ${['Jhumkas', 'Bangles', 'Bead Chains'].map(s => `<option value="${s}" ${p.subcategory === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </p>` : ''}
         <label>Name
           <input data-field="name" data-slug="${p.slug}" type="text" value="${escapeHtml(p.name)}">
         </label>
@@ -486,6 +501,8 @@ async function saveAdminProduct(slug) {
   });
   const catSel = list.querySelector(`select[data-field="category_id"][data-slug="${slug}"]`);
   if (catSel) payload.category_id = Number(catSel.value);
+  const subSel = list.querySelector(`select[data-field="subcategory"][data-slug="${slug}"]`);
+  if (subSel) payload.subcategory = subSel.value;
   try {
     const data = await api(`/api/admin/products/${slug}`, {
       method: 'PATCH', body: JSON.stringify(payload),
@@ -698,6 +715,7 @@ async function saveNewProduct() {
   const oldPrice = document.getElementById('pfOldPrice').value;
   const stock = document.getElementById('pfStock').value;
   const badge = document.getElementById('pfBadge').value.trim();
+  const subcategory = document.getElementById('pfSubcategory') ? document.getElementById('pfSubcategory').value : '';
   const desc = document.getElementById('pfDesc').value.trim();
 
   if (!name || !categoryId || !price) {
@@ -713,6 +731,7 @@ async function saveNewProduct() {
     old_price: oldPrice ? Number(oldPrice) : null,
     stock_qty: Number(stock || 0),
     badge: badge || null,
+    subcategory: subcategory || null,
     description: desc || null,
   };
 
