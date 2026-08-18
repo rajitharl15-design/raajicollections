@@ -5,7 +5,7 @@ BEGIN;
 
 INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Sarees', 'sarees', 'Banarasi, Kanjivaram, Silk, Cotton & more', 'images/saree.svg', 1),
-  ('Dresses', 'dresses', 'Anarkali, Lehenga, Indo-Western', 'images/dress.svg', 2),
+  ('Dresses', 'dresses', 'Anarkali, Lehenga, Indo-Western', 'images/dresses-category.jpg', 2),
   ('Tops', 'tops', 'Kurtis, Tunics, Crop Tops', 'images/top.svg', 3),
   ('Ready Made Blouses', 'ready-made-blouses', 'Stitched, Unstitched, Designer', 'images/blouse.svg', 4),
   ('Jewellery', 'jewellery', 'Necklaces, Earrings, Bangles, Kundan & more', 'images/jewellery-category.jpg', 5),

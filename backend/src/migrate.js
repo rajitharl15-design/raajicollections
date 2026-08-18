@@ -66,6 +66,7 @@ export async function migrate() {
   try {
     await pool.query(`
       UPDATE categories SET image_url = 'images/jewellery-category.jpg' WHERE slug = 'jewellery';
+      UPDATE categories SET image_url = 'images/dresses-category.jpg' WHERE slug = 'dresses';
     `);
     console.log('[migrate] category images done.');
   } catch (err) {
