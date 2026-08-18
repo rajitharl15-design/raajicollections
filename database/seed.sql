@@ -12,8 +12,7 @@ INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
   ('Night Dresses', 'night-dresses', 'Comfortable & stylish nightwear for women', 'images/nightwear-2.jpg', 6),
   ('Kids Wear', 'kids-wear', 'Cute & comfortable dresses, frocks, sets & more for kids', 'images/kids.svg', 7),
   ('Boys', 'kids-boys', 'Shirts, shorts, sets, ethnic wear & more for boys', 'images/kids-boys.svg', 8),
-  ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9),
-  ('Jhumkas', 'jhumkas', 'Designer jhumkas, traditional & trendy earrings for every occasion', 'images/jhumkas.svg', 10)
+  ('Girls', 'kids-girls', 'Frocks, party dresses, lehenga & more for girls', 'images/kids-girls.svg', 9)
 ON CONFLICT (slug) DO NOTHING;
 
 INSERT INTO products (category_id, name, slug, description, price, old_price, badge, material, is_featured, stock_qty) VALUES

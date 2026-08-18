@@ -73,18 +73,6 @@ export async function migrate() {
     console.warn('[migrate] category image update skipped:', err.message);
   }
 
-  console.log('[migrate] adding subcategories...');
-  try {
-    await pool.query(`
-      INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES
-        ('Jhumkas', 'jhumkas', 'Designer jhumkas, traditional & trendy earrings for every occasion', 'images/jhumkas.svg', 10)
-      ON CONFLICT (slug) DO NOTHING;
-    `);
-    console.log('[migrate] subcategories done.');
-  } catch (err) {
-    console.warn('[migrate] subcategory migration skipped:', err.message);
-  }
-
   console.log('[migrate] applying variant migrations...');
   try {
     await pool.query(`
