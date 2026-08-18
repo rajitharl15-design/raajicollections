@@ -907,6 +907,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (added.length && label) label.textContent = selectedImages.length + ' image(s) selected';
       added.forEach(url => {
+        const wrap = document.createElement('div');
+        wrap.className = 'pf-prev-wrap';
         const img = document.createElement('img');
         img.src = url;
         img.className = 'pf-prev-img';
@@ -915,7 +917,24 @@ document.addEventListener('DOMContentLoaded', () => {
           e.stopPropagation();
           openImageLightbox(img.src);
         });
-        preview.appendChild(img);
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'pf-prev-remove';
+        rm.title = 'Remove image';
+        rm.innerHTML = '&times;';
+        rm.addEventListener('click', e => {
+          e.stopPropagation();
+          const idx = selectedImages.indexOf(url);
+          if (idx !== -1) selectedImages.splice(idx, 1);
+          URL.revokeObjectURL(url);
+          wrap.remove();
+          if (label) label.textContent = selectedImages.length
+            ? selectedImages.length + ' image(s) selected'
+            : '+ Click to add product images (multiple)';
+        });
+        wrap.appendChild(img);
+        wrap.appendChild(rm);
+        preview.appendChild(wrap);
       });
     });
   }
