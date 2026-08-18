@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300">
+  <defs>
+    <linearGradient id="jh1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F2D16B"/>
+      <stop offset="45%" style="stop-color:#D4A853"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+    <linearGradient id="jh2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF3C4"/>
+      <stop offset="100%" style="stop-color:#E0B65C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- left jhumka -->
+  <path d="M62 40 Q30 60 30 105" fill="none" stroke="url(#jh1)" stroke-width="6" stroke-linecap="round"/>
+  <g>
+    <circle cx="30" cy="130" r="38" fill="url(#jh2)" stroke="url(#jh1)" stroke-width="6"/>
+    <circle cx="30" cy="130" r="14" fill="url(#jh1)"/>
+    <circle cx="30" cy="130" r="5" fill="#FFF3C4"/>
+    <path d="M30 168 L26 184 L34 184 Z" fill="url(#jh1)"/>
+    <path d="M24 184 Q19 192 20 202" stroke="url(#jh1)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M36 184 Q41 192 40 202" stroke="url(#jh1)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="18" cy="194" r="2.5" fill="url(#jh1)"/>
+    <circle cx="42" cy="194" r="2.5" fill="url(#jh1)"/>
+  </g>
+
+  <!-- right jhumka -->
+  <path d="M138 40 Q170 60 170 105" fill="none" stroke="url(#jh1)" stroke-width="6" stroke-linecap="round"/>
+  <g>
+    <circle cx="170" cy="130" r="38" fill="url(#jh2)" stroke="url(#jh1)" stroke-width="6"/>
+    <circle cx="170" cy="130" r="14" fill="url(#jh1)"/>
+    <circle cx="170" cy="130" r="5" fill="#FFF3C4"/>
+    <path d="M170 168 L166 184 L174 184 Z" fill="url(#jh1)"/>
+    <path d="M164 184 Q159 192 160 202" stroke="url(#jh1)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M176 184 Q181 192 180 202" stroke="url(#jh1)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="158" cy="194" r="2.5" fill="url(#jh1)"/>
+    <circle cx="182" cy="194" r="2.5" fill="url(#jh1)"/>
+  </g>
+
+  <!-- small hanging dots top area -->
+  <circle cx="100" cy="52" r="4" fill="url(#jh1)"/>
+  <path d="M100 56 L100 66" stroke="url(#jh1)" stroke-width="2"/>
+  <circle cx="88" cy="44" r="3" fill="url(#jh2)"/>
+  <circle cx="112" cy="44" r="3" fill="url(#jh2)"/>
+
+  <!-- base ornament -->
+  <path d="M60 260 Q100 285 140 260 L120 245 Q100 258 80 245 Z" fill="url(#jh1)"/>
+  <circle cx="100" cy="262" r="6" fill="url(#jh2)"/>
+</svg>
