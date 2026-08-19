@@ -131,7 +131,8 @@ function updateWhatsAppLink(orderNumber, confirmCode) {
   const items = Object.values(Cart.items).map(i => `${i.qty} x ${i.name}${i.variantLabel ? ' (' + i.variantLabel + ')' : ''}`).join(', ');
   const orderPart = orderNumber ? `My order number is ${orderNumber}. ` : '';
   const codePart = confirmCode ? `Payment code: ${confirmCode}. ` : '';
-  const msg = `Hello Raaji Collections! ${orderPart}${codePart}I placed an order for: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}. I will send the payment screenshot here to confirm.`;
+  const payPart = STORE_CONFIG.upiId ? ` I will pay to ${STORE_CONFIG.upiId} and send the screenshot.` : ` I will send the payment screenshot here.`;
+  const msg = `Hello Raaji Collections! ${orderPart}${codePart}I placed an order for: ${items}. Total: ${STORE_CONFIG.currency}${Cart.total().toLocaleString('en-IN')}.${payPart}`;
   link.href = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
 }
 
@@ -170,7 +171,7 @@ async function placeOrder() {
       pincode: fd.get('pincode'),
     },
     items,
-    paymentMethod: 'cod',
+    paymentMethod: 'upi',
   };
 
   btn.disabled = true;
@@ -187,9 +188,12 @@ async function placeOrder() {
       if (!res.ok) throw new Error(data.error || 'Order failed');
       window._lastOrderNumber = data.order_number;
       window._lastConfirmCode = data.confirm_code;
+      const upiText = STORE_CONFIG.upiId
+        ? `Pay to UPI: ${STORE_CONFIG.upiId} (${STORE_CONFIG.upiName || ''})`
+        : 'Contact us on WhatsApp for payment details';
       note.textContent = data.confirm_code
-        ? `Order placed! Number ${data.order_number} · Payment code: ${data.confirm_code}. Tap the WhatsApp button below to send your payment screenshot.`
-        : `Order placed! Your order number is ${data.order_number}. Tap the WhatsApp button below to confirm.`;
+        ? `Order placed! Number ${data.order_number} · Payment code: ${data.confirm_code}. ${upiText}.`
+        : `Order placed! Your order number is ${data.order_number}. ${upiText}.`;
       note.classList.remove('hidden');
       updateWhatsAppLink(data.order_number, data.confirm_code);
       const link = document.getElementById('whatsappLink');

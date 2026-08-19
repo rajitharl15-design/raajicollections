@@ -5,6 +5,8 @@ window.API_CONFIG = API_CONFIG;
 
 const STORE_CONFIG = {
   whatsappNumber: '918125491097',
-  currency: '₹'
+  currency: '₹',
+  upiId: '', // e.g. 'raajicollections@upi'
+  upiName: 'Raaji Collections'
 };
 window.STORE_CONFIG = STORE_CONFIG;
