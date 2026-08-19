@@ -137,17 +137,18 @@ function renderOrders() {
         </div>
         <div class="admin-actions">
           <div class="admin-action-group">
-            <label>Status</label>
-            <select data-order-id="${o.id}" data-field="status">
-              ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </div>
-          <div class="admin-action-group">
             <label>Payment</label>
             <select data-order-id="${o.id}" data-field="payment_status">
               ${PAYMENT_STATUSES.map(s => `<option value="${s}" ${s === o.payment_status ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
             ${o.payment_status !== 'paid' ? `<p class="admin-pay-verify">✅ Only mark <strong>paid</strong> after:<br>① customer sent 🔐 code <strong>${escapeHtml(o.confirm_code || '…')}</strong> · ② amount matches <strong>${formatMoney(o.total)}</strong> · ③ money actually received</p>` : ''}
+          </div>
+          <div class="admin-action-group">
+            <label>Status</label>
+            <select data-order-id="${o.id}" data-field="status">
+              ${ORDER_STATUSES.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+            ${o.payment_status !== 'paid' && (o.status === 'packed' || o.status === 'shipped' || o.status === 'delivered') ? `<p class="admin-pay-verify">⚠️ Order marked as <strong>${o.status}</strong> but payment is not <strong>paid</strong> yet.</p>` : ''}
           </div>
         </div>
       </div>
