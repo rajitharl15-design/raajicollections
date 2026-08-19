@@ -147,6 +147,7 @@ function renderOrders() {
             <select data-order-id="${o.id}" data-field="payment_status">
               ${PAYMENT_STATUSES.map(s => `<option value="${s}" ${s === o.payment_status ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
+            ${o.payment_status !== 'paid' ? `<p class="admin-pay-verify">✅ Only mark <strong>paid</strong> after:<br>① customer sent 🔐 code <strong>${escapeHtml(o.confirm_code || '…')}</strong> · ② amount matches <strong>${formatMoney(o.total)}</strong> · ③ money actually received</p>` : ''}
           </div>
         </div>
       </div>

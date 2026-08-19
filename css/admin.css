@@ -298,6 +298,22 @@ body.admin-page {
   min-width: 150px;
 }
 
+.admin-pay-verify {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: #FFF8E1;
+  border: 1px solid #E0B65C;
+  border-left: 4px solid #E0B65C;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #7A5A10;
+}
+
+.admin-pay-verify strong {
+  color: #C62828;
+}
+
 .admin-order-foot {
   display: flex;
   justify-content: space-between;
