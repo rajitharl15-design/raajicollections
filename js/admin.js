@@ -24,7 +24,17 @@ const apiBase = () => API_CONFIG.baseUrl || 'http://localhost:3000';
 let adminKey = localStorage.getItem(ADMIN_KEY_STORAGE) || '';
 let currentFilter = 'all';
 let orders = [];
-let selectedImages = [];
+      let selectedImages = [];
+
+const SUBCAT_OPTIONS = [
+  { match: 'jewell', label: 'Jewellery Subcategory', options: ['Jhumkas', 'Bangles', 'Bead Chains'] },
+  { match: 'saree', label: 'Saree Subcategory', options: ['Vaikuntapuram'] },
+];
+
+function subcatOptsFor(categoryName) {
+  const cat = (categoryName || '').toLowerCase();
+  return SUBCAT_OPTIONS.find(o => cat.includes(o.match)) || null;
+}
 
 function formatMoney(n) {
   return '₹' + Number(n).toLocaleString('en-IN');
@@ -362,8 +372,16 @@ async function loadAdminCategories() {
     const toggleSubcat = () => {
       const wrap = document.getElementById('pfSubcatWrap');
       if (!wrap) return;
+      const sel = document.getElementById('pfSubcategory');
       const cat = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
-      wrap.classList.toggle('hidden', !/jewell/i.test(cat));
+      const conf = subcatOptsFor(cat);
+      wrap.classList.toggle('hidden', !conf);
+      if (sel && conf) {
+        const cur = sel.value;
+        sel.innerHTML = `<option value="">None</option>` +
+          conf.options.map(s => `<option value="${s}">${s}</option>`).join('');
+        if (conf.options.includes(cur)) sel.value = cur;
+      }
     };
     select.addEventListener('change', toggleSubcat);
     toggleSubcat();
@@ -404,13 +422,13 @@ function renderAdminProducts() {
             ${adminCategories.map(c => `<option value="${c.id}" ${c.id === p.category_id ? 'selected' : ''}>${c.name}</option>`).join('')}
           </select>
         </p>
-        ${/jewell/i.test(p.category_name || '') ? `
-        <p class="admin-order-meta">Jewellery Subcategory
+        ${(() => { const sub = subcatOptsFor(p.category_name); return sub ? `
+        <p class="admin-order-meta">${sub.label}
           <select data-field="subcategory" data-slug="${p.slug}">
             <option value="">None</option>
-            ${['Jhumkas', 'Bangles', 'Bead Chains'].map(s => `<option value="${s}" ${p.subcategory === s ? 'selected' : ''}>${s}</option>`).join('')}
+            ${sub.options.map(s => `<option value="${s}" ${p.subcategory === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select>
-        </p>` : ''}
+        </p>` : ''; })()}
         <label>Name
           <input data-field="name" data-slug="${p.slug}" type="text" value="${escapeHtml(p.name)}">
         </label>
