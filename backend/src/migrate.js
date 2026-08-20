@@ -81,6 +81,84 @@ export async function migrate() {
     console.warn('[migrate] subcategory migration skipped:', err.message);
   }
 
+  console.log('[migrate] moving embedded images to files...');
+  try {
+    const IMAGE_MAP = {
+      'jewellery-item-01': 'images/products/jewellery-item-01.jpg',
+      'jewellery-item-02': 'images/products/jewellery-item-02.jpg',
+      'jewellery-item-03': 'images/products/jewellery-item-03.jpg',
+      'jewellery-item-08': 'images/products/jewellery-item-08.jpg',
+      'jewellery-item-14': 'images/products/jewellery-item-14.jpg',
+      'jewellery-item-16': 'images/products/jewellery-item-16.jpg',
+      'jewellery-item-21': 'images/products/jewellery-item-21.jpg',
+      'jewellery-item-22': 'images/products/jewellery-item-22.jpg',
+      'jewellery-item-23': 'images/products/jewellery-item-23.jpg',
+      'chain-with-lakshmi-pendant': 'images/products/chain-with-lakshmi-pendant.jpg',
+      'kasula-peru': 'images/products/kasula-peru.jpg',
+      'lakshmi-devi-pendant-and-ear-rings': 'images/products/lakshmi-devi-pendant-and-ear-rings.jpg',
+      'lakshmidevi-long-chain-cz3-set': 'images/products/lakshmidevi-long-chain-cz3-set.jpg',
+      'pearl-with-cz3-stone': 'images/products/pearl-with-cz3-stone.jpg',
+      'green-beads-chain-with-cz3-and-pearls': 'images/products/green-beads-chain-with-cz3-and-pearls.jpg',
+      'sarokasi-pearls': 'images/products/sarokasi-pearls.jpg',
+      'emeralds-chain-set': 'images/products/emeralds-chain-set.jpg',
+      'laksshmi-bangles': 'images/products/laksshmi-bangles.jpg',
+      'bangle-set': 'images/products/bangle-set.jpg',
+      'stone-bangles': 'images/products/stone-bangles.jpg',
+      'buterfly': 'images/products/buterfly.jpg',
+      'broso': 'images/products/broso.jpg',
+      'copper-silk-saree': 'images/products/copper-silk-saree.jpg',
+      'kota-cotton-silk': 'images/products/kota-cotton-silk.jpg',
+      'soft-silk-zari': 'images/products/soft-silk-zari.jpg',
+      'brown-copper-silk-saree': 'images/products/brown-copper-silk-saree.jpg',
+      'chiffon-saree': 'images/products/chiffon-saree.jpg',
+      'georgette': 'images/products/georgette.jpg',
+      'purple-banara-cotton': 'images/products/purple-banara-cotton.jpg',
+      'black-saree': 'images/products/black-saree.jpg',
+      'tusser-silk': 'images/products/tusser-silk.jpg',
+      'cotton-nighty': 'images/products/cotton-nighty.jpg',
+      '4bangle-set': 'images/products/4bangle-set.jpg',
+      '6-piece-bangle-set': 'images/products/6-piece-bangle-set.jpg',
+      'black': 'images/products/black.jpg',
+      'blue-5to6years': 'images/products/blue-5to6years.jpg',
+      'blue-7to8years': 'images/products/blue-7to8years.jpg',
+      'blue-9to10years': 'images/products/blue-9to10years.jpg',
+      'brown-top': 'images/products/brown-top.jpg',
+      'chord-set-green': 'images/products/chord-set-green.jpg',
+      'green-top': 'images/products/green-top.jpg',
+      'green-yellow-top': 'images/products/green-yellow-top.jpg',
+      'kurti': 'images/products/kurti.jpg',
+      'maroon-chrod-set': 'images/products/maroon-chrod-set.jpg',
+      'pant-shirt-3to4years': 'images/products/pant-shirt-3to4years.jpg',
+      'panchaloha-lifetime-gurantee': 'images/products/panchaloha-lifetime-gurantee.jpg',
+      'pent-shirt-5to6years': 'images/products/pent-shirt-5to6years.jpg',
+      'purple-frock': 'images/products/purple-frock.jpg',
+      'rail-bangle': 'images/products/rail-bangle.jpg',
+      'red-kurta': 'images/products/red-kurta.jpg',
+      'red-silk-skirt': 'images/products/red-silk-skirt.jpg',
+      'red-top': 'images/products/red-top.jpg',
+      'rock-bangle-set': 'images/products/rock-bangle-set.jpg',
+      'sarokasi-set': 'images/products/sarokasi-set.jpg',
+      'satin-night-dress': 'images/products/satin-night-dress.jpg',
+      'tusser': 'images/products/tusser.jpg',
+      'white-kurta': 'images/products/white-kurta.jpg',
+      'white-top': 'images/products/white-top.jpg',
+      'yellow-set': 'images/products/yellow-set.jpg',
+    };
+    for (const [slug, filePath] of Object.entries(IMAGE_MAP)) {
+      await pool.query(
+        `UPDATE product_images pi
+            SET image_url = $2
+           FROM products p
+          WHERE pi.product_id = p.id AND p.slug = $1 AND pi.is_primary = TRUE
+            AND pi.image_url LIKE 'data:%'`,
+        [slug, filePath]
+      );
+    }
+    console.log('[migrate] embedded images moved to files.');
+  } catch (err) {
+    console.warn('[migrate] image file migration skipped:', err.message);
+  }
+
   console.log('[migrate] applying variant migrations...');
   try {
     await pool.query(`
