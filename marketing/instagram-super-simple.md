@@ -7,7 +7,7 @@
 - Go to Profile → Edit Profile → paste in **Bio**:
   `Raaji Collections | Traditional women's wear | Shop online 👇`
 - Tap **Add link** → paste your site:
-  `https://rajitharl15-design.github.io/raajicollections/`
+  `https://raajicollections.com`
 - Done. Your profile now has a working "Shop Now" button.
 
 ---

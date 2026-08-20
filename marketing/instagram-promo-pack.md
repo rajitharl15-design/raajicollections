@@ -2,7 +2,7 @@
 
 Safe to use: Instagram posting is free, no payments, no personal data. Only post your own product photos.
 
-Store URL for bio/link: https://rajitharl15-design.github.io/raajicollections/
+Store URL for bio/link: https://raajicollections.com
 WhatsApp: 918125491097
 
 ---
