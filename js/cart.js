@@ -199,6 +199,9 @@ async function placeOrder() {
       const link = document.getElementById('whatsappLink');
       if (link) link.style.display = '';
       setTimeout(() => {
+        if (link) link.click();
+      }, 700);
+      setTimeout(() => {
         Cart.clear();
         closeCheckout();
       }, 7000);
