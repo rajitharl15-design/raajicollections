@@ -683,7 +683,7 @@ nav {
 .product-grid-fixed .product-img-link .product-img-hover {
   height: 220px;
   aspect-ratio: auto;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 @media (max-width: 900px) {
@@ -883,7 +883,7 @@ nav {
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 5;
-  object-fit: contain;
+  object-fit: cover;
   background: var(--beige);
   transition: transform 0.3s ease;
 }
@@ -900,7 +900,7 @@ nav {
   width: 100%;
   height: auto;
   aspect-ratio: 4 / 5;
-  object-fit: contain;
+  object-fit: cover;
   background: var(--beige);
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
