@@ -25,6 +25,7 @@ router.get('/', async (req, res, next) => {
               c.name AS category_name, c.slug AS category_slug,
               COALESCE(img.image_url, '/images/dress.svg') AS image_url,
               img2.image_url AS image_url_2,
+              COALESCE(imgs.images, '[]') AS images,
               COALESCE(var.variants, '[]') AS variants
          FROM products p
          JOIN categories c ON c.id = p.category_id
@@ -38,6 +39,11 @@ router.get('/', async (req, res, next) => {
            WHERE product_id = p.id AND NOT is_primary
            ORDER BY sort_order LIMIT 1
          ) img2 ON TRUE
+         LEFT JOIN LATERAL (
+           SELECT json_agg(image_url ORDER BY sort_order, id) AS images
+           FROM product_images
+           WHERE product_id = p.id
+         ) imgs ON TRUE
          LEFT JOIN LATERAL (
            SELECT json_agg(
              json_build_object('id', v.id, 'size', v.size, 'color', v.color,
@@ -53,7 +59,11 @@ router.get('/', async (req, res, next) => {
       params
     );
     res.json({
-      products: rows.map(r => ({ ...r, variants: r.variants === '[]' ? [] : r.variants }))
+      products: rows.map(r => ({
+        ...r,
+        variants: r.variants === '[]' ? [] : r.variants,
+        images: Array.isArray(r.images) ? r.images : [],
+      }))
     });
   } catch (err) {
     next(err);

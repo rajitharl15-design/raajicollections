@@ -198,10 +198,18 @@ function openQuickView(product, isKids) {
     !variants.some(v => inStock(v.stock_qty));
   const allKidsGone = isKids && productStockKnown && productStock <= 0;
 
+  const galleryImages = (product.images && product.images.length ? product.images : [product.image_url || 'images/dress.svg'])
+    .map((u, i) => ({ src: u, id: i }));
+  const galleryHasMany = galleryImages.length > 1;
+
   overlay.innerHTML = `
     <div class="quickview-box">
       <button class="quickview-close" title="Close">&times;</button>
-      <div class="quickview-img-wrap"><img class="quickview-img" src="${escapeAttr(product.image_url || 'images/dress.svg')}" alt="${escapeAttr(product.name)}"><span class="quickview-tap">Click image to enlarge</span></div>
+      <div class="quickview-img-wrap">
+        ${galleryHasMany ? `<button class="qv-nav qv-prev" type="button" aria-label="Previous image">&lsaquo;</button><button class="qv-nav qv-next" type="button" aria-label="Next image">&rsaquo;</button>` : ''}
+        <img class="quickview-img" src="${escapeAttr(galleryImages[0].src)}" alt="${escapeAttr(product.name)}"><span class="quickview-tap">Click image to enlarge</span>
+        ${galleryHasMany ? `<div class="qv-thumbs">${galleryImages.map((g, i) => `<button type="button" class="qv-thumb ${i===0?'active':''}" data-gidx="${i}" style="background-image:url('${escapeAttr(g.src)}')"></button>`).join('')}</div>` : ''}
+      </div>
       <div class="quickview-body">
         <h2>${escapeAttr(product.name)}</h2>
         <p class="product-category">${escapeAttr(product.category_name || '')}</p>
@@ -218,6 +226,19 @@ function openQuickView(product, isKids) {
   const addBtn = overlay.querySelector('.quickview-add');
   const note = overlay.querySelector('.quickview-note');
   const imgEl = overlay.querySelector('.quickview-img');
+  let galleryIdx = 0;
+  const setGallery = (i) => {
+    galleryIdx = (i + galleryImages.length) % galleryImages.length;
+    imgEl.src = galleryImages[galleryIdx].src;
+    overlay.querySelectorAll('.qv-thumb').forEach(th => th.classList.toggle('active', Number(th.dataset.gidx) === galleryIdx));
+  };
+  const prevBtn = overlay.querySelector('.qv-prev');
+  const nextBtn = overlay.querySelector('.qv-next');
+  if (prevBtn) prevBtn.addEventListener('click', e => { e.stopPropagation(); setGallery(galleryIdx - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', e => { e.stopPropagation(); setGallery(galleryIdx + 1); });
+  overlay.querySelectorAll('.qv-thumb').forEach(th => {
+    th.addEventListener('click', e => { e.stopPropagation(); setGallery(Number(th.dataset.gidx)); });
+  });
   let picked = null;
 
   const pickVariant = () => {
