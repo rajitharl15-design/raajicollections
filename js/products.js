@@ -436,13 +436,16 @@ window.ProductsRenderer = {
         };
         const tabWrap = document.createElement('div');
         tabWrap.className = 'subcat-tabs';
+        const noAll = grid.hasAttribute('data-no-all');
+        const allGroup = { label: 'All', rules: [] };
         const showGroup = (group) => {
           tabWrap.querySelectorAll('.subcat-tab').forEach(t => t.classList.toggle('active', t.dataset.label === group.label));
           const list = products.filter(p => matchSubcat(p, group));
           renderGrid(list);
           wireCardEvents(list);
         };
-        for (const g of groups) {
+        const tabGroups = noAll ? groups : [allGroup, ...groups];
+        for (const g of tabGroups) {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'subcat-tab';
@@ -459,7 +462,7 @@ window.ProductsRenderer = {
             observer.observe(el);
           });
         }
-        if (groups[0]) showGroup(groups[0]);
+        showGroup(noAll && groups[0] ? groups[0] : allGroup);
         return;
       }
 
