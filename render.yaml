@@ -13,7 +13,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGIN
-        value: https://rajitharl15-design.github.io
+        value: https://raajicollections.com,https://www.raajicollections.com,https://rajitharl15-design.github.io
 
 databases:
   - name: raaji-collections-db
