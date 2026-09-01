@@ -1,0 +1,733 @@
+-- Raaji Collections - full restore (schema + catalog data)
+BEGIN;
+-- Raaji Collections - E-commerce Database Schema
+-- PostgreSQL 16
+-- Database: raaji_collections
+
+
+
+-- ============================================================
+-- CATEGORIES
+-- ============================================================
+CREATE TABLE categories (
+    id            SERIAL PRIMARY KEY,
+    name          VARCHAR(100) NOT NULL UNIQUE,
+    slug          VARCHAR(100) NOT NULL UNIQUE,
+    description   TEXT,
+    image_url     VARCHAR(500),
+    sort_order    INT NOT NULL DEFAULT 0,
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- PRODUCTS
+-- ============================================================
+CREATE TABLE products (
+    id            SERIAL PRIMARY KEY,
+    category_id   INT NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+    name          VARCHAR(200) NOT NULL,
+    slug          VARCHAR(200) NOT NULL UNIQUE,
+    description   TEXT,
+    price         NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
+    old_price     NUMERIC(10, 2) CHECK (old_price IS NULL OR old_price >= price),
+    badge         VARCHAR(50),
+    material      VARCHAR(100),
+    subcategory   VARCHAR(50),
+    is_featured   BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    stock_qty     INT NOT NULL DEFAULT 0 CHECK (stock_qty >= 0),
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- PRODUCT IMAGES
+-- ============================================================
+CREATE TABLE product_images (
+    id            SERIAL PRIMARY KEY,
+    product_id    INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    image_url     TEXT NOT NULL,
+    alt_text      VARCHAR(200),
+    is_primary    BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order    INT NOT NULL DEFAULT 0,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- PRODUCT VARIANTS (size + color)
+-- ============================================================
+CREATE TABLE product_variants (
+    id            SERIAL PRIMARY KEY,
+    product_id    INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    size          VARCHAR(50) NOT NULL,
+    color         VARCHAR(100) NOT NULL,
+    image_url     TEXT,
+    price         NUMERIC(10, 2),
+    stock_qty     INT NOT NULL DEFAULT 0 CHECK (stock_qty >= 0),
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (product_id, size, color)
+);
+
+-- ============================================================
+-- CUSTOMERS
+-- ============================================================
+CREATE TABLE customers (
+    id            SERIAL PRIMARY KEY,
+    first_name    VARCHAR(100) NOT NULL,
+    last_name     VARCHAR(100),
+    email         VARCHAR(255) UNIQUE,
+    phone         VARCHAR(20) UNIQUE,
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    city          VARCHAR(100),
+    state         VARCHAR(100),
+    pincode       VARCHAR(10),
+    country       VARCHAR(100) NOT NULL DEFAULT 'India',
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- ORDERS
+-- ============================================================
+CREATE TABLE orders (
+    id                SERIAL PRIMARY KEY,
+    order_number      VARCHAR(30) NOT NULL UNIQUE,
+    customer_id       INT NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+    status            VARCHAR(30) NOT NULL DEFAULT 'pending'
+                      CHECK (status IN ('pending', 'confirmed', 'packed', 'shipped',
+                                        'delivered', 'cancelled', 'refunded')),
+    payment_status    VARCHAR(30) NOT NULL DEFAULT 'pending'
+                      CHECK (payment_status IN ('pending', 'paid', 'failed', 'refunded')),
+    subtotal          NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (subtotal >= 0),
+    shipping_fee      NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (shipping_fee >= 0),
+    discount          NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (discount >= 0),
+    total             NUMERIC(10, 2) NOT NULL CHECK (total >= 0),
+    shipping_name     VARCHAR(200),
+    shipping_phone    VARCHAR(20),
+    shipping_address  TEXT,
+    shipping_area     VARCHAR(100),
+    shipping_city     VARCHAR(100),
+    shipping_state    VARCHAR(100),
+    shipping_pincode  VARCHAR(10),
+    tracking_carrier  VARCHAR(100),
+    tracking_number   VARCHAR(100),
+    confirm_code      VARCHAR(8),
+    notes             TEXT,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- ORDER ITEMS
+-- ============================================================
+CREATE TABLE order_items (
+    id            SERIAL PRIMARY KEY,
+    order_id      INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id    INT REFERENCES products(id) ON DELETE SET NULL,
+    product_name  VARCHAR(200) NOT NULL,
+    unit_price    NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
+    quantity      INT NOT NULL CHECK (quantity > 0),
+    line_total    NUMERIC(10, 2) NOT NULL CHECK (line_total >= 0),
+    size          VARCHAR(50),
+    color         VARCHAR(100)
+);
+
+-- ============================================================
+-- PAYMENTS
+-- ============================================================
+CREATE TABLE payments (
+    id               SERIAL PRIMARY KEY,
+    order_id         INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    method           VARCHAR(30) NOT NULL DEFAULT 'upi'
+                     CHECK (method IN ('upi', 'card', 'cod', 'bank_transfer')),
+    upi_id           VARCHAR(100),
+    transaction_id   VARCHAR(100),
+    amount           NUMERIC(10, 2) NOT NULL CHECK (amount >= 0),
+    status           VARCHAR(30) NOT NULL DEFAULT 'pending'
+                     CHECK (status IN ('pending', 'success', 'failed', 'refunded')),
+    payment_date     TIMESTAMPTZ,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- REVIEWS
+-- ============================================================
+CREATE TABLE reviews (
+    id            SERIAL PRIMARY KEY,
+    product_id    INT REFERENCES products(id) ON DELETE CASCADE,
+    customer_id   INT REFERENCES customers(id) ON DELETE SET NULL,
+    customer_name VARCHAR(100) NOT NULL,
+    rating        INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment       TEXT,
+    is_verified   BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- NEWSLETTER SUBSCRIBERS
+-- ============================================================
+CREATE TABLE newsletter_subscribers (
+    id            SERIAL PRIMARY KEY,
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================================
+-- INDEXES
+-- ============================================================
+CREATE INDEX idx_products_category    ON products(category_id);
+CREATE INDEX idx_products_featured    ON products(is_featured) WHERE is_featured;
+CREATE INDEX idx_product_images_prod  ON product_images(product_id);
+CREATE INDEX idx_product_variants_prod ON product_variants(product_id);
+CREATE INDEX idx_orders_customer      ON orders(customer_id);
+CREATE INDEX idx_orders_status        ON orders(status);
+CREATE INDEX idx_orders_created       ON orders(created_at DESC);
+CREATE INDEX idx_order_items_order    ON order_items(order_id);
+CREATE INDEX idx_order_items_product  ON order_items(product_id);
+CREATE INDEX idx_payments_order       ON payments(order_id);
+CREATE INDEX idx_reviews_product      ON reviews(product_id);
+CREATE INDEX idx_reviews_customer     ON reviews(customer_id);
+
+-- ============================================================
+-- UPDATED_AT TRIGGERS
+-- ============================================================
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_categories_updated  BEFORE UPDATE ON categories  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_products_updated    BEFORE UPDATE ON products    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_customers_updated   BEFORE UPDATE ON customers   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_orders_updated      BEFORE UPDATE ON orders      FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+DELETE FROM product_images;
+DELETE FROM product_variants;
+DELETE FROM products;
+DELETE FROM categories;
+INSERT INTO categories(name,slug,sort_order) VALUES('Sarees','sarees',1);
+INSERT INTO categories(name,slug,sort_order) VALUES('Dresses','dresses',2);
+INSERT INTO categories(name,slug,sort_order) VALUES('Tops','tops',3);
+INSERT INTO categories(name,slug,sort_order) VALUES('Ready Made Blouses','ready-made-blouses',4);
+INSERT INTO categories(name,slug,sort_order) VALUES('Jewellery','jewellery',5);
+INSERT INTO categories(name,slug,sort_order) VALUES('Night Dresses','night-dresses',6);
+INSERT INTO categories(name,slug,sort_order) VALUES('Kids Wear','kids-wear',7);
+INSERT INTO categories(name,slug,sort_order) VALUES('Normal Images','normal-images',8);
+INSERT INTO categories(name,slug,sort_order) VALUES('Rakhi','rakhi',9);
+INSERT INTO categories(name,slug,sort_order) VALUES('Try on Prep','tryon-prep',10);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786250547381 6055','kids-wear-1786250547381-6055',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786250547381-6055'),'images/products/Kids-wear-1786250547381-6055.jpg','Kids Wear 1786250547381 6055',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786250619119 5126','kids-wear-1786250619119-5126',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786250619119-5126'),'images/products/Kids-wear-1786250619119-5126.jpg','Kids Wear 1786250619119 5126',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786375321296 4981','kids-wear-1786375321296-4981',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786375321296-4981'),'images/products/Kids-wear-1786375321296-4981.jpg','Kids Wear 1786375321296 4981',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786375680982 9736','kids-wear-1786375680982-9736',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786375680982-9736'),'images/products/Kids-wear-1786375680982-9736.jpg','Kids Wear 1786375680982 9736',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786375744416 3072','kids-wear-1786375744416-3072',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786375744416-3072'),'images/products/Kids-wear-1786375744416-3072.jpg','Kids Wear 1786375744416 3072',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786375810462 9496','kids-wear-1786375810462-9496',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786375810462-9496'),'images/products/Kids-wear-1786375810462-9496.jpg','Kids Wear 1786375810462 9496',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear 1786375939942 7873','kids-wear-1786375939942-7873',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-1786375939942-7873'),'images/products/Kids-wear-1786375939942-7873.jpg','Kids Wear 1786375939942 7873',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0095','kids-wear-img-20260807-wa0095',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0095'),'images/products/Kids-wear-img-20260807-wa0095.jpg','Kids Wear Img 20260807 Wa0095',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0103','kids-wear-img-20260807-wa0103',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0103'),'images/products/Kids-wear-img-20260807-wa0103.jpg','Kids Wear Img 20260807 Wa0103',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0105','kids-wear-img-20260807-wa0105',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0105'),'images/products/Kids-wear-img-20260807-wa0105.jpg','Kids Wear Img 20260807 Wa0105',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0109','kids-wear-img-20260807-wa0109',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0109'),'images/products/Kids-wear-img-20260807-wa0109.jpg','Kids Wear Img 20260807 Wa0109',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0114','kids-wear-img-20260807-wa0114',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0114'),'images/products/Kids-wear-img-20260807-wa0114.jpg','Kids Wear Img 20260807 Wa0114',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0115','kids-wear-img-20260807-wa0115',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0115'),'images/products/Kids-wear-img-20260807-wa0115.jpg','Kids Wear Img 20260807 Wa0115',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Kids Wear Img 20260807 Wa0117','kids-wear-img-20260807-wa0117',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kids-wear-img-20260807-wa0117'),'images/products/Kids-wear-img-20260807-wa0117.jpg','Kids Wear Img 20260807 Wa0117',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Black Saree','black-saree',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='black-saree'),'images/products/black-saree.jpg','Black Saree',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Black Readymade Blouse3','blouses-black-readymade-blouse3',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-black-readymade-blouse3'),'images/products/blouses-black-readymade-blouse3.jpg','Blouses Black Readymade Blouse3',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Fashionous Readymadeblouse Rdbls012 1','blouses-fashionous-readymadeblouse-rdbls012-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-fashionous-readymadeblouse-rdbls012-1'),'images/products/blouses-fashionous-readymadeblouse-rdbls012-1.webp','Blouses Fashionous Readymadeblouse Rdbls012 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0100','blouses-img-20260802-wa0100',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0100'),'images/products/blouses-img-20260802-wa0100.jpg','Blouses Img 20260802 Wa0100',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0105','blouses-img-20260802-wa0105',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0105'),'images/products/blouses-img-20260802-wa0105.jpg','Blouses Img 20260802 Wa0105',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0114','blouses-img-20260802-wa0114',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0114'),'images/products/blouses-img-20260802-wa0114.jpg','Blouses Img 20260802 Wa0114',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0123','blouses-img-20260802-wa0123',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0123'),'images/products/blouses-img-20260802-wa0123.jpg','Blouses Img 20260802 Wa0123',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0126','blouses-img-20260802-wa0126',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0126'),'images/products/blouses-img-20260802-wa0126.jpg','Blouses Img 20260802 Wa0126',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0129','blouses-img-20260802-wa0129',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0129'),'images/products/blouses-img-20260802-wa0129.jpg','Blouses Img 20260802 Wa0129',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0132','blouses-img-20260802-wa0132',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0132'),'images/products/blouses-img-20260802-wa0132.jpg','Blouses Img 20260802 Wa0132',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0134','blouses-img-20260802-wa0134',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0134'),'images/products/blouses-img-20260802-wa0134.jpg','Blouses Img 20260802 Wa0134',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Img 20260802 Wa0141','blouses-img-20260802-wa0141',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-img-20260802-wa0141'),'images/products/blouses-img-20260802-wa0141.jpg','Blouses Img 20260802 Wa0141',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='ready-made-blouses'),'Blouses Nnlhm 512','blouses-nnlhm-512',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blouses-nnlhm-512'),'images/products/blouses-nnlhm-512.avif','Blouses Nnlhm 512',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Blue 5To6Years','blue-5to6years',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='blue-5to6years'),'images/products/blue-5to6years.jpg','Blue 5To6Years',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Boys 7To8 Years','boys-7to8-years',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='boys-7to8-years'),'images/products/boys-7to8-years.jpg','Boys 7To8 Years',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Boys Night Dress 5To6 Year Old','boys-night-dress-5to6-year-old',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='boys-night-dress-5to6-year-old'),'images/products/boys-night-dress-5to6-year-old.jpg','Boys Night Dress 5To6 Year Old',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Boys','boys',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='boys'),'images/products/boys.jpg','Boys',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Broso','broso',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='broso'),'images/products/broso.jpg','Broso',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Brown Copper Silk Saree','brown-copper-silk-saree',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='brown-copper-silk-saree'),'images/products/brown-copper-silk-saree.jpg','Brown Copper Silk Saree',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Buterfly','buterfly',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='buterfly'),'images/products/buterfly.jpg','Buterfly',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Chain With Lakshmi Pendant','chain-with-lakshmi-pendant',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='chain-with-lakshmi-pendant'),'images/products/chain-with-lakshmi-pendant.jpg','Chain With Lakshmi Pendant',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Chiffon Saree','chiffon-saree',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='chiffon-saree'),'images/products/chiffon-saree.jpg','Chiffon Saree',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Chord Set Green','chord-set-green',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='chord-set-green'),'images/products/chord-set-green.jpg','Chord Set Green',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Copper Silk Saree','copper-silk-saree',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='copper-silk-saree'),'images/products/copper-silk-saree.jpg','Copper Silk Saree',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Cotton Nighty','cotton-nighty',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='cotton-nighty'),'images/products/cotton-nighty.jpg','Cotton Nighty',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Cz3 Stone Bangles','cz3-stone-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='cz3-stone-bangles'),'images/products/cz3-stone-bangles.jpg','Cz3 Stone Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses 1786974359478 7239','dresses-1786974359478-7239',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-1786974359478-7239'),'images/products/dresses-1786974359478-7239.jpg','Dresses 1786974359478 7239',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses 1786974852146 5164','dresses-1786974852146-5164',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-1786974852146-5164'),'images/products/dresses-1786974852146-5164.jpg','Dresses 1786974852146 5164',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses 1786974957221 2297','dresses-1786974957221-2297',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-1786974957221-2297'),'images/products/dresses-1786974957221-2297.jpg','Dresses 1786974957221 2297',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses 1786975068318 7694','dresses-1786975068318-7694',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-1786975068318-7694'),'images/products/dresses-1786975068318-7694.jpg','Dresses 1786975068318 7694',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0078','dresses-img-20260818-wa0078',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0078'),'images/products/dresses-img-20260818-wa0078.jpg','Dresses Img 20260818 Wa0078',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0079','dresses-img-20260818-wa0079',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0079'),'images/products/dresses-img-20260818-wa0079.jpg','Dresses Img 20260818 Wa0079',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0080','dresses-img-20260818-wa0080',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0080'),'images/products/dresses-img-20260818-wa0080.jpg','Dresses Img 20260818 Wa0080',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0081','dresses-img-20260818-wa0081',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0081'),'images/products/dresses-img-20260818-wa0081.jpg','Dresses Img 20260818 Wa0081',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0082','dresses-img-20260818-wa0082',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0082'),'images/products/dresses-img-20260818-wa0082.jpg','Dresses Img 20260818 Wa0082',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0083','dresses-img-20260818-wa0083',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0083'),'images/products/dresses-img-20260818-wa0083.jpg','Dresses Img 20260818 Wa0083',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0084','dresses-img-20260818-wa0084',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0084'),'images/products/dresses-img-20260818-wa0084.jpg','Dresses Img 20260818 Wa0084',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0085','dresses-img-20260818-wa0085',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0085'),'images/products/dresses-img-20260818-wa0085.jpg','Dresses Img 20260818 Wa0085',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0086','dresses-img-20260818-wa0086',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0086'),'images/products/dresses-img-20260818-wa0086.jpg','Dresses Img 20260818 Wa0086',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0087','dresses-img-20260818-wa0087',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0087'),'images/products/dresses-img-20260818-wa0087.jpg','Dresses Img 20260818 Wa0087',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0088','dresses-img-20260818-wa0088',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0088'),'images/products/dresses-img-20260818-wa0088.jpg','Dresses Img 20260818 Wa0088',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0089','dresses-img-20260818-wa0089',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0089'),'images/products/dresses-img-20260818-wa0089.jpg','Dresses Img 20260818 Wa0089',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0090','dresses-img-20260818-wa0090',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0090'),'images/products/dresses-img-20260818-wa0090.jpg','Dresses Img 20260818 Wa0090',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='dresses'),'Dresses Img 20260818 Wa0091','dresses-img-20260818-wa0091',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='dresses-img-20260818-wa0091'),'images/products/dresses-img-20260818-wa0091.jpg','Dresses Img 20260818 Wa0091',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Emaralad Bangles','emaralad-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='emaralad-bangles'),'images/products/emaralad-bangles.jpg','Emaralad Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Emeralds Chain Set','emeralds-chain-set',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='emeralds-chain-set'),'images/products/emeralds-chain-set.jpg','Emeralds Chain Set',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Georgette','georgette',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='georgette'),'images/products/georgette.jpg','Georgette',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Girl Maroon Night Dress','girl-maroon-night-dress',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='girl-maroon-night-dress'),'images/products/girl-maroon-night-dress.jpg','Girl Maroon Night Dress',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='kids-wear'),'Girls 7To8 Years Old','girls-7to8-years-old',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='girls-7to8-years-old'),'images/products/girls-7to8-years-old.jpg','Girls 7To8 Years Old',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Green Beads Chain With Cz3 And Pearls','green-beads-chain-with-cz3-and-pearls',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='green-beads-chain-with-cz3-and-pearls'),'images/products/green-beads-chain-with-cz3-and-pearls.jpg','Green Beads Chain With Cz3 And Pearls',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Bangless','jewellery-bangless',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-bangless'),'images/products/jewellery-bangless.jpg','Jewellery Bangless',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0025','jewellery-img-20260802-wa0025',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0025'),'images/products/jewellery-img-20260802-wa0025.jpg','Jewellery Img 20260802 Wa0025',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0026','jewellery-img-20260802-wa0026',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0026'),'images/products/jewellery-img-20260802-wa0026.jpg','Jewellery Img 20260802 Wa0026',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0027','jewellery-img-20260802-wa0027',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0027'),'images/products/jewellery-img-20260802-wa0027.jpg','Jewellery Img 20260802 Wa0027',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0028','jewellery-img-20260802-wa0028',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0028'),'images/products/jewellery-img-20260802-wa0028.jpg','Jewellery Img 20260802 Wa0028',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0067','jewellery-img-20260802-wa0067',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0067'),'images/products/jewellery-img-20260802-wa0067.jpg','Jewellery Img 20260802 Wa0067',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0068','jewellery-img-20260802-wa0068',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0068'),'images/products/jewellery-img-20260802-wa0068.jpg','Jewellery Img 20260802 Wa0068',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0069','jewellery-img-20260802-wa0069',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0069'),'images/products/jewellery-img-20260802-wa0069.jpg','Jewellery Img 20260802 Wa0069',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0070','jewellery-img-20260802-wa0070',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0070'),'images/products/jewellery-img-20260802-wa0070.jpg','Jewellery Img 20260802 Wa0070',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0071','jewellery-img-20260802-wa0071',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0071'),'images/products/jewellery-img-20260802-wa0071.jpg','Jewellery Img 20260802 Wa0071',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0073','jewellery-img-20260802-wa0073',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0073'),'images/products/jewellery-img-20260802-wa0073.jpg','Jewellery Img 20260802 Wa0073',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0074','jewellery-img-20260802-wa0074',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0074'),'images/products/jewellery-img-20260802-wa0074.jpg','Jewellery Img 20260802 Wa0074',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0075','jewellery-img-20260802-wa0075',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0075'),'images/products/jewellery-img-20260802-wa0075.jpg','Jewellery Img 20260802 Wa0075',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0076','jewellery-img-20260802-wa0076',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0076'),'images/products/jewellery-img-20260802-wa0076.jpg','Jewellery Img 20260802 Wa0076',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0077','jewellery-img-20260802-wa0077',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0077'),'images/products/jewellery-img-20260802-wa0077.jpg','Jewellery Img 20260802 Wa0077',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0078','jewellery-img-20260802-wa0078',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0078'),'images/products/jewellery-img-20260802-wa0078.jpg','Jewellery Img 20260802 Wa0078',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0081','jewellery-img-20260802-wa0081',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0081'),'images/products/jewellery-img-20260802-wa0081.jpg','Jewellery Img 20260802 Wa0081',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0082','jewellery-img-20260802-wa0082',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0082'),'images/products/jewellery-img-20260802-wa0082.jpg','Jewellery Img 20260802 Wa0082',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0086','jewellery-img-20260802-wa0086',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0086'),'images/products/jewellery-img-20260802-wa0086.jpg','Jewellery Img 20260802 Wa0086',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0087','jewellery-img-20260802-wa0087',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0087'),'images/products/jewellery-img-20260802-wa0087.jpg','Jewellery Img 20260802 Wa0087',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0088','jewellery-img-20260802-wa0088',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0088'),'images/products/jewellery-img-20260802-wa0088.jpg','Jewellery Img 20260802 Wa0088',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0090','jewellery-img-20260802-wa0090',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0090'),'images/products/jewellery-img-20260802-wa0090.jpg','Jewellery Img 20260802 Wa0090',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0091','jewellery-img-20260802-wa0091',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0091'),'images/products/jewellery-img-20260802-wa0091.jpg','Jewellery Img 20260802 Wa0091',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260802 Wa0093','jewellery-img-20260802-wa0093',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260802-wa0093'),'images/products/jewellery-img-20260802-wa0093.jpg','Jewellery Img 20260802 Wa0093',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 143214','jewellery-img-20260813-143214',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-143214'),'images/products/jewellery-img-20260813-143214.jpg','Jewellery Img 20260813 143214',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 154903','jewellery-img-20260813-154903',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-154903'),'images/products/jewellery-img-20260813-154903.jpg','Jewellery Img 20260813 154903',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 155054','jewellery-img-20260813-155054',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-155054'),'images/products/jewellery-img-20260813-155054.jpg','Jewellery Img 20260813 155054',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 155251','jewellery-img-20260813-155251',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-155251'),'images/products/jewellery-img-20260813-155251.jpg','Jewellery Img 20260813 155251',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 155259','jewellery-img-20260813-155259',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-155259'),'images/products/jewellery-img-20260813-155259.jpg','Jewellery Img 20260813 155259',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 Wa0018','jewellery-img-20260813-wa0018',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-wa0018'),'images/products/jewellery-img-20260813-wa0018.jpeg','Jewellery Img 20260813 Wa0018',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 Wa0028','jewellery-img-20260813-wa0028',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-wa0028'),'images/products/jewellery-img-20260813-wa0028.jpg','Jewellery Img 20260813 Wa0028',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 Wa0029','jewellery-img-20260813-wa0029',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-wa0029'),'images/products/jewellery-img-20260813-wa0029.jpg','Jewellery Img 20260813 Wa0029',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 Wa0030','jewellery-img-20260813-wa0030',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-wa0030'),'images/products/jewellery-img-20260813-wa0030.jpg','Jewellery Img 20260813 Wa0030',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260813 Wa0031','jewellery-img-20260813-wa0031',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260813-wa0031'),'images/products/jewellery-img-20260813-wa0031.jpg','Jewellery Img 20260813 Wa0031',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0253','jewellery-img-20260814-wa0253',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0253'),'images/products/jewellery-img-20260814-wa0253.jpg','Jewellery Img 20260814 Wa0253',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0254','jewellery-img-20260814-wa0254',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0254'),'images/products/jewellery-img-20260814-wa0254.jpg','Jewellery Img 20260814 Wa0254',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0255','jewellery-img-20260814-wa0255',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0255'),'images/products/jewellery-img-20260814-wa0255.jpg','Jewellery Img 20260814 Wa0255',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0256','jewellery-img-20260814-wa0256',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0256'),'images/products/jewellery-img-20260814-wa0256.jpg','Jewellery Img 20260814 Wa0256',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0257','jewellery-img-20260814-wa0257',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0257'),'images/products/jewellery-img-20260814-wa0257.jpg','Jewellery Img 20260814 Wa0257',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0258','jewellery-img-20260814-wa0258',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0258'),'images/products/jewellery-img-20260814-wa0258.jpg','Jewellery Img 20260814 Wa0258',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0259','jewellery-img-20260814-wa0259',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0259'),'images/products/jewellery-img-20260814-wa0259.jpg','Jewellery Img 20260814 Wa0259',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0260','jewellery-img-20260814-wa0260',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0260'),'images/products/jewellery-img-20260814-wa0260.jpg','Jewellery Img 20260814 Wa0260',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0261','jewellery-img-20260814-wa0261',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0261'),'images/products/jewellery-img-20260814-wa0261.jpg','Jewellery Img 20260814 Wa0261',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0262','jewellery-img-20260814-wa0262',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0262'),'images/products/jewellery-img-20260814-wa0262.jpg','Jewellery Img 20260814 Wa0262',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260814 Wa0263','jewellery-img-20260814-wa0263',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260814-wa0263'),'images/products/jewellery-img-20260814-wa0263.jpg','Jewellery Img 20260814 Wa0263',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0085','jewellery-img-20260817-wa0085',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0085'),'images/products/jewellery-img-20260817-wa0085.jpg','Jewellery Img 20260817 Wa0085',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0087','jewellery-img-20260817-wa0087',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0087'),'images/products/jewellery-img-20260817-wa0087.jpg','Jewellery Img 20260817 Wa0087',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0088','jewellery-img-20260817-wa0088',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0088'),'images/products/jewellery-img-20260817-wa0088.jpg','Jewellery Img 20260817 Wa0088',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0089','jewellery-img-20260817-wa0089',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0089'),'images/products/jewellery-img-20260817-wa0089.jpg','Jewellery Img 20260817 Wa0089',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0090','jewellery-img-20260817-wa0090',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0090'),'images/products/jewellery-img-20260817-wa0090.jpg','Jewellery Img 20260817 Wa0090',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0091','jewellery-img-20260817-wa0091',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0091'),'images/products/jewellery-img-20260817-wa0091.jpg','Jewellery Img 20260817 Wa0091',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0092','jewellery-img-20260817-wa0092',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0092'),'images/products/jewellery-img-20260817-wa0092.jpg','Jewellery Img 20260817 Wa0092',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0094','jewellery-img-20260817-wa0094',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0094'),'images/products/jewellery-img-20260817-wa0094.jpg','Jewellery Img 20260817 Wa0094',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0095','jewellery-img-20260817-wa0095',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0095'),'images/products/jewellery-img-20260817-wa0095.jpg','Jewellery Img 20260817 Wa0095',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0096','jewellery-img-20260817-wa0096',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0096'),'images/products/jewellery-img-20260817-wa0096.jpg','Jewellery Img 20260817 Wa0096',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0097','jewellery-img-20260817-wa0097',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0097'),'images/products/jewellery-img-20260817-wa0097.jpg','Jewellery Img 20260817 Wa0097',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260817 Wa0100','jewellery-img-20260817-wa0100',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260817-wa0100'),'images/products/jewellery-img-20260817-wa0100.jpg','Jewellery Img 20260817 Wa0100',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0089','jewellery-img-20260821-wa0089',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0089'),'images/products/jewellery-img-20260821-wa0089.jpg','Jewellery Img 20260821 Wa0089',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0090','jewellery-img-20260821-wa0090',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0090'),'images/products/jewellery-img-20260821-wa0090.jpg','Jewellery Img 20260821 Wa0090',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0091','jewellery-img-20260821-wa0091',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0091'),'images/products/jewellery-img-20260821-wa0091.jpg','Jewellery Img 20260821 Wa0091',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0092','jewellery-img-20260821-wa0092',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0092'),'images/products/jewellery-img-20260821-wa0092.jpg','Jewellery Img 20260821 Wa0092',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0093','jewellery-img-20260821-wa0093',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0093'),'images/products/jewellery-img-20260821-wa0093.jpg','Jewellery Img 20260821 Wa0093',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0094','jewellery-img-20260821-wa0094',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0094'),'images/products/jewellery-img-20260821-wa0094.jpg','Jewellery Img 20260821 Wa0094',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260821 Wa0095','jewellery-img-20260821-wa0095',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260821-wa0095'),'images/products/jewellery-img-20260821-wa0095.jpg','Jewellery Img 20260821 Wa0095',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0070','jewellery-img-20260822-wa0070',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0070'),'images/products/jewellery-img-20260822-wa0070.jpg','Jewellery Img 20260822 Wa0070',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0071','jewellery-img-20260822-wa0071',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0071'),'images/products/jewellery-img-20260822-wa0071.jpg','Jewellery Img 20260822 Wa0071',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0072','jewellery-img-20260822-wa0072',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0072'),'images/products/jewellery-img-20260822-wa0072.jpg','Jewellery Img 20260822 Wa0072',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0073','jewellery-img-20260822-wa0073',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0073'),'images/products/jewellery-img-20260822-wa0073.jpg','Jewellery Img 20260822 Wa0073',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0074','jewellery-img-20260822-wa0074',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0074'),'images/products/jewellery-img-20260822-wa0074.jpg','Jewellery Img 20260822 Wa0074',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0075','jewellery-img-20260822-wa0075',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0075'),'images/products/jewellery-img-20260822-wa0075.jpg','Jewellery Img 20260822 Wa0075',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0076','jewellery-img-20260822-wa0076',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0076'),'images/products/jewellery-img-20260822-wa0076.jpg','Jewellery Img 20260822 Wa0076',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0077','jewellery-img-20260822-wa0077',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0077'),'images/products/jewellery-img-20260822-wa0077.jpg','Jewellery Img 20260822 Wa0077',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0078','jewellery-img-20260822-wa0078',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0078'),'images/products/jewellery-img-20260822-wa0078.jpg','Jewellery Img 20260822 Wa0078',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0079','jewellery-img-20260822-wa0079',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0079'),'images/products/jewellery-img-20260822-wa0079.jpg','Jewellery Img 20260822 Wa0079',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0080','jewellery-img-20260822-wa0080',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0080'),'images/products/jewellery-img-20260822-wa0080.jpg','Jewellery Img 20260822 Wa0080',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0081','jewellery-img-20260822-wa0081',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0081'),'images/products/jewellery-img-20260822-wa0081.jpg','Jewellery Img 20260822 Wa0081',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260822 Wa0082','jewellery-img-20260822-wa0082',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260822-wa0082'),'images/products/jewellery-img-20260822-wa0082.jpg','Jewellery Img 20260822 Wa0082',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260823 Wa0231','jewellery-img-20260823-wa0231',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260823-wa0231'),'images/products/jewellery-img-20260823-wa0231.jpg','Jewellery Img 20260823 Wa0231',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Img 20260823 Wa0232','jewellery-img-20260823-wa0232',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-img-20260823-wa0232'),'images/products/jewellery-img-20260823-wa0232.jpg','Jewellery Img 20260823 Wa0232',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 01','jewellery-item-01',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-01'),'images/products/jewellery-item-01.jpg','Jewellery Item 01',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 02','jewellery-item-02',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-02'),'images/products/jewellery-item-02.jpg','Jewellery Item 02',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 03','jewellery-item-03',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-03'),'images/products/jewellery-item-03.jpg','Jewellery Item 03',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 08','jewellery-item-08',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-08'),'images/products/jewellery-item-08.jpg','Jewellery Item 08',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 14','jewellery-item-14',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-14'),'images/products/jewellery-item-14.jpg','Jewellery Item 14',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 16','jewellery-item-16',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-16'),'images/products/jewellery-item-16.jpg','Jewellery Item 16',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 21','jewellery-item-21',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-21'),'images/products/jewellery-item-21.jpg','Jewellery Item 21',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 22','jewellery-item-22',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-22'),'images/products/jewellery-item-22.jpg','Jewellery Item 22',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery Item 23','jewellery-item-23',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-item-23'),'images/products/jewellery-item-23.jpg','Jewellery Item 23',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Jewellery S3747244E6Dd0460A881Bd2B0520Fdb0Fc','jewellery-s3747244e6dd0460a881bd2b0520fdb0fc',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='jewellery-s3747244e6dd0460a881bd2b0520fdb0fc'),'images/products/jewellery-s3747244e6dd0460a881bd2b0520fdb0fc.avif','Jewellery S3747244E6Dd0460A881Bd2B0520Fdb0Fc',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Kasula Peru','kasula-peru',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kasula-peru'),'images/products/kasula-peru.jpg','Kasula Peru',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Kota Cotton Silk','kota-cotton-silk',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kota-cotton-silk'),'images/products/kota-cotton-silk.jpg','Kota Cotton Silk',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Kudan Stone Bangles','kudan-stone-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kudan-stone-bangles'),'images/products/kudan-stone-bangles.jpg','Kudan Stone Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Kundan Bangles','kundan-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='kundan-bangles'),'images/products/kundan-bangles.jpg','Kundan Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Lakshmi Devi Flower Bangles','lakshmi-devi-flower-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='lakshmi-devi-flower-bangles'),'images/products/lakshmi-devi-flower-bangles.jpg','Lakshmi Devi Flower Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Lakshmi Devi Pendant And Ear Rings','lakshmi-devi-pendant-and-ear-rings',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='lakshmi-devi-pendant-and-ear-rings'),'images/products/lakshmi-devi-pendant-and-ear-rings.jpg','Lakshmi Devi Pendant And Ear Rings',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Lakshmidevi Long Chain Cz3 Set','lakshmidevi-long-chain-cz3-set',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='lakshmidevi-long-chain-cz3-set'),'images/products/lakshmidevi-long-chain-cz3-set.jpg','Lakshmidevi Long Chain Cz3 Set',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Maroon Chrod Set','maroon-chrod-set',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='maroon-chrod-set'),'images/products/maroon-chrod-set.jpg','Maroon Chrod Set',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear 1785525448122 2393','night-wear-1785525448122-2393',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-1785525448122-2393'),'images/products/night-wear-1785525448122-2393.jpg','Night Wear 1785525448122 2393',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear 1786375124474 3655','night-wear-1786375124474-3655',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-1786375124474-3655'),'images/products/night-wear-1786375124474-3655.jpg','Night Wear 1786375124474 3655',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear 1786375321296 4981','night-wear-1786375321296-4981',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-1786375321296-4981'),'images/products/night-wear-1786375321296-4981.jpg','Night Wear 1786375321296 4981',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear 61M7Z Xm Il Sx679','night-wear-61m7z-xm-il-sx679',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-61m7z-xm-il-sx679'),'images/products/night-wear-61m7z-xm-il-sx679.jpg','Night Wear 61M7Z Xm Il Sx679',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear Img 20260808 154023','night-wear-img-20260808-154023',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-img-20260808-154023'),'images/products/night-wear-img-20260808-154023.jpg','Night Wear Img 20260808 154023',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear Img 20260808 154202','night-wear-img-20260808-154202',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-img-20260808-154202'),'images/products/night-wear-img-20260808-154202.jpg','Night Wear Img 20260808 154202',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear Img 20260808 154324','night-wear-img-20260808-154324',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-img-20260808-154324'),'images/products/night-wear-img-20260808-154324.jpg','Night Wear Img 20260808 154324',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear Img 20260808 154418','night-wear-img-20260808-154418',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-img-20260808-154418'),'images/products/night-wear-img-20260808-154418.jpg','Night Wear Img 20260808 154418',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear Img 20260808 154519','night-wear-img-20260808-154519',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-img-20260808-154519'),'images/products/night-wear-img-20260808-154519.jpg','Night Wear Img 20260808 154519',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Night Wear Img 20260808 154630','night-wear-img-20260808-154630',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='night-wear-img-20260808-154630'),'images/products/night-wear-img-20260808-154630.jpg','Night Wear Img 20260808 154630',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='night-dresses'),'Nightdress','nightdress',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='nightdress'),'images/products/nightdress.jpg','Nightdress',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094207','normal-images-img-20260807-094207',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094207'),'images/products/normal-images-img-20260807-094207.jpg','Normal Images Img 20260807 094207',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094214','normal-images-img-20260807-094214',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094214'),'images/products/normal-images-img-20260807-094214.jpg','Normal Images Img 20260807 094214',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094223','normal-images-img-20260807-094223',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094223'),'images/products/normal-images-img-20260807-094223.jpg','Normal Images Img 20260807 094223',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094229','normal-images-img-20260807-094229',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094229'),'images/products/normal-images-img-20260807-094229.jpg','Normal Images Img 20260807 094229',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094630','normal-images-img-20260807-094630',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094630'),'images/products/normal-images-img-20260807-094630.jpg','Normal Images Img 20260807 094630',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094635','normal-images-img-20260807-094635',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094635'),'images/products/normal-images-img-20260807-094635.jpg','Normal Images Img 20260807 094635',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094652','normal-images-img-20260807-094652',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094652'),'images/products/normal-images-img-20260807-094652.jpg','Normal Images Img 20260807 094652',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260807 094659','normal-images-img-20260807-094659',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260807-094659'),'images/products/normal-images-img-20260807-094659.jpg','Normal Images Img 20260807 094659',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 154202','normal-images-img-20260808-154202',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-154202'),'images/products/normal-images-img-20260808-154202.jpg','Normal Images Img 20260808 154202',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 154324','normal-images-img-20260808-154324',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-154324'),'images/products/normal-images-img-20260808-154324.jpg','Normal Images Img 20260808 154324',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 154418','normal-images-img-20260808-154418',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-154418'),'images/products/normal-images-img-20260808-154418.jpg','Normal Images Img 20260808 154418',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 154630','normal-images-img-20260808-154630',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-154630'),'images/products/normal-images-img-20260808-154630.jpg','Normal Images Img 20260808 154630',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 155057','normal-images-img-20260808-155057',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-155057'),'images/products/normal-images-img-20260808-155057.jpg','Normal Images Img 20260808 155057',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 155358','normal-images-img-20260808-155358',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-155358'),'images/products/normal-images-img-20260808-155358.jpg','Normal Images Img 20260808 155358',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 155614','normal-images-img-20260808-155614',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-155614'),'images/products/normal-images-img-20260808-155614.jpg','Normal Images Img 20260808 155614',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 180102','normal-images-img-20260808-180102',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-180102'),'images/products/normal-images-img-20260808-180102.jpg','Normal Images Img 20260808 180102',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 180109','normal-images-img-20260808-180109',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-180109'),'images/products/normal-images-img-20260808-180109.jpg','Normal Images Img 20260808 180109',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='normal-images'),'Normal Images Img 20260808 180116','normal-images-img-20260808-180116',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='normal-images-img-20260808-180116'),'images/products/normal-images-img-20260808-180116.jpg','Normal Images Img 20260808 180116',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Pearl With Cz3 Stone','pearl-with-cz3-stone',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='pearl-with-cz3-stone'),'images/products/pearl-with-cz3-stone.jpg','Pearl With Cz3 Stone',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Purple Banara Cotton','purple-banara-cotton',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='purple-banara-cotton'),'images/products/purple-banara-cotton.jpg','Purple Banara Cotton',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Radha Krishna Bangles','radha-krishna-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='radha-krishna-bangles'),'images/products/radha-krishna-bangles.jpg','Radha Krishna Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='rakhi'),'Rakhi Img 20260809 Wa0024','rakhi-img-20260809-wa0024',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='rakhi-img-20260809-wa0024'),'images/products/rakhi-img-20260809-wa0024.jpg','Rakhi Img 20260809 Wa0024',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='rakhi'),'Rakhi Img 20260809 Wa0025','rakhi-img-20260809-wa0025',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='rakhi-img-20260809-wa0025'),'images/products/rakhi-img-20260809-wa0025.jpg','Rakhi Img 20260809 Wa0025',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='rakhi'),'Rakhi Img 20260809 Wa0026','rakhi-img-20260809-wa0026',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='rakhi-img-20260809-wa0026'),'images/products/rakhi-img-20260809-wa0026.jpg','Rakhi Img 20260809 Wa0026',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='rakhi'),'Rakhi Img 20260809 Wa0027','rakhi-img-20260809-wa0027',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='rakhi-img-20260809-wa0027'),'images/products/rakhi-img-20260809-wa0027.jpg','Rakhi Img 20260809 Wa0027',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='tops'),'Red Top','red-top',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='red-top'),'images/products/red-top.jpg','Red Top',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785772229891 2709','sarees-1785772229891-2709',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1785772229891-2709'),'images/products/sarees-1785772229891-2709.jpg','Sarees 1785772229891 2709',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785777044901 1872','sarees-1785777044901-1872',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1785777044901-1872'),'images/products/sarees-1785777044901-1872.jpg','Sarees 1785777044901 1872',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785777555101 7285','sarees-1785777555101-7285',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1785777555101-7285'),'images/products/sarees-1785777555101-7285.jpg','Sarees 1785777555101 7285',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785777617722 7153','sarees-1785777617722-7153',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1785777617722-7153'),'images/products/sarees-1785777617722-7153.jpg','Sarees 1785777617722 7153',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786330503032 4186','sarees-1786330503032-4186',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786330503032-4186'),'images/products/sarees-1786330503032-4186.jpg','Sarees 1786330503032 4186',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786374538786 2967','sarees-1786374538786-2967',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786374538786-2967'),'images/products/sarees-1786374538786-2967.jpg','Sarees 1786374538786 2967',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786375189616 3051','sarees-1786375189616-3051',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786375189616-3051'),'images/products/sarees-1786375189616-3051.jpg','Sarees 1786375189616 3051',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786376234254 2821','sarees-1786376234254-2821',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786376234254-2821'),'images/products/sarees-1786376234254-2821.jpg','Sarees 1786376234254 2821',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786376587625 4958','sarees-1786376587625-4958',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786376587625-4958'),'images/products/sarees-1786376587625-4958.jpg','Sarees 1786376587625 4958',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786376629622 9922','sarees-1786376629622-9922',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786376629622-9922'),'images/products/sarees-1786376629622-9922.jpg','Sarees 1786376629622 9922',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786376706801 7098','sarees-1786376706801-7098',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786376706801-7098'),'images/products/sarees-1786376706801-7098.jpg','Sarees 1786376706801 7098',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786376754019 8048','sarees-1786376754019-8048',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786376754019-8048'),'images/products/sarees-1786376754019-8048.jpg','Sarees 1786376754019 8048',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786389649422 1306','sarees-1786389649422-1306',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786389649422-1306'),'images/products/sarees-1786389649422-1306.jpg','Sarees 1786389649422 1306',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786389750236 5882','sarees-1786389750236-5882',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786389750236-5882'),'images/products/sarees-1786389750236-5882.jpg','Sarees 1786389750236 5882',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1786389942854 2934','sarees-1786389942854-2934',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1786389942854-2934'),'images/products/sarees-1786389942854-2934.jpg','Sarees 1786389942854 2934',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Banaras Purple','sarees-banaras-purple',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-banaras-purple'),'images/products/sarees-banaras-purple.jpg','Sarees Banaras Purple',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260802 Wa0039','sarees-img-20260802-wa0039',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260802-wa0039'),'images/products/sarees-img-20260802-wa0039.jpg','Sarees Img 20260802 Wa0039',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260802 Wa0047','sarees-img-20260802-wa0047',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260802-wa0047'),'images/products/sarees-img-20260802-wa0047.jpg','Sarees Img 20260802 Wa0047',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260802 Wa0048','sarees-img-20260802-wa0048',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260802-wa0048'),'images/products/sarees-img-20260802-wa0048.jpg','Sarees Img 20260802 Wa0048',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0102 1','sarees-img-20260818-wa0102-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0102-1'),'images/products/sarees-img-20260818-wa0102-1.jpg','Sarees Img 20260818 Wa0102 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0102','sarees-img-20260818-wa0102',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0102'),'images/products/sarees-img-20260818-wa0102.jpg','Sarees Img 20260818 Wa0102',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0105 1','sarees-img-20260818-wa0105-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0105-1'),'images/products/sarees-img-20260818-wa0105-1.jpg','Sarees Img 20260818 Wa0105 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0105','sarees-img-20260818-wa0105',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0105'),'images/products/sarees-img-20260818-wa0105.jpg','Sarees Img 20260818 Wa0105',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0117','sarees-img-20260818-wa0117',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0117'),'images/products/sarees-img-20260818-wa0117.jpg','Sarees Img 20260818 Wa0117',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0155','sarees-img-20260818-wa0155',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0155'),'images/products/sarees-img-20260818-wa0155.jpg','Sarees Img 20260818 Wa0155',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0162 1','sarees-img-20260818-wa0162-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0162-1'),'images/products/sarees-img-20260818-wa0162-1.jpg','Sarees Img 20260818 Wa0162 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0162','sarees-img-20260818-wa0162',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0162'),'images/products/sarees-img-20260818-wa0162.jpg','Sarees Img 20260818 Wa0162',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0182','sarees-img-20260818-wa0182',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0182'),'images/products/sarees-img-20260818-wa0182.jpg','Sarees Img 20260818 Wa0182',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0189 1','sarees-img-20260818-wa0189-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0189-1'),'images/products/sarees-img-20260818-wa0189-1.jpg','Sarees Img 20260818 Wa0189 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0189 2','sarees-img-20260818-wa0189-2',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0189-2'),'images/products/sarees-img-20260818-wa0189-2.jpg','Sarees Img 20260818 Wa0189 2',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0189','sarees-img-20260818-wa0189',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0189'),'images/products/sarees-img-20260818-wa0189.jpg','Sarees Img 20260818 Wa0189',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0196','sarees-img-20260818-wa0196',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0196'),'images/products/sarees-img-20260818-wa0196.jpg','Sarees Img 20260818 Wa0196',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0198','sarees-img-20260818-wa0198',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0198'),'images/products/sarees-img-20260818-wa0198.jpg','Sarees Img 20260818 Wa0198',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0200','sarees-img-20260818-wa0200',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0200'),'images/products/sarees-img-20260818-wa0200.jpg','Sarees Img 20260818 Wa0200',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0202','sarees-img-20260818-wa0202',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0202'),'images/products/sarees-img-20260818-wa0202.jpg','Sarees Img 20260818 Wa0202',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0213','sarees-img-20260818-wa0213',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0213'),'images/products/sarees-img-20260818-wa0213.jpg','Sarees Img 20260818 Wa0213',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0222 1','sarees-img-20260818-wa0222-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0222-1'),'images/products/sarees-img-20260818-wa0222-1.jpg','Sarees Img 20260818 Wa0222 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0222','sarees-img-20260818-wa0222',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0222'),'images/products/sarees-img-20260818-wa0222.jpg','Sarees Img 20260818 Wa0222',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0311 1','sarees-img-20260818-wa0311-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0311-1'),'images/products/sarees-img-20260818-wa0311-1.jpg','Sarees Img 20260818 Wa0311 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260818 Wa0311','sarees-img-20260818-wa0311',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260818-wa0311'),'images/products/sarees-img-20260818-wa0311.jpg','Sarees Img 20260818 Wa0311',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260819 Wa0033 1','sarees-img-20260819-wa0033-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260819-wa0033-1'),'images/products/sarees-img-20260819-wa0033-1.jpg','Sarees Img 20260819 Wa0033 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260819 Wa0033','sarees-img-20260819-wa0033',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260819-wa0033'),'images/products/sarees-img-20260819-wa0033.jpg','Sarees Img 20260819 Wa0033',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260819 Wa0041 1','sarees-img-20260819-wa0041-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260819-wa0041-1'),'images/products/sarees-img-20260819-wa0041-1.jpg','Sarees Img 20260819 Wa0041 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260819 Wa0041','sarees-img-20260819-wa0041',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260819-wa0041'),'images/products/sarees-img-20260819-wa0041.jpg','Sarees Img 20260819 Wa0041',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees Img 20260819 Wa0128','sarees-img-20260819-wa0128',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-img-20260819-wa0128'),'images/products/sarees-img-20260819-wa0128.jpg','Sarees Img 20260819 Wa0128',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Sarokasi Pearls','sarokasi-pearls',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarokasi-pearls'),'images/products/sarokasi-pearls.jpg','Sarokasi Pearls',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Sita Ram Bangles','sita-ram-bangles',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sita-ram-bangles'),'images/products/sita-ram-bangles.jpg','Sita Ram Bangles',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Soft Silk Zari','soft-silk-zari',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='soft-silk-zari'),'images/products/soft-silk-zari.jpg','Soft Silk Zari',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='tryon-prep'),'Tryon Prep Banaras Model Wear','tryon-prep-banaras-model-wear',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='tryon-prep-banaras-model-wear'),'images/products/tryon-prep-banaras-model-wear.jpg','Tryon Prep Banaras Model Wear',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='tryon-prep'),'Tryon Prep Banaras Purple','tryon-prep-banaras-purple',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='tryon-prep-banaras-purple'),'images/products/tryon-prep-banaras-purple.jpg','Tryon Prep Banaras Purple',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='tryon-prep'),'Tryon Prep Model 1','tryon-prep-model-1',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='tryon-prep-model-1'),'images/products/tryon-prep-model-1.jpg','Tryon Prep Model 1',TRUE,1);
+INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Tusser Silk','tusser-silk',0,0,'New');
+INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='tusser-silk'),'images/products/tusser-silk.jpg','Tusser Silk',TRUE,1);
+-- TOTAL PRODUCTS: 250
+
+-- index for product_variants
+CREATE INDEX IF NOT EXISTS idx_product_variants_prod ON product_variants(product_id);
+
+COMMIT;
