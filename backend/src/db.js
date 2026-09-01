@@ -1,7 +1,20 @@
 import 'dotenv/config';
 import pg from 'pg';
 
-const DB_URL = process.env.DATABASE_URL || 'postgres://postgres:mayur@localhost:5432/raaji_collections';
+// Connection source: prefer DATABASE_URL, else build from Railway's PG* vars
+// (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE) that are auto-injected when
+// a Postgres is linked to the service.
+function connectionString() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
+  if (PGHOST && PGDATABASE) {
+    const auth = PGUSER ? `${encodeURIComponent(PGUSER)}:${encodeURIComponent(PGPASSWORD || '')}@` : '';
+    return `postgres://${auth}${PGHOST}:${PGPORT || '5432'}/${PGDATABASE}`;
+  }
+  return 'postgres://postgres:mayur@localhost:5432/raaji_collections';
+}
+
+const DB_URL = connectionString();
 
 // SSL handling:
 //   * DB_SSL=0 / 'false' -> SSL off
