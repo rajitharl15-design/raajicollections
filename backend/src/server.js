@@ -53,6 +53,7 @@ async function start() {
   }
   app.listen(PORT, () => {
     console.log(`Raaji Collections backend running on http://localhost:${PORT}`);
+    console.log(`[raaji] build v2 (ssl-auto) DB_SSL=${process.env.DB_SSL || 'auto'}`);
   });
 }
 
