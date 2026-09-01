@@ -45,6 +45,9 @@ async function start() {
       await migrate();
     } catch (err) {
       console.error('[migrate] failed:', err.message);
+      console.error('[migrate] DATABASE_URL host/port:',
+        (process.env.DATABASE_URL || 'UNSET').replace(/\/\/[^:]+:[^@]+@/, '//USER:PASS@'));
+      console.error('[migrate] full error:', err);
       if (process.env.AUTO_MIGRATE === 'true') process.exit(1);
     }
   }
