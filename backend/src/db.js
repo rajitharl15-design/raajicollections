@@ -15,6 +15,7 @@ function resolveSsl() {
 const pool = new pg.Pool({
   connectionString: DB_URL,
   ssl: resolveSsl(),
+  connectionTimeoutMillis: 10000,
 });
 
 pool.on('error', err => {
