@@ -35,7 +35,8 @@ app.use(express.static(publicDir));
 app.use((err, req, res, next) => {
   console.error(err);
   const status = err.status || 500;
-  res.status(status).json({ error: err.message || 'Internal server error' });
+  const msg = err.message || 'Internal server error';
+  res.status(status).json({ error: msg, detail: process.env.NODE_ENV !== 'production' ? String(typeof err === 'object' && err ? err.stack || err : err) : undefined });
 });
 
 const PORT = process.env.PORT || 3000;
