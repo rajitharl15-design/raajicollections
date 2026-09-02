@@ -17,12 +17,17 @@ function connectionString() {
 const DB_URL = connectionString();
 
 // SSL handling:
-//   * DB_SSL=0 / 'false' -> SSL off
-//   * otherwise          -> SSL on with rejectUnauthorized:false (handles
-//                           Railway internal & public proxies, RDS, etc.)
+//   * DB_SSL=1 / 'true'  -> force SSL on (rejectUnauthorized:false)
+//   * DB_SSL=0 / 'false' -> force SSL off
+//   * DB_SSL unset       -> auto: SSL off for local + Railway internal hosts
+//                           (private network, no TLS needed), SSL on otherwise
+//                           (public proxies like proxy.rlwy.net, RDS, Neon).
 function resolveSsl() {
+  if (process.env.DB_SSL === '1' || process.env.DB_SSL === 'true') return { rejectUnauthorized: false };
   if (process.env.DB_SSL === '0' || process.env.DB_SSL === 'false') return false;
-  return { rejectUnauthorized: false };
+  const local = DB_URL.includes('localhost') || DB_URL.includes('127.0.0.1');
+  const internal = DB_URL.includes('.railway.internal');
+  return (local || internal) ? false : { rejectUnauthorized: false };
 }
 
 const pool = new pg.Pool({
