@@ -36,7 +36,8 @@ app.use((err, req, res, next) => {
   console.error(err);
   const status = err.status || 500;
   const msg = err.message || 'Internal server error';
-  res.status(status).json({ error: msg, detail: String(typeof err === 'object' && err ? err.stack || err.message || err : err) });
+  const extra = err && err.errors && err.errors.map(e => e.message).join(' | ');
+  res.status(status).json({ error: msg, detail: String(error => (error && error.stack) || error)(err), inner: extra, db: (process.env.DATABASE_URL || '').replace(/\/\/[^:]+:[^@]+@/, '//USER:PASS@') });
 });
 
 const PORT = process.env.PORT || 3000;
