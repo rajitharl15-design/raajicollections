@@ -36,7 +36,7 @@ app.use((err, req, res, next) => {
   console.error(err);
   const status = err.status || 500;
   const msg = err.message || 'Internal server error';
-  res.status(status).json({ error: msg, detail: process.env.NODE_ENV !== 'production' ? String(typeof err === 'object' && err ? err.stack || err : err) : undefined });
+  res.status(status).json({ error: msg, detail: String(typeof err === 'object' && err ? err.stack || err.message || err : err) });
 });
 
 const PORT = process.env.PORT || 3000;
