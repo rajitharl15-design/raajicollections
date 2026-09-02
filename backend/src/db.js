@@ -23,7 +23,7 @@ async function pickSsl() {
   if (process.env.DB_SSL === '1' || process.env.DB_SSL === 'true') return { rejectUnauthorized: false };
   if (process.env.DB_SSL === '0' || process.env.DB_SSL === 'false') return false;
 
-  const candidates = [false, { rejectUnauthorized: false }];
+  const candidates = [{ rejectUnauthorized: false }, false];
   for (const ssl of candidates) {
     try {
       const probe = new pg.Client({ connectionString: DB_URL, ssl, connectionTimeoutMillis: 6000 });
