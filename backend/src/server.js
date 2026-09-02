@@ -10,6 +10,7 @@ import ordersRouter from './routes/orders.js';
 import newsletterRouter from './routes/newsletter.js';
 import adminRouter from './routes/admin.js';
 import { migrate } from './migrate.js';
+import { initDbConnection } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -40,6 +41,11 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 
 async function start() {
+  try {
+    await initDbConnection();
+  } catch (err) {
+    console.error('[db] initDbConnection failed:', err.message);
+  }
   if (process.env.AUTO_MIGRATE !== 'false') {
     try {
       await migrate();
@@ -53,7 +59,7 @@ async function start() {
   }
   app.listen(PORT, () => {
     console.log(`Raaji Collections backend running on http://localhost:${PORT}`);
-    console.log(`[raaji] build v3 (ssl-decision + pgvars) DB_SSL=${process.env.DB_SSL || 'auto'} DATABASE_URL=${(process.env.DATABASE_URL || 'UNSET').replace(/\/\/[^:]+:[^@]+@/, '//USER:PASS@')}`);
+    console.log(`[raaji] build v4 (auto-ssl-probe) DB_SSL=${process.env.DB_SSL || 'auto'} DATABASE_URL=${(process.env.DATABASE_URL || 'UNSET').replace(/\/\/[^:]+:[^@]+@/, '//USER:PASS@')}`);
   });
 }
 

@@ -16,28 +16,51 @@ function connectionString() {
 
 const DB_URL = connectionString();
 
-// SSL handling:
-//   * DB_SSL=1 / 'true'  -> force SSL on (rejectUnauthorized:false)
-//   * DB_SSL=0 / 'false' -> force SSL off
-//   * DB_SSL unset       -> auto: SSL off for local + Railway internal hosts
-//                           (private network, no TLS needed), SSL on otherwise
-//                           (public proxies like proxy.rlwy.net, RDS, Neon).
-function resolveSsl() {
+// Returns the SSL config to use. Auto-probes by trying to connect with each
+// candidate and returns the first that succeeds. Handles Railway internal
+// (no TLS), public proxies (TLS required), RDS/Neon (TLS), and localhost.
+async function pickSsl() {
   if (process.env.DB_SSL === '1' || process.env.DB_SSL === 'true') return { rejectUnauthorized: false };
   if (process.env.DB_SSL === '0' || process.env.DB_SSL === 'false') return false;
-  const local = DB_URL.includes('localhost') || DB_URL.includes('127.0.0.1');
-  const internal = DB_URL.includes('.railway.internal');
-  return (local || internal) ? false : { rejectUnauthorized: false };
+
+  const candidates = [false, { rejectUnauthorized: false }];
+  for (const ssl of candidates) {
+    try {
+      const probe = new pg.Client({ connectionString: DB_URL, ssl, connectionTimeoutMillis: 6000 });
+      await probe.connect();
+      await probe.query('SELECT 1');
+      await probe.end();
+      console.log(`[db] SSL probe OK -> ssl=${JSON.stringify(ssl)}`);
+      return ssl;
+    } catch (e) {
+      console.log(`[db] SSL probe failed ssl=${JSON.stringify(ssl)}: ${e.message}`);
+    }
+  }
+  console.log('[db] SSL probe failed both; defaulting to TLS rejectUnauthorized:false');
+  return { rejectUnauthorized: false };
 }
 
 const pool = new pg.Pool({
   connectionString: DB_URL,
-  ssl: resolveSsl(),
+  ssl: false, // provisional; corrected by init below
+  max: 10,
+  idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });
 
 pool.on('error', err => {
   console.error('Unexpected error on idle client', err);
 });
+
+// Reconfigure the pool with the probed SSL mode (or DB_SSL override).
+export async function initDbConnection() {
+  const ssl = await pickSsl();
+  pool.options.ssl = ssl;
+  pool.options.connectionString = DB_URL;
+  // Validate with one query so callers know the connection works.
+  const client = await pool.connect();
+  client.release();
+  console.log('[db] initDbConnection OK');
+}
 
 export default pool;
