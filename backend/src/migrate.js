@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../');
 const SCHEMA_FILE = path.join(repoRoot, 'database', 'schema.sql');
 const SEED_FILE = path.join(repoRoot, 'database', 'seed.sql');
+const CATALOG_FILE = path.join(repoRoot, 'database', 'seed-catalog.sql');
 
 async function hasSchema() {
   const { rows } = await pool.query(
@@ -20,6 +21,11 @@ async function hasSchema() {
 
 async function isSeeded() {
   const { rows } = await pool.query('SELECT COUNT(*)::int AS count FROM categories');
+  return rows[0].count > 0;
+}
+
+async function hasProducts() {
+  const { rows } = await pool.query('SELECT COUNT(*)::int AS count FROM products');
   return rows[0].count > 0;
 }
 
@@ -44,6 +50,22 @@ export async function migrate() {
     console.log('[migrate] seed applied.');
   } else {
     console.log('[migrate] data already seeded, skipping.');
+  }
+
+  // Seed the catalog (products + images) whenever the products table is empty.
+  // This is idempotent and also backfills an existing DB that only has categories.
+  const hasProd = await hasProducts();
+  if (!hasProd) {
+    console.log('[migrate] applying seed-catalog.sql (empty catalog backfill)...');
+    try {
+      const catSql = await readFile(CATALOG_FILE, 'utf8');
+      await pool.query(catSql);
+      console.log('[migrate] catalog seed applied.');
+    } catch (err) {
+      console.warn('[migrate] catalog seed skipped:', err.message);
+    }
+  } else {
+    console.log('[migrate] catalog already present, skipping.');
   }
 
   console.log('[migrate] applying column migrations...');

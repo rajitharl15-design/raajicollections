@@ -95,6 +95,18 @@ Push this repo to GitHub and deploy `backend/` to a host that supports Node (e.g
 
 No manual `psql` step needed — the server migrates itself on startup.
 
+### Catalog seeding (so the old site shows products)
+
+- `database/seed.sql` creates the **categories**.
+- `database/seed-catalog.sql` seeds the **products + product images** (your legacy uploads) and is
+  applied automatically whenever the **products table is empty** — idempotent (`ON CONFLICT (slug) DO NOTHING`).
+- This means a fresh database, **or a previously-deployed database that only has categories**, is
+  auto-populated with the catalog on the next deploy/restart. No manual reload needed.
+
+> Products migrated are grouped under the real categories (Sarees, Dresses, Tops, Ready Made Blouses,
+> Jewellery, Night Dresses, Kids Wear). Auto-named uploads from misc/rakhi/try-on categories are
+> skipped from the DB catalog (they remain on the new static site).
+
 ### Deploying on Render (so product images persist for all visitors)
 
 Your site is currently hosted on **GitHub Pages (static), which has no server** — so admin image
