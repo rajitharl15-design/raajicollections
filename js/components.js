@@ -23,7 +23,6 @@ const HEADER_HTML = `
           <h5>Explore Women</h5>
           <a href="/listing.html?cat=Women&subcat=Sarees">Sarees</a>
           <a href="/listing.html?cat=Women&subcat=Dresses">Dresses</a>
-          <a href="/listing.html?cat=Women&subcat=Readymade Blouses">Ready Made Blouses</a>
           <a href="/listing.html?cat=Women&subcat=Night Dresses">Night Dresses</a>
         </div>
       </li>

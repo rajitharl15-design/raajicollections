@@ -330,7 +330,8 @@ function initListing() {
     let activeCat = cat;
     if (bar) {
       const renderChips = () => {
-        const subs = [...new Set(PRODUCTS.filter((p) => p.cat === activeCat).map((p) => p.subcat))];
+        const subs = [...new Set(PRODUCTS.filter((p) => p.cat === activeCat).map((p) => p.subcat))]
+          .filter((s) => s !== "Readymade Blouses"); // hidden from Peacock nav/filters
         bar.innerHTML = subs.map((s) =>
           `<button class="chip ${s === activeSub ? "chip-on" : ""}" data-sub="${s}">${s}</button>`).join("");
       };
