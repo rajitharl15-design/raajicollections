@@ -21,6 +21,15 @@ const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*' }));
 app.use(express.json({ limit: '25mb' }));
 
+// Avoid stale-cached admin/html/js so fixes go live immediately.
+app.use((req, res, next) => {
+  const p = req.path;
+  if (p.startsWith('/js/') || p.startsWith('/css/') || p.endsWith('.html') || p === '/admin' || p === '/admin-login') {
+    res.set('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'raaji-collections-backend' });
 });
