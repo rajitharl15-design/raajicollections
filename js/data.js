@@ -245,9 +245,6 @@ const PRODUCTS = [
   { id: 1243, name: "Sarokasi Pearls", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/sarokasi-pearls.jpg", size: ["One Size"], rating: 4.6 },
   { id: 1244, name: "Sita Ram Bangles", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/sita-ram-bangles.jpg", size: ["One Size"], rating: 4.6 },
   { id: 1245, name: "Soft Silk Zari", cat: "Women", subcat: "Sarees", price: 1299, old: 2338, img: "images/products/soft-silk-zari.jpg", size: ["Free"], rating: 4.6 },
-  { id: 1246, name: "Tryon Prep Banaras Model Wear", cat: "Women", subcat: "Sarees", price: 999, old: 1798, img: "images/products/tryon-prep-banaras-model-wear.jpg", size: ["Free"], rating: 4.6 },
-  { id: 1247, name: "Tryon Prep Banaras Purple", cat: "Women", subcat: "Sarees", price: 999, old: 1798, img: "images/products/tryon-prep-banaras-purple.jpg", size: ["Free"], rating: 4.6 },
-  { id: 1248, name: "Tryon Prep Model 1", cat: "Women", subcat: "Sarees", price: 999, old: 1798, img: "images/products/tryon-prep-model-1.jpg", size: ["Free"], rating: 4.6 },
   { id: 1249, name: "Tusser Silk", cat: "Women", subcat: "Sarees", price: 1299, old: 2338, img: "images/products/tusser-silk.jpg", size: ["Free"], rating: 4.6 },
 ];
 
