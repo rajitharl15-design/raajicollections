@@ -7,6 +7,7 @@ const HEADER_HTML = `
     <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
     <a href="/store.html" class="logo">Peacock<span class="my">Fashions</span></a>
     <ul class="main-nav">
+      <li><a href="/index.html" title="Go to the Raaji Collections store">Raaji</a></li>
       <li><a href="/listing.html?cat=Men">Men <i class="fas fa-chevron-down"></i></a>
         <div class="dropdown">
           <h5>Topwear</h5>
