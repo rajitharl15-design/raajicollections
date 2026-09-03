@@ -24,7 +24,7 @@ app.use(express.json({ limit: '25mb' }));
 // Avoid stale-cached admin/html/js so fixes go live immediately.
 app.use((req, res, next) => {
   const p = req.path;
-  if (p.startsWith('/js/') || p.startsWith('/css/') || p.endsWith('.html') || p === '/admin' || p === '/admin-login') {
+  if (p.startsWith('/api/') || p.startsWith('/js/') || p.startsWith('/css/') || p.endsWith('.html') || p === '/admin' || p === '/admin-login') {
     res.set('Cache-Control', 'no-store');
   }
   next();
