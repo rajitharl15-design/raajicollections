@@ -116,10 +116,35 @@
       border: 1px solid rgba(255,255,255,.25); border-radius: 6px; width: 140px; background: rgba(255,255,255,.06); color: var(--white);
     }
     .token-row input::placeholder { color: #8a7760; }
+
+    /* Old-style login gate */
+    .admin-login-overlay {
+      position: fixed; inset: 0; background: var(--cream); z-index: 999;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .admin-login-box {
+      background: var(--white); border-radius: 12px; box-shadow: var(--shadow);
+      padding: 40px; max-width: 380px; width: 100%; text-align: center;
+    }
+    .admin-login-box .logo-badge {
+      width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 16px;
+      background: var(--primary); display: grid; place-items: center; color: var(--white); font-size: 24px;
+    }
+    .admin-login-box h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--dark); margin-bottom: 4px; }
+    .admin-login-box p { color: var(--text-light); font-size: 13px; margin-bottom: 20px; }
+    .admin-login-box input {
+      width: 100%; padding: 13px 16px; border: 1px solid var(--beige); border-radius: 6px;
+      font-size: 14px; margin-bottom: 15px; outline: none; font-family: 'Poppins', sans-serif; background: var(--cream);
+    }
+    .admin-login-box input:focus { border-color: var(--primary); }
+    .admin-login-box .btn { width: 100%; }
+    .admin-err { color: #D32F2F; font-size: 13px; margin-top: 10px; }
+    .admin-hint { font-size: 11px; color: var(--text-light); margin-top: 16px; }
   </style>
 </head>
 <body>
-  <div class="admin-header">
+  <div id="appRoot">
+    <div class="admin-header">
     <div class="brand">
       <div class="logo-badge"><i class="fas fa-feather"></i></div>
       <div>
@@ -157,8 +182,51 @@
     </div>
     <p class="save-note">Tip: use the category tabs above to filter. All changes are stored locally until you export.</p>
   </div>
+  </div><!-- /appRoot -->
+
+  <div class="admin-login-overlay" id="loginOverlay">
+    <form class="admin-login-box" id="loginForm">
+      <div class="logo-badge"><i class="fas fa-feather"></i></div>
+      <h2>Admin Login</h2>
+      <p>Raaji Collections · Catalog Admin</p>
+      <input type="password" id="loginPass" placeholder="Enter passcode" autocomplete="current-password">
+      <button class="btn btn-primary" type="submit">Sign in</button>
+      <p class="admin-err" id="loginErr"></p>
+      <p class="admin-hint">Default passcode: <b>admin123</b> (change it via localStorage key <b>pf_admin_pass</b>)</p>
+    </form>
+  </div>
 
   <script src="js/data.js"></script>
   <script src="js/catalog-admin.js"></script>
+  <script>
+    (function () {
+      var KEY = 'pf_admin_auth';
+      var PASS_KEY = 'pf_admin_pass';
+      var need = localStorage.getItem(PASS_KEY) || 'admin123';
+      var overlay = document.getElementById('loginOverlay');
+      var appRoot = document.getElementById('appRoot');
+
+      function lock() {
+        if (appRoot) appRoot.style.display = 'none';
+        if (overlay) overlay.style.display = 'flex';
+      }
+      function unlock() {
+        sessionStorage.setItem(KEY, '1');
+        if (overlay) overlay.style.display = 'none';
+        if (appRoot) appRoot.style.display = '';
+      }
+
+      if (sessionStorage.getItem(KEY) === '1') { unlock(); }
+      else { lock(); }
+
+      var form = document.getElementById('loginForm');
+      if (form) form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = document.getElementById('loginPass').value;
+        if (v === need) { document.getElementById('loginErr').textContent = ''; unlock(); }
+        else { document.getElementById('loginErr').textContent = 'Incorrect passcode. Try again.'; }
+      });
+    })();
+  </script>
 </body>
 </html>
