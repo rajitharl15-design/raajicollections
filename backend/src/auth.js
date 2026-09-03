@@ -33,14 +33,7 @@ export function signToken(username) {
   return payload + '.' + sig;
 }
 
-export function verifyCookies(headers) {
-  const raw = headers.cookie || '';
-  const cookies = {};
-  raw.split(';').forEach((pair) => {
-    const idx = pair.indexOf('=');
-    if (idx > -1) cookies[pair.slice(0, idx).trim()] = decodeURIComponent(pair.slice(idx + 1).trim());
-  });
-  const token = cookies[ADMIN_COOKIE];
+export function verifyToken(token) {
   if (!token) return null;
   const dot = token.indexOf('.');
   if (dot === -1) return null;
@@ -55,10 +48,23 @@ export function verifyCookies(headers) {
   return data.u;
 }
 
+export function verifyCookies(headers) {
+  const raw = headers.cookie || '';
+  const cookies = {};
+  raw.split(';').forEach((pair) => {
+    const idx = pair.indexOf('=');
+    if (idx > -1) cookies[pair.slice(0, idx).trim()] = decodeURIComponent(pair.slice(idx + 1).trim());
+  });
+  return verifyToken(cookies[ADMIN_COOKIE]);
+}
+
 export function requireAdmin(req, res, next) {
   if (!isConfigured()) return res.status(403).json({ error: 'Admin is not configured yet (create credentials on the login page).' });
-  const user = verifyCookies(req.headers);
-  if (!user) return res.status(401).json({ error: 'Unauthorized', gotCookie: !!req.headers.cookie });
+  // Accept the session cookie OR the x-admin-key token header (sent by admin.js page).
+  const user = verifyCookies(req.headers) || verifyToken(req.get('x-admin-key'));
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized', gotCookie: !!req.headers.cookie, gotHeader: !!req.get('x-admin-key') });
+  }
   req.adminUser = user;
   next();
 }

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import productsRouter from './routes/products.js';
@@ -13,12 +14,12 @@ import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import pool, { initDbConnection } from './db.js';
 import crypto from 'crypto';
-import { requireAdmin, verifyCookies, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective } from './auth.js';
+import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*', credentials: true }));
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*', credentials: true, allowedHeaders: ['Content-Type', 'x-admin-key'] }));
 app.use(express.json({ limit: '25mb' }));
 
 // Avoid stale-cached admin/html/js so fixes go live immediately.
@@ -44,8 +45,21 @@ const loginHtml = path.join(privateDir, 'login.html');
 app.get(['/admin', '/admin.html'], (req, res) => {
   // Not signed in (or not configured yet): send to the login page, which offers
   // first-time setup when no admin exists.
-  if (!verifyCookies(req.headers)) return res.redirect('/admin-login');
-  res.sendFile(adminHtml);
+  const user = verifyCookies(req.headers) || verifyToken(req.get('x-admin-key'));
+  if (!user) return res.redirect('/admin-login');
+  // Hand the authenticated page a token so admin.js can authenticate API calls
+  // via the x-admin-key header (robust even if cookie storage is an issue).
+  try {
+    const tok = signToken(user);
+    const html = fs.readFileSync(adminHtml, 'utf8');
+    const out = html.replace(
+      '<script src="js/admin.js"></script>',
+      '<script>try{localStorage.setItem(\'raaji_admin_key\', ' + JSON.stringify(tok) + ');}catch(e){}</script>\n  <script src="js/admin.js"></script>'
+    );
+    res.set('Content-Type', 'text/html').send(out);
+  } catch (err) {
+    res.sendFile(adminHtml);
+  }
 });
 app.get('/admin-login', (req, res) => {
   if (verifyCookies(req.headers)) return res.redirect('/admin');
