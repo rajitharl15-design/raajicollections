@@ -50,7 +50,7 @@ function formatDate(iso) {
 async function api(path, options = {}) {
   const headers = { 'x-admin-key': adminKey, ...(options.headers || {}) };
   if (options.body) headers['Content-Type'] = 'application/json';
-  const res = await fetch(`${apiBase()}${path}`, { ...options, headers });
+  const res = await fetch(`${apiBase()}${path}`, { ...options, credentials: 'include', headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = new Error(data.error || `Request failed (${res.status})`);
@@ -66,7 +66,8 @@ async function loadOrders() {
     render();
   } catch (err) {
     if (err.status === 401) {
-      showLogin();
+      // Session missing/expired -> go through the server login again.
+      window.location.href = '/admin-login';
     } else {
       document.getElementById('adminOrders').innerHTML =
         `<p class="admin-loading">Failed to load orders: ${err.message}</p>`;
