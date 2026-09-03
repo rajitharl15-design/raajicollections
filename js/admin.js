@@ -977,9 +977,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  if (adminKey) {
-    showDashboard();
-  } else {
-    showLogin();
-  }
+  // This admin page is only reachable after the server login (cookie), so we
+  // open the dashboard directly. The old admin-key gate is kept only as a
+  // fallback if the session is ever missing (loadOrders returns 401 -> showLogin).
+  showDashboard();
 });
