@@ -317,7 +317,24 @@ function initListing() {
       catList.innerHTML = `<label><input type="radio" name="cat" value="" ${!cat ? "checked" : ""}> All</label>` +
         CATS.map((c) => `<label><input type="radio" name="cat" value="${c}" ${cat === c ? "checked" : ""}> ${c}</label>`).join("");
     }
-    if (cat) $("#resultTitle").textContent = cat + " · " + (subcat || "All");
+
+    // subcategory tabs for the active category
+    const bar = $("#subcatBar");
+    let activeSub = subcat;
+    let activeCat = cat;
+    if (bar) {
+      const renderChips = () => {
+        const subs = [...new Set(PRODUCTS.filter((p) => p.cat === activeCat).map((p) => p.subcat))];
+        bar.innerHTML = subs.map((s) =>
+          `<button class="chip ${s === activeSub ? "chip-on" : ""}" data-sub="${s}">${s}</button>`).join("");
+      };
+      renderChips();
+      $$(".chip", bar).forEach((ch) => ch.addEventListener("click", () => {
+        activeSub = activeSub === ch.dataset.sub ? "" : ch.dataset.sub;
+        renderChips();
+        apply();
+      }));
+    }
 
     const apply = () => {
       const sel = catList ? (document.querySelector('input[name="cat"]:checked')?.value || "") : cat;
@@ -325,18 +342,25 @@ function initListing() {
       const sort = $("#sortBy")?.value || "popularity";
       let list = PRODUCTS.slice();
       if (sel) list = list.filter((p) => p.cat === sel);
-      if (subcat) list = list.filter((p) => p.subcat === subcat);
+      if (activeSub) list = list.filter((p) => p.subcat === activeSub);
+      if (subcat && !activeSub) list = list.filter((p) => p.subcat === subcat);
       if (q) list = list.filter((p) => (p.name + " " + p.cat + " " + p.subcat).toLowerCase().includes(q));
       list = list.filter((p) => p.price <= +maxP);
       if (sort === "price-asc") list.sort((a, b) => a.price - b.price);
       else if (sort === "price-desc") list.sort((a, b) => b.price - a.price);
       else if (sort === "discount") list.sort((a, b) => offPct(b) - offPct(a));
       $("#resultCount").textContent = list.length + " items";
+      $("#resultTitle").textContent = sel + (activeSub ? " · " + activeSub : "");
       renderInto("#plpGrid", list);
     };
 
     $("#applyFilters").addEventListener("click", apply);
-    $$('input[name="cat"]').forEach((r) => r.addEventListener("change", apply));
+    $$('input[name="cat"]').forEach((r) => r.addEventListener("change", () => {
+      activeCat = document.querySelector('input[name="cat"]:checked')?.value || "";
+      activeSub = "";
+      renderChips();
+      apply();
+    }));
     $("#sortBy") && $("#sortBy").addEventListener("change", apply);
     $("#priceMax") && $("#priceMax").addEventListener("input", () => {
       $("#priceLabel").textContent = INR($("#priceMax").value);

@@ -1,9 +1,19 @@
 const PRODUCTS = [
-  // ---- WOMEN ----
-  { id: 1, name: "Fit & Flare Midi Dress", cat: "Women", subcat: "Dresses", price: 899, old: 1799, icon: "👗", grad: "linear-gradient(150deg,#c0574f,#7a1f2b)", size: ["XS","S","M","L","XL"], rating: 4.9, new: true, desc: "A flattering bodice with a flowy midi skirt and hidden pockets. Woven in breathable mul cotton." },
-  { id: 2, name: "Floral A-Line Kurta", cat: "Women", subcat: "Kurtas", price: 649, old: 1299, icon: "🌸", grad: "linear-gradient(150deg,#d2848c,#8f3b46)", size: ["S","M","L","XL"], rating: 4.7, best: true, desc: "Delicately printed A-line kurta in soft cotton, ideal for everyday grace." },
+  // ---- WOMEN: Sarees ----
   { id: 3, name: "Silk Evening Saree", cat: "Women", subcat: "Sarees", price: 1999, old: 3499, icon: "🪷", grad: "linear-gradient(150deg,#7f9b8a,#33503f)", size: ["Free"], rating: 5.0, sale: true, desc: "Handwoven silk saree with a subtle zari border. Timeless for festive evenings." },
-  { id: 4, name: "Oversized Knit Sweater", cat: "Women", subcat: "Knitwear", price: 1099, old: 1899, icon: "🧶", grad: "linear-gradient(150deg,#e8b4a0,#b06a4e)", size: ["S","M","L","XL"], rating: 4.6, new: true, desc: "Cozy chunky knit with an easy oversized silhouette — cold-weather comfort." },
+  { id: 17, name: "Banarasi Silk Saree", cat: "Women", subcat: "Sarees", price: 2499, old: 3999, icon: "✨", grad: "linear-gradient(150deg,#b06a4e,#5a2a22)", size: ["Free"], rating: 4.8, desc: "Rich Banarasi weave with a metallic zari pallu — made for grand occasions." },
+  { id: 18, name: "Kanjivaram Silk Saree", cat: "Women", subcat: "Sarees", price: 2999, old: 4999, icon: "🌺", grad: "linear-gradient(150deg,#8a2740,#4a1025)", size: ["Free"], rating: 4.9, new: true, desc: "Lustrous Kanjivaram silk with contrasting borders and a regal drape." },
+  { id: 19, name: "Cotton Printed Saree", cat: "Women", subcat: "Sarees", price: 799, old: 1499, icon: "🌸", grad: "linear-gradient(150deg,#d2848c,#8f3b46)", size: ["Free"], rating: 4.6, sale: true, desc: "Lightweight cotton saree with delicate block prints — perfect for daily wear." },
+
+  // ---- WOMEN: Dresses ----
+  { id: 1, name: "Fit & Flare Midi Dress", cat: "Women", subcat: "Dresses", price: 899, old: 1799, icon: "👗", grad: "linear-gradient(150deg,#c0574f,#7a1f2b)", size: ["XS","S","M","L","XL"], rating: 4.9, new: true, desc: "A flattering bodice with a flowy midi skirt and hidden pockets. Woven in breathable mul cotton." },
+  { id: 2, name: "Floral A-Line Dress", cat: "Women", subcat: "Dresses", price: 649, old: 1299, icon: "👗", grad: "linear-gradient(150deg,#d2848c,#8f3b46)", size: ["S","M","L","XL"], rating: 4.7, best: true, desc: "Delicately printed A-line dress in soft cotton — everyday elegance." },
+  { id: 20, name: "Wrap Party Dress", cat: "Women", subcat: "Dresses", price: 1299, old: 2199, icon: "💃", grad: "linear-gradient(150deg,#6d2a52,#a54072)", size: ["XS","S","M","L"], rating: 4.7, new: true, desc: "A figure-flattering wrap silhouette in a vibrant print — ready for the party." },
+
+  // ---- WOMEN: Readymade Blouses ----
+  { id: 4, name: "Designer Embroidered Blouse", cat: "Women", subcat: "Readymade Blouses", price: 649, old: 1199, icon: "🪢", grad: "linear-gradient(150deg,#3aa083,#1a5449)", size: ["S","M","L","XL"], rating: 4.6, new: true, desc: "Ready-to-wear blouse with elegant thread embroidery and a comfortable fit." },
+  { id: 21, name: "Silk Printed Blouse", cat: "Women", subcat: "Readymade Blouses", price: 599, old: 1099, icon: "🎀", grad: "linear-gradient(150deg,#d3b06f,#7a5a20)", size: ["S","M","L","XL"], rating: 4.5, sale: true, desc: "Silk-touch printed blouse in a rich palette — pairs with any saree." },
+  { id: 22, name: "Zari Border Blouse", cat: "Women", subcat: "Readymade Blouses", price: 749, old: 1399, icon: "✨", grad: "linear-gradient(150deg,#c0574f,#7a1f2b)", size: ["S","M","L","XL"], rating: 4.8, desc: "Classic blouse with a shimmering zari border, cut to flatter." },
 
   // ---- MEN ----
   { id: 5, name: "Crew Neck Essential Tee", cat: "Men", subcat: "T-Shirts", price: 449, old: 899, icon: "👕", grad: "linear-gradient(150deg,#3f4556,#1a1d27)", size: ["S","M","L","XL"], rating: 4.8, best: true, desc: "Heavyweight combed cotton tee with a clean, relaxed fit. The everyday base layer." },

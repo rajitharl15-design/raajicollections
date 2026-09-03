@@ -19,11 +19,10 @@ const HEADER_HTML = `
       </li>
       <li><a href="/listing.html?cat=Women">Women <i class="fas fa-chevron-down"></i></a>
         <div class="dropdown">
-          <h5>Shop</h5>
-          <a href="/listing.html?cat=Women&subcat=Dresses">Dresses</a>
-          <a href="/listing.html?cat=Women&subcat=Kurtas">Kurtas</a>
+          <h5>Explore Women</h5>
           <a href="/listing.html?cat=Women&subcat=Sarees">Sarees</a>
-          <a href="/listing.html?cat=Women&subcat=Knitwear">Knitwear</a>
+          <a href="/listing.html?cat=Women&subcat=Dresses">Dresses</a>
+          <a href="/listing.html?cat=Women&subcat=Readymade Blouses">Ready Made Blouses</a>
         </div>
       </li>
       <li><a href="/listing.html?cat=Kids">Kids <i class="fas fa-chevron-down"></i></a>
