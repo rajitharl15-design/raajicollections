@@ -74,13 +74,19 @@ function closeAllDrawers() {
 /* ---------- Product card ---------- */
 function offPct(p) { return p.old ? Math.round((1 - p.price / p.old) * 100) : 0; }
 
+// Renders a real uploaded image, or falls back to the icon when none.
+function media(p, cls) {
+  if (p.img) return `<img class="${cls || ""}" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`;
+  return `<span class="icon ${cls || ""}">${p.icon || "🎽"}</span>`;
+}
+
 function cardHTML(p) {
   const on = wish.includes(p.id);
   const off = offPct(p);
   return `
     <div class="pcard" data-id="${p.id}">
       <div class="pimg" style="background:${p.grad}" data-open="${p.id}">
-        <span class="icon">${p.icon}</span>
+        ${media(p, "pimg-img")}
         <button class="wish ${on ? "on" : ""}" data-wish="${p.id}" title="Wishlist"><i class="fa${on ? "s" : "r"} fa-heart"></i></button>
       </div>
       <button class="pbg" data-buy="${p.id}">Add to Bag · ${INR(p.price)}</button>
@@ -108,10 +114,10 @@ function openSizeModal(p) {
   const sizes = p.size.join(", ");
   $("#modalBox").innerHTML = `
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-      <div style="width:74px;height:92px;border-radius:6px;background:${p.grad};display:grid;place-items:center;color:#fff;font-size:1.8rem">${p.icon}</div>
+      <div style="width:74px;height:92px;border-radius:6px;background:${p.grad};display:grid;place-items:center;color:#fff;font-size:1.8rem;overflow:hidden">${media(p, "m-img")}</div>
       <div>
         <h3>${p.name}</h3>
-        <div class="sub">${p.cat} · ${INR(p.price)}${p.old ? ` <s style="color:var(--muted)">${INR(p.old)}</s>` : ""}</div>
+        <div class="sub">${p.cat} · ${p.subcat || ""} · ${INR(p.price)}${p.old ? ` <s style="color:var(--muted)">${INR(p.old)}</s>` : ""}</div>
       </div>
     </div>
     <div class="sub">Select size · <b>${sizes}</b></div>
@@ -186,7 +192,7 @@ function renderBag() {
   list.innerHTML = bag.map((b) => {
     const p = productById(b.id);
     return `<div class="bitem">
-      <div class="bitem-img" style="background:${p.grad}">${p.icon}</div>
+      <div class="bitem-img" style="background:${p.grad}">${media(p, "b-img")}</div>
       <div class="bitem-info">
         <div class="bname">${p.name}</div>
         <div class="bsize">Size: ${b.size} · ${p.cat}</div>
@@ -268,7 +274,7 @@ function renderWish() {
   list.innerHTML = wish.map((id) => {
     const p = productById(id);
     return `<div class="bitem">
-      <div class="bitem-img" style="background:${p.grad}">${p.icon}</div>
+      <div class="bitem-img" style="background:${p.grad}">${media(p, "b-img")}</div>
       <div class="bitem-info">
         <div class="bname">${p.name}</div>
         <div class="bsize">${p.cat} · ${INR(p.price)}</div>
