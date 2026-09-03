@@ -68,8 +68,9 @@ async function loadOrders() {
     render();
   } catch (err) {
     if (err.status === 401) {
-      // Session missing/expired -> go through the server login again.
-      window.location.href = '/admin-login';
+      // Show a clear message instead of redirecting, to avoid a login loop.
+      const el = document.getElementById('adminOrders');
+      if (el) el.innerHTML = '<p class="admin-loading">Your session expired (401). Reload, then sign in again.</p>';
     } else {
       document.getElementById('adminOrders').innerHTML =
         `<p class="admin-loading">Failed to load orders: ${err.message}</p>`;
