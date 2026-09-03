@@ -7,6 +7,31 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/admin.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ---- Catalog editor (Peacock static catalog) ---- */
+    .admin-bar { display:flex; gap:16px; align-items:center; flex-wrap:wrap; padding:12px 16px; background:var(--white); border:1px solid var(--beige); border-radius:8px; margin:14px 0; font-size:13px; color:var(--text-light); }
+    .admin-bar b{color:var(--dark);} .admin-bar .saved{color:var(--primary);font-weight:600;}
+    .chip { font-family:'Poppins',sans-serif; font-size:13px; font-weight:500; padding:8px 16px; border:1px solid var(--beige); border-radius:999px; background:var(--white); color:var(--text); cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .2s; }
+    .chip:hover{ border-color:var(--primary-dark); color:var(--primary); }
+    .chip-on{ background:var(--primary); border-color:var(--primary); color:#fff; }
+    .btn-sm{ padding:8px 14px; font-size:12px; }
+    .table-card{ background:var(--white); border:1px solid var(--beige); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+    .table-scroll{ overflow:auto; }
+    table.admin-table{ width:100%; border-collapse:collapse; }
+    .admin-table th{ background:var(--cream); text-align:left; font-size:12px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-light); padding:12px 14px; border-bottom:1px solid var(--beige); }
+    .admin-table td{ padding:10px 14px; border-bottom:1px solid var(--beige); vertical-align:middle; }
+    .admin-table tr:hover td{ background:#FFFAF3; }
+    .admin-table tr.row-dirty td{ background:#FFF4E6; }
+    .thumb{ width:46px; height:54px; border-radius:6px; object-fit:cover; background:var(--beige); }
+    .thumb-ph{ width:46px; height:54px; border-radius:6px; display:grid; place-items:center; background:var(--beige); font-size:22px; }
+    .admin-table input,.admin-table select{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:8px 10px; border:1px solid var(--beige); border-radius:6px; width:100%; min-width:90px; background:var(--white); }
+    .admin-table input:focus,.admin-table select:focus{ outline:none; border-color:var(--primary); }
+    .admin-table input.narrow{ min-width:76px; width:76px; }
+    td .cat-sel{ width:110px; } td .subcat-sel{ width:140px; }
+    .save-note{ font-size:12px; color:var(--text-light); text-align:right; padding:10px 4px 0; }
+    .token-row{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-light); }
+    .catalog-section{ padding-top:8px; }
+  </style>
 </head>
 <body class="admin-page">
 
@@ -46,6 +71,7 @@
         <button class="tab-btn active" data-tab="orders">Orders</button>
         <button class="tab-btn" data-tab="addproduct">Add Product</button>
         <button class="tab-btn" data-tab="manageproducts">Manage Products</button>
+        <button class="tab-btn" data-tab="catalog">Catalog Editor</button>
       </div>
 
       <!-- ORDERS -->
@@ -107,6 +133,29 @@
         </div>
       </div>
 
+      <!-- CATALOG EDITOR (Peacock static catalog) -->
+      <div id="tab-catalog" class="hidden catalog-section">
+        <div class="admin-bar">
+          <span>Showing <b id="shownCount">0</b> / <b id="totalCount">0</b> products</span>
+          <span class="saved" id="saveStatus"></span>
+          <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <label class="token-row">Token <input id="tokenInput" type="text" placeholder="(empty = open)" style="width:110px;padding:6px 8px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px"></label>
+            <button class="chip" id="reloadBtn">↺ Clear edits</button>
+            <button class="btn btn-primary btn-sm" id="exportBtn">⬇ Export data.js</button>
+          </span>
+        </div>
+        <div class="admin-filters" id="catFilter"></div>
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="admin-table">
+              <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Sub-category</th><th>Price</th><th>Old Price</th><th>Sizes</th></tr></thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="save-note">Edits save to this browser (overlay on the static catalog). Use "Export data.js" to make them permanent for all visitors.</p>
+      </div>
+
     </section>
   </main>
 
@@ -124,12 +173,19 @@
   </div>
 
   <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/catalog-admin.js"></script>
   <script src="js/admin.js"></script>
   <script>
-    // This admin is served only after server login, so skip the client key gate
-    // and open the dashboard directly.
+    // This admin is served only after server login, so skip the client key gate and open dashboard.
     document.addEventListener('DOMContentLoaded', function () {
       if (typeof showDashboard === 'function') showDashboard();
+      // Keep the Catalog tab's visibility in sync with the active tab.
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.getElementById('tab-catalog').classList.toggle('hidden', btn.dataset.tab !== 'catalog');
+        });
+      });
     });
   </script>
 </body>
