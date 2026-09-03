@@ -31,7 +31,7 @@
       category: p.cat,
       is_featured: !!p.best,
       variants: sizes.map(function (size) {
-        return { size: size, color: 'One', image_url: p.img || '', price: null, stock_qty: 0, is_active: true };
+        return { size: size, color: 'One', image_url: p.img || '', price: null, stock_qty: 10, is_active: true };
       })
     };
   }

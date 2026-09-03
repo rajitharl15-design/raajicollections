@@ -84,7 +84,8 @@ function applySoldOut() {
     if (!nameEl) return;
     const name = nameEl.textContent.trim();
     const db = dbPrices[name];
-    const soldOut = db && db.stock_qty === 0;
+    // No real inventory for the online catalog — treat everything as in stock.
+    const soldOut = false;
 
     card.classList.toggle('sold-out', soldOut);
 
