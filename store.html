@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Peacock Fashions — Online Shopping for Fashion</title>
-  <meta name="description" content="Peacock Fashions — one-stop shop for Men, Women, Kids & Accessories. Great deals, free delivery & easy returns.">
+  <meta name="theme-color" content="#1d4037">
+  <link rel="manifest" href="peacock-manifest.json">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/peacock.css?v=5">
@@ -139,5 +141,8 @@
   <script src="js/data.js?v=4"></script>
   <script src="js/components.js?v=4"></script>
   <script src="js/peacock.js?v=4"></script>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/pwa-sw.js').catch(function () {});
+  </script>
 </body>
 </html>

@@ -41,6 +41,21 @@ function overlayHTML() {
     <div class="modal-box" id="modalBox"></div>
   </div>
 
+  <!-- Easy order (WhatsApp) -->
+  <div class="modal" id="orderModal">
+    <div class="modal-box">
+      <button class="icon-btn oclose" data-oclose aria-label="Close"><i class="fas fa-xmark"></i></button>
+      <h3>Place your order</h3>
+      <p class="sub">Fill the details — your order will be sent to us on WhatsApp. We confirm &amp; ship.</p>
+      <div class="o-review" id="oReview"></div>
+      <input id="oName" class="o-in" type="text" placeholder="Full name">
+      <input id="oPhone" class="o-in" type="tel" placeholder="Phone (with WhatsApp)">
+      <input id="oAddr" class="o-in" type="text" placeholder="Delivery address">
+      <button class="btn-pink" id="oSend"><i class="fab fa-whatsapp"></i> Send order on WhatsApp</button>
+      <p class="o-status" id="oStatus"></p>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>`;
 }
 
@@ -51,7 +66,30 @@ function bindHeader() {
   $("#wishClose").addEventListener("click", () => closeDrawer("wishDrawer"));
   $("#bagClose").addEventListener("click", () => closeDrawer("bagDrawer"));
   $("#overlay").addEventListener("click", closeAllDrawers);
-  $("#checkoutBtn").addEventListener("click", () => toast("Checkout coming soon"));
+  $("#checkoutBtn").addEventListener("click", openOrder);
+
+  // ---- PWA install ----
+  let deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    const el = $("#appInstallBtn");
+    if (el) el.style.display = "";
+    $("#appInstallBtn").addEventListener("click", async () => {
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+      deferredInstall = null;
+      if (el) el.style.display = "none";
+    });
+  });
+  window.addEventListener("appinstalled", () => { const el = $("#appInstallBtn"); if (el) el.style.display = "none"; });
+
+  // ---- Easy order modal ----
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-oclose]")) closeOrder();
+  });
+  $("#oSend").addEventListener("click", sendOrder);
 
   const search = $("#searchInput");
   if (search) {
@@ -209,6 +247,43 @@ function renderBag() {
   const total = bagTotal();
   $("#bagSubtotal").textContent = INR(total);
   setShip(total, 999);
+}
+
+/* ---------- Easy order (WhatsApp) ---------- */
+function openOrder() {
+  if (bag.length === 0) return toast("Your bag is empty");
+  renderOrderReview();
+  $("#orderModal").classList.add("show");
+  $("#oStatus").textContent = "";
+}
+function closeOrder() { $("#orderModal").classList.remove("show"); }
+
+function renderOrderReview() {
+  const items = bag.map((b) => {
+    const p = productById(b.id);
+    return `${b.qty} × ${p.name}${b.size ? " (" + b.size + ")" : ""} = ${INR(p.price * b.qty)}`;
+  }).join("\n");
+  const total = bagTotal();
+  $("#oReview").innerHTML = `<pre>${items}\n\n<b>Total: ${INR(total)}</b></pre>`;
+  $("#oPhone").value = ""; $("#oName").value = ""; $("#oAddr").value = "";
+}
+
+function sendOrder() {
+  const name = $("#oName").value.trim();
+  const phone = $("#oPhone").value.trim();
+  const addr = $("#oAddr").value.trim();
+  if (!name || !phone || !addr) return toast("Please fill your name, phone and address");
+  if (bag.length === 0) return toast("Your bag is empty");
+  const items = bag.map((b) => {
+    const p = productById(b.id);
+    return `${b.qty} × ${p.name} (₹${p.price})${b.size ? " [Size " + b.size + "]" : ""} = ₹${p.price * b.qty}`;
+  }).join("\n");
+  const total = bagTotal();
+  const text = `*NEW ORDER — Peacock Fashions*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n\n*Items:*\n${items}\n\n*Total: ₹${total}*`;
+  const wa = (window.STORE_CONFIG && window.STORE_CONFIG.whatsappNumber) ? window.STORE_CONFIG.whatsappNumber : "918125491097";
+  window.open("https://wa.me/" + wa + "?text=" + encodeURIComponent(text), "_blank");
+  $("#oStatus").textContent = "Opening WhatsApp — press Send there to confirm your order.";
+  $("#oStatus").style.color = "var(--green)";
 }
 
 function setShip(total, freeAbove) {
