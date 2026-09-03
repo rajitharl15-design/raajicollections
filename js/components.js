@@ -5,7 +5,7 @@ const HEADER_HTML = `
   <div class="ribbon">Become a member and get extra 10% off · Use code WELCOME10</div>
   <div class="navbar">
     <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
-    <a href="/index.html" class="logo">Peacock<span class="my">Fashions</span></a>
+    <a href="/store.html" class="logo">Peacock<span class="my">Fashions</span></a>
     <ul class="main-nav">
       <li><a href="/listing.html?cat=Men">Men <i class="fas fa-chevron-down"></i></a>
         <div class="dropdown">

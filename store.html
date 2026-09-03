@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peacock Fashions — Online Shopping for Fashion</title>
+  <meta name="description" content="Peacock Fashions — one-stop shop for Men, Women, Kids & Accessories. Great deals, free delivery & easy returns.">
+  <link rel="stylesheet" href="css/peacock.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div id="app-header"></div>
+
+  <!-- Hero carousel -->
+  <section class="hero">
+    <div class="container">
+      <div class="slider">
+        <div class="slides" id="slides">
+          <div class="slide">
+            <div class="slide-content">
+              <div class="kicker">The Season Edit</div>
+              <h2>New-season styles,<br>made for you.</h2>
+              <p>Fresh drops for Men, Women &amp; Kids — up to 60% off top picks.</p>
+              <a class="btn-pink" style="width:auto;padding:14px 26px;border-radius:6px;display:inline-block" href="/listing.html">Shop Now</a>
+            </div>
+          </div>
+          <div class="slide">
+            <div class="slide-content text-right">
+              <div class="kicker">Deal of the Day</div>
+              <h2>Up to 70% off<br>on women's wear.</h2>
+              <p>Dresses, kurtas, sarees and more — curated just for you.</p>
+              <a class="btn-pink" style="width:auto;padding:14px 26px;border-radius:6px;display:inline-block" href="/listing.html?cat=Women">Explore Women</a>
+            </div>
+          </div>
+          <div class="slide">
+            <div class="slide-content">
+              <div class="kicker">New Arrivals</div>
+              <h2>Accessories that<br>finish the look.</h2>
+              <p>Bags, scarves &amp; jewellery. Effortless add-ons for every outfit.</p>
+              <a class="btn-pink" style="width:auto;padding:14px 26px;border-radius:6px;display:inline-block" href="/listing.html?cat=Accessories">Shop Accessories</a>
+            </div>
+          </div>
+        </div>
+        <div class="slider-nav">
+          <button id="prev"><i class="fas fa-chevron-up"></i></button>
+          <button id="next"><i class="fas fa-chevron-down"></i></button>
+        </div>
+      </div>
+
+      <!-- Deals ticker -->
+      <div class="deals-ticker">
+        <span class="ticker-label">Deal of the day</span>
+        <div class="ticker-items">
+          <span>Men's Tees <b>from ₹449</b></span>
+          <span>Women Dresses <b>50% off</b></span>
+          <span>Denim <b>min 40% off</b></span>
+          <span>Kids Wear <b>up to 60% off</b></span>
+          <span>Accessories <b>extra 10% off</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="section strip">
+    <div class="container">
+      <div class="section-head">
+        <h2>Shop by category</h2>
+        <a href="/listing.html">View all</a>
+      </div>
+      <div class="cat-grid">
+        <a class="cat-tile tile-women" href="/listing.html?cat=Women"><div><b>Women</b><span>Dresses · Kurtas · Sarees</span></div></a>
+        <a class="cat-tile tile-men" href="/listing.html?cat=Men"><div><b>Men</b><span>Tees · Shirts · Denim</span></div></a>
+        <a class="cat-tile tile-kids" href="/listing.html?cat=Kids"><div><b>Kids</b><span>Frocks · Hoodies · Sets</span></div></a>
+        <a class="cat-tile tile-access" href="/listing.html?cat=Accessories"><div><b>Accessories</b><span>Bags · Scarves · Jewellery</span></div></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- New in -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>New in for you</h2>
+        <a href="/listing.html">View all</a>
+      </div>
+      <div class="pgrid" id="rowNew"></div>
+    </div>
+  </section>
+
+  <!-- Trending picks -->
+  <section class="section strip">
+    <div class="container">
+      <div class="section-head">
+        <h2>Best of Peacock Fashions</h2>
+        <a href="/listing.html">View all</a>
+      </div>
+      <div class="pgrid" id="rowBest"></div>
+    </div>
+  </section>
+
+  <!-- Women -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Women's top picks</h2>
+        <a href="/listing.html?cat=Women">View all</a>
+      </div>
+      <div class="pgrid" id="rowWomen"></div>
+    </div>
+  </section>
+
+  <!-- Men -->
+  <section class="section strip">
+    <div class="container">
+      <div class="section-head">
+        <h2>Men's top picks</h2>
+        <a href="/listing.html?cat=Men">View all</a>
+      </div>
+      <div class="pgrid" id="rowMen"></div>
+    </div>
+  </section>
+
+  <!-- Accessories -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Complete your look</h2>
+        <a href="/listing.html?cat=Accessories">View all</a>
+      </div>
+      <div class="pgrid" id="rowAccess"></div>
+    </div>
+  </section>
+
+  <div id="app-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/peacock.js"></script>
+</body>
+</html>

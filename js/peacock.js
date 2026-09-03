@@ -45,7 +45,7 @@ function overlayHTML() {
 }
 
 function bindHeader() {
-  $("#menuBtn").addEventListener("click", () => location.href = "/");
+  $("#menuBtn").addEventListener("click", () => location.href = "/store.html");
   $("#bagBtn").addEventListener("click", () => { renderBag(); openDrawer("bagDrawer"); });
   $("#wishBtn").addEventListener("click", () => { renderWish(); openDrawer("wishDrawer"); });
   $("#wishClose").addEventListener("click", () => closeDrawer("wishDrawer"));
