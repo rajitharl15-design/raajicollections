@@ -418,7 +418,8 @@ function applyOverrides() {
 }
 
 function boot() {
-  applyOverrides();
+  // NOTE: local admin overrides no longer apply to the public store. To publish
+  // edits (name/price/image), use the Catalog Editor's "Export data.js" and push.
   mountApp();
   document.body.insertAdjacentHTML("beforeend", overlayHTML());
   bindHeader();
