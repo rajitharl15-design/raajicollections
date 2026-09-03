@@ -412,6 +412,7 @@ function applyOverrides() {
       if (d.cat) p.cat = d.cat;
       if (d.subcat) p.subcat = d.subcat;
       if (d.size) p.size = d.size.split(",").map((s) => s.trim()).filter(Boolean);
+      if (d.img !== undefined) p.img = d.img;
     }
   } catch (e) {}
 }

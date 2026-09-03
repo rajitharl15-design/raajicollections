@@ -23,12 +23,16 @@ function renderCatFilter() {}
 
 function rowHTML(p) {
   const o = overrides[p.id] || {};
-  const img = p.img;
-  const media = img ? `<img class="thumb" src="${img}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-ph',textContent:'📷'}))">`
+  const effImg = o.img !== undefined ? o.img : p.img;
+  const thumb = effImg ? `<img class="thumb" src="${effImg}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-ph',textContent:'📷'}))">`
                     : `<div class="thumb-ph">${p.icon || "🎽"}</div>`;
-  const dirty = (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size) ? "row-dirty" : "";
+  const dirty = (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size || o.img !== undefined) ? "row-dirty" : "";
   return `<tr class="${dirty}" data-id="${p.id}">
-    <td>${media}</td>
+    <td><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
+      ${thumb}
+      <label class="chip" style="padding:4px 8px;font-size:.68rem;cursor:pointer">⬆ img<input type="file" accept="image/*" data-upimg="${p.id}" hidden></label>
+      ${effImg ? `<button class="chip" style="padding:4px 8px;font-size:.68rem" data-delimg="${p.id}">✕ del</button>` : ""}
+    </div></td>
     <td><input data-f="name" value="${esc(o.name !== undefined ? o.name : p.name)}" title="${esc(p.name)}"></td>
     <td><select class="cat-sel" data-f="cat">${catOptions(o.cat || p.cat)}</select></td>
     <td><select class="subcat-sel" data-f="subcat">${subcatOptions(o.subcat || p.subcat, o.cat || p.cat)}</select></td>
@@ -70,18 +74,25 @@ function persist() {
 function exportDataJS() {
   const list = PRODUCTS.map((p) => {
     const o = overrides[p.id] || {};
+    const img = o.img !== undefined ? o.img : p.img;
+    const effPrice = o.price !== undefined ? o.price : p.price;
+    const effOld = o.old !== undefined ? o.old : (p.old || 0);
+    const effName = o.name !== undefined ? o.name : p.name;
+    const effCat = o.cat || p.cat;
+    const effSub = o.subcat || p.subcat;
+    const effSize = (o.size || (p.size || []).join(",")).split(",").map((s) => s.trim()).filter(Boolean);
     const fields = [`  { id: ${p.id}`];
-    fields.push(`name: ${JSON.stringify(o.name !== undefined ? o.name : p.name)}`);
-    fields.push(`cat: ${JSON.stringify(o.cat || p.cat)}`);
-    fields.push(`subcat: ${JSON.stringify(o.subcat || p.subcat)}`);
-    fields.push(`price: ${o.price !== undefined ? o.price : p.price}`);
-    fields.push(`old: ${o.old !== undefined ? o.old : (p.old || 0)}`);
-    if (p.img) fields.push(`img: ${JSON.stringify(p.img)}`);
-    if (p.icon) fields.push(`icon: ${JSON.stringify(p.icon)}`);
-    if (p.grad) fields.push(`grad: ${JSON.stringify(p.grad)}`);
+    fields.push(`name: ${JSON.stringify(effName)}`);
+    fields.push(`cat: ${JSON.stringify(effCat)}`);
+    fields.push(`subcat: ${JSON.stringify(effSub)}`);
+    fields.push(`price: ${effPrice}`);
+    fields.push(`old: ${effOld}`);
+    if (p.img || (o.img !== undefined)) fields.push(`img: ${JSON.stringify(img)}`);
+    if (p.icon && (o.img === undefined || o.img)) fields.push(`icon: ${JSON.stringify(p.icon)}`);
+    if (p.grad && (o.img === undefined || o.img)) fields.push(`grad: ${JSON.stringify(p.grad)}`);
     if (p.rating) fields.push(`rating: ${p.rating}`);
-    const size = (o.size || p.size.join(",")).split(",").map((s) => s.trim()).filter(Boolean);
-    fields.push(`size: ${JSON.stringify(size)}`);
+    fields.push(`size: ${JSON.stringify(effSize)}`);
+    if (p.desc) fields.push(`desc: ${JSON.stringify(p.desc)}`);
     return fields.join(", ") + " },";
   }).join("\n");
   const js = "const PRODUCTS = [\n" + list + "\n];\n\nfunction productById(id) {\n  return PRODUCTS.find((p) => p.id === Number(id));\n}\n\nconst CATS = [\"Women\", \"Men\", \"Kids\", \"Accessories\"];\nconst SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];\n";
@@ -94,7 +105,35 @@ function exportDataJS() {
   $("#saveStatus").textContent = "✓ Exported data.js — replace js/data.js and push to make permanent";
 }
 
+document.addEventListener("change", (e) => {
+  const up = e.target.closest("[data-upimg]");
+  if (up && up.files && up.files[0]) {
+    const id = Number(up.dataset.upimg);
+    const file = up.files[0];
+    if (file.size > 900 * 1024) { alert("Image too large for local storage. Use an image under ~900KB, or host it and paste the path."); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      overrides[id] = overrides[id] || {};
+      overrides[id].img = r.result;
+      persist();
+      renderRows();
+      $("#saveStatus").textContent = "✓ Image saved locally (export data.js to make permanent)";
+    };
+    r.readAsDataURL(file);
+  }
+});
+
 document.addEventListener("click", (e) => {
+  const del = e.target.closest("[data-delimg]");
+  if (del) {
+    const id = Number(del.dataset.delimg);
+    overrides[id] = overrides[id] || {};
+    overrides[id].img = "";   // "" = no image -> fall back to icon/gradient
+    persist();
+    renderRows();
+    $("#saveStatus").textContent = "✓ Image removed locally (export data.js to make permanent)";
+    return;
+  }
   const cf = e.target.closest("[data-cat]");
   if (cf) { activeCat = cf.dataset.cat; renderFilters(); renderRows(); }
   if (e.target.id === "exportBtn") { persist(); exportDataJS(); }
