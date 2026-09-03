@@ -3,240 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catalog Admin — Raaji Collections</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
+  <title>Raaji Collections — Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    :root {
-      --primary: #8B1A2B;
-      --primary-dark: #5C101B;
-      --secondary: #D4A853;
-      --accent: #C4952A;
-      --cream: #FFF8F0;
-      --beige: #F5E6D3;
-      --dark: #2C1810;
-      --text: #3C2415;
-      --text-light: #6B5A3E;
-      --white: #FFFFFF;
-      --shadow: 0 4px 20px rgba(44, 24, 16, 0.10);
-      --transition: all 0.3s ease;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* Old-style admin header (dark bar) */
-    .admin-header {
-      background: var(--dark);
-      color: var(--white);
-      padding: 0 5%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .admin-header .brand { display: flex; align-items: center; gap: 12px; padding: 16px 0; }
-    .admin-header .brand .logo-badge {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: var(--primary); display: grid; place-items: center; color: var(--white);
-    }
-    .admin-header h1 { font-family: 'Playfair Display', serif; font-size: 22px; margin: 0; }
-    .admin-header .sub { display: block; font-size: 12px; color: #b7a896; letter-spacing: .5px; }
-    .admin-header .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; }
-
-    .admin-wrap { max-width: 1500px; margin: 0 auto; padding: 24px 5% 40px; }
-
-    /* Old-style buttons */
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
-      padding: 10px 20px; border: 1px solid transparent; border-radius: 6px; cursor: pointer;
-      transition: var(--transition); text-decoration: none;
-    }
-    .btn-primary { background: var(--primary); color: var(--white); }
-    .btn-primary:hover { background: var(--primary-dark); }
-    .btn-outline { background: transparent; border: 1px solid var(--dark); color: var(--dark); }
-    .btn-outline:hover { background: var(--dark); color: var(--white); }
-    .btn-light { background: var(--cream); color: var(--dark); border: 1px solid var(--beige); }
-    .btn-light:hover { border-color: var(--accent); color: var(--primary); }
-
-    /* Filters */
-    .admin-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 14px; }
-    .chip {
-      font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500;
-      padding: 8px 18px; border: 1px solid var(--beige); border-radius: 999px;
-      background: var(--white); color: var(--text); cursor: pointer; transition: var(--transition);
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .chip:hover { border-color: var(--accent); color: var(--primary); }
-    .chip-on { background: var(--primary); border-color: var(--primary); color: var(--white); }
-
-    .admin-bar {
-      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
-      padding: 12px 16px; background: var(--white); border: 1px solid var(--beige);
-      border-radius: 8px; margin-bottom: 18px; font-size: 13px; color: var(--text-light);
-    }
-    .admin-bar b { color: var(--dark); }
-    .admin-bar .saved { color: var(--secondary); font-weight: 600; }
-
-    /* Old-style table on cream cards */
-    .table-card { background: var(--white); border: 1px solid var(--beige); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
-    .table-scroll { overflow: auto; }
-    table.admin-table { width: 100%; border-collapse: collapse; }
-    .admin-table th {
-      background: var(--cream); text-align: left; font-size: 12px; letter-spacing: .4px;
-      text-transform: uppercase; color: var(--text-light); padding: 12px 14px; border-bottom: 1px solid var(--beige);
-    }
-    .admin-table td { padding: 10px 14px; border-bottom: 1px solid var(--beige); vertical-align: middle; }
-    .admin-table tr:hover td { background: #FFFAF3; }
-    .admin-table tr.row-dirty td { background: #FFF4E6; }
-    .thumb { width: 46px; height: 54px; border-radius: 6px; object-fit: cover; background: var(--beige); }
-    .thumb-ph { width: 46px; height: 54px; border-radius: 6px; display: grid; place-items: center; background: var(--beige); font-size: 22px; }
-    .admin-table input, .admin-table select {
-      font-family: 'Poppins', sans-serif; font-size: 13px; color: var(--text);
-      padding: 8px 10px; border: 1px solid var(--beige); border-radius: 6px;
-      width: 100%; min-width: 90px; background: var(--white);
-    }
-    .admin-table input:focus, .admin-table select:focus { outline: none; border-color: var(--primary); }
-    .admin-table input.narrow { min-width: 76px; width: 76px; }
-    td .cat-sel { width: 110px; }
-    td .subcat-sel { width: 140px; }
-    .mini { padding: 4px 10px; font-size: 12px; border-radius: 999px; }
-    .save-note { font-size: 12px; color: var(--text-light); text-align: right; padding: 10px 4px 0; }
-    .token-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #cbb59b; }
-    .token-row input {
-      font-family: 'Poppins', sans-serif; font-size: 13px; padding: 8px 10px;
-      border: 1px solid rgba(255,255,255,.25); border-radius: 6px; width: 140px; background: rgba(255,255,255,.06); color: var(--white);
-    }
-    .token-row input::placeholder { color: #8a7760; }
-
-    /* Old-style login gate */
-    .admin-login-overlay {
-      position: fixed; inset: 0; background: var(--cream); z-index: 999;
-      display: flex; align-items: center; justify-content: center; padding: 20px;
-    }
-    .admin-login-box {
-      background: var(--white); border-radius: 12px; box-shadow: var(--shadow);
-      padding: 40px; max-width: 380px; width: 100%; text-align: center;
-    }
-    .admin-login-box .logo-badge {
-      width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 16px;
-      background: var(--primary); display: grid; place-items: center; color: var(--white); font-size: 24px;
-    }
-    .admin-login-box h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--dark); margin-bottom: 4px; }
-    .admin-login-box p { color: var(--text-light); font-size: 13px; margin-bottom: 20px; }
-    .admin-login-box input {
-      width: 100%; padding: 13px 16px; border: 1px solid var(--beige); border-radius: 6px;
-      font-size: 14px; margin-bottom: 15px; outline: none; font-family: 'Poppins', sans-serif; background: var(--cream);
-    }
-    .admin-login-box input:focus { border-color: var(--primary); }
-    .admin-login-box .btn { width: 100%; }
-    .admin-err { color: #D32F2F; font-size: 13px; margin-top: 10px; }
-    .admin-hint { font-size: 11px; color: var(--text-light); margin-top: 16px; }
-  </style>
 </head>
-<body>
-  <div id="appRoot">
-    <div class="admin-header">
-    <div class="brand">
-      <div class="logo-badge"><i class="fas fa-feather"></i></div>
-      <div>
-        <h1>Raaji Collections</h1>
-        <span class="sub">Catalog Admin · manage products, prices &amp; images</span>
+<body class="admin-page">
+
+  <!-- Header -->
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <h1>Raaji Collections <span>Admin</span></h1>
+      <div class="admin-actions">
+        <a class="admin-link" href="index.html">View site</a>
+        <a class="admin-link" href="store.html">Peacock store</a>
+        <button class="btn btn-outline" id="adminExportBtn"><i class="fas fa-download"></i> Export CSV</button>
+        <button class="btn btn-outline btn-danger" id="adminClearBtn"><i class="fas fa-trash"></i> Clear Orders</button>
+        <button class="btn btn-outline btn-danger" id="adminLogoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
       </div>
     </div>
-    <div class="actions">
-      <label class="token-row">Token
-        <input id="tokenInput" type="text" placeholder="(empty = open)">
-      </label>
-      <button class="btn btn-light" id="reloadBtn">↺ Clear edits</button>
-      <a class="btn btn-outline" href="index.html">View store</a>
-      <a class="btn btn-outline" href="store.html">Peacock store</a>
-      <button class="btn btn-primary" id="exportBtn">⬇ Export data.js</button>
-    </div>
-  </div>
+  </header>
 
-  <div class="admin-wrap">
-    <div class="admin-filters" id="catFilter"></div>
-    <div class="admin-bar">
-      <span>Showing <b id="shownCount">0</b> / <b id="totalCount">0</b> products</span>
-      <span class="saved" id="saveStatus"></span>
-      <span>Edits save to this browser automatically. Use "Export data.js" to make them permanent for all visitors.</span>
-    </div>
-    <div class="table-card">
-      <div class="table-scroll">
-        <table class="admin-table">
-          <thead>
-            <tr><th>Image</th><th>Name</th><th>Category</th><th>Sub-category</th><th>Price</th><th>Old Price</th><th>Sizes</th></tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
+  <main class="admin-main">
+
+    <!-- Login -->
+    <section id="adminLogin" class="hidden admin-login">
+      <div class="admin-login-box">
+        <h2>Admin Login</h2>
+        <p>Enter your admin key to continue</p>
+        <input type="password" id="adminKeyInput" placeholder="Admin key" autocomplete="off">
+        <button class="btn btn-primary" id="adminLoginBtn">Sign in</button>
+        <p class="admin-err" id="adminLoginErr"></p>
+        <p class="admin-back"><a href="index.html">&larr; Back to store</a></p>
       </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="adminDashboard" class="hidden">
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="orders">Orders</button>
+        <button class="tab-btn" data-tab="addproduct">Add Product</button>
+        <button class="tab-btn" data-tab="manageproducts">Manage Products</button>
+      </div>
+
+      <!-- ORDERS -->
+      <div id="tab-orders">
+        <div class="admin-stats" id="adminStats"></div>
+        <div class="admin-filters">
+          <button class="filter-btn active" data-status="all">All</button>
+          <button class="filter-btn" data-status="pending">Pending</button>
+          <button class="filter-btn" data-status="confirmed">Confirmed</button>
+          <button class="filter-btn" data-status="packed">Packed</button>
+          <button class="filter-btn" data-status="shipped">Shipped</button>
+          <button class="filter-btn" data-status="delivered">Delivered</button>
+          <button class="filter-btn" data-status="paid">Paid</button>
+          <button class="filter-btn" data-status="failed">Failed</button>
+        </div>
+        <div class="admin-orders" id="adminOrders"><p class="admin-loading">Loading orders...</p></div>
+      </div>
+
+      <!-- ADD PRODUCT -->
+      <div id="tab-addproduct" class="hidden">
+        <div class="product-form">
+          <h3>Add New Product</h3>
+          <label>Name <input id="pfName" type="text" placeholder="Product name"></label>
+          <label>Category
+            <select id="pfCategory"><option value="">Loading categories...</option></select>
+          </label>
+          <div id="pfSubcatWrap" class="hidden">
+            <label>Subcategory
+              <select id="pfSubcategory"><option value="">None</option></select>
+            </label>
+          </div>
+          <label>Price (₹) <input id="pfPrice" type="number" min="0" placeholder="0"></label>
+          <label>Old Price (₹) <input id="pfOldPrice" type="number" min="0" placeholder="optional"></label>
+          <label>Stock <input id="pfStock" type="number" min="0" value="0"></label>
+          <label>Badge <input id="pfBadge" type="text" placeholder="New / Sale"></label>
+          <label>Description <textarea id="pfDesc" rows="3" placeholder="Optional description"></textarea></label>
+
+          <div class="file-drop">
+            <button type="button" class="btn btn-outline" id="pfDropBtn"><i class="fas fa-image"></i> <span id="pfDropLabel">+ Add product images (multiple)</span></button>
+            <input type="file" id="pfImages" accept="image/*" multiple hidden>
+          </div>
+          <div class="pf-preview" id="pfPreview"></div>
+
+          <button class="btn btn-primary pf-submit" id="pfSaveBtn"><i class="fas fa-save"></i> Save Product</button>
+          <p class="pf-status" id="pfStatus"></p>
+        </div>
+      </div>
+
+      <!-- MANAGE PRODUCTS -->
+      <div id="tab-manageproducts" class="hidden">
+        <div class="product-manage">
+          <div class="admin-actions" style="color:#5C101B">
+            <label>Category
+              <select id="pmCategoryFilter"><option value="">All</option></select>
+            </label>
+            <button class="btn btn-outline" id="pmRefreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+          </div>
+          <div id="pmList"><p class="admin-loading">Loading products...</p></div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Variant (sizes & colors) modal -->
+  <div id="variantModal" class="admin-modal hidden">
+    <div class="admin-modal-box">
+      <button class="admin-modal-close" data-vm-close><i class="fas fa-times"></i></button>
+      <h2>Sizes &amp; Colors</h2>
+      <p class="admin-order-meta" id="vmProductName"></p>
+      <div id="vmRows"></div>
+      <button class="btn btn-outline" id="vmAddRow"><i class="fas fa-plus"></i> Add Size</button>
+      <button class="btn btn-primary" id="vmSave"><i class="fas fa-save"></i> Save Sizes</button>
+      <p class="pf-status" id="vmStatus"></p>
     </div>
-    <p class="save-note">Tip: use the category tabs above to filter. All changes are stored locally until you export.</p>
-  </div>
-  </div><!-- /appRoot -->
-
-  <div class="admin-login-overlay" id="loginOverlay">
-    <form class="admin-login-box" id="loginForm">
-      <div class="logo-badge"><i class="fas fa-feather"></i></div>
-      <h2>Admin Login</h2>
-      <p>Raaji Collections · Catalog Admin</p>
-      <input type="password" id="loginPass" placeholder="Enter passcode" autocomplete="current-password">
-      <button class="btn btn-primary" type="submit">Sign in</button>
-      <p class="admin-err" id="loginErr"></p>
-      <p class="admin-hint">Default passcode: <b>admin123</b> (change it via localStorage key <b>pf_admin_pass</b>)</p>
-    </form>
   </div>
 
-  <script src="js/data.js"></script>
-  <script src="js/catalog-admin.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
   <script>
-    (function () {
-      var KEY = 'pf_admin_auth';
-      var PASS_KEY = 'pf_admin_pass';
-      var need = localStorage.getItem(PASS_KEY) || 'admin123';
-      var overlay = document.getElementById('loginOverlay');
-      var appRoot = document.getElementById('appRoot');
-
-      function lock() {
-        if (appRoot) appRoot.style.display = 'none';
-        if (overlay) overlay.style.display = 'flex';
-      }
-      function unlock() {
-        sessionStorage.setItem(KEY, '1');
-        if (overlay) overlay.style.display = 'none';
-        if (appRoot) appRoot.style.display = '';
-      }
-
-      // If served by the secured backend (and already signed in), unlock automatically.
-      function checkServer() {
-        return fetch('/api/admin/me', { credentials: 'same-origin', cache: 'no-store' })
-          .then(function (r) { return r.ok; })
-          .catch(function () { return false; });
-      }
-
-      checkServer().then(function (isServerAuthed) {
-        if (isServerAuthed) { unlock(); return; }
-        if (sessionStorage.getItem(KEY) === '1') { unlock(); }
-        else { lock(); }
-      });
-
-      var form = document.getElementById('loginForm');
-      if (form) form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var v = document.getElementById('loginPass').value;
-        if (v === need) { document.getElementById('loginErr').textContent = ''; unlock(); }
-        else { document.getElementById('loginErr').textContent = 'Incorrect passcode. Try again.'; }
-      });
-    })();
+    // This admin is served only after server login, so skip the client key gate
+    // and open the dashboard directly.
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof showDashboard === 'function') showDashboard();
+    });
   </script>
 </body>
 </html>
