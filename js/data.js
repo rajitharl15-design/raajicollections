@@ -15,6 +15,11 @@ const PRODUCTS = [
   { id: 21, name: "Silk Printed Blouse", cat: "Women", subcat: "Readymade Blouses", price: 599, old: 1099, icon: "🎀", grad: "linear-gradient(150deg,#d3b06f,#7a5a20)", size: ["S","M","L","XL"], rating: 4.5, sale: true, desc: "Silk-touch printed blouse in a rich palette — pairs with any saree." },
   { id: 22, name: "Zari Border Blouse", cat: "Women", subcat: "Readymade Blouses", price: 749, old: 1399, icon: "✨", grad: "linear-gradient(150deg,#c0574f,#7a1f2b)", size: ["S","M","L","XL"], rating: 4.8, desc: "Classic blouse with a shimmering zari border, cut to flatter." },
 
+  // ---- WOMEN: Night Dresses ----
+  { id: 23, name: "Cotton Night Gown", cat: "Women", subcat: "Night Dresses", price: 649, old: 1199, icon: "🌙", grad: "linear-gradient(150deg,#5c6aa8,#2a3566)", size: ["S","M","L","XL"], rating: 4.7, new: true, desc: "Soft, breathable cotton night gown with a relaxed, comfortable fit." },
+  { id: 24, name: "Satin Nighty", cat: "Women", subcat: "Night Dresses", price: 849, old: 1499, icon: "💤", grad: "linear-gradient(150deg,#b083b0,#5a2a5a)", size: ["S","M","L","XL"], rating: 4.6, sale: true, desc: "Silky satin nighty with a graceful drape — smooth and cosy for a good night's rest." },
+  { id: 25, name: "Printed Pyjama Set", cat: "Women", subcat: "Night Dresses", price: 749, old: 1299, icon: "🛏️", grad: "linear-gradient(150deg,#4aa3a8,#1f5d75)", size: ["S","M","L","XL"], rating: 4.5, desc: "Comfy short-sleeve top and lounge pants in a fun, breathable print." },
+
   // ---- MEN ----
   { id: 5, name: "Crew Neck Essential Tee", cat: "Men", subcat: "T-Shirts", price: 449, old: 899, icon: "👕", grad: "linear-gradient(150deg,#3f4556,#1a1d27)", size: ["S","M","L","XL"], rating: 4.8, best: true, desc: "Heavyweight combed cotton tee with a clean, relaxed fit. The everyday base layer." },
   { id: 6, name: "Relaxed Linen Shirt", cat: "Men", subcat: "Shirts", price: 999, old: 1699, icon: "👔", grad: "linear-gradient(150deg,#7b8a8f,#3c464a)", size: ["S","M","L","XL"], rating: 4.7, sale: true, desc: "Breathable linen with a breezy overshirt cut. Wrinkles are part of the charm." },
