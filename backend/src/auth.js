@@ -1,15 +1,30 @@
 import crypto from 'crypto';
 
-// Simple signed-cookie session for the admin area.
-// Secret from AUTH_SECRET env; admin credentials from ADMIN_USER / ADMIN_PASS env.
 export const ADMIN_COOKIE = 'raaji_admin';
 
-function secret() {
-  return process.env.AUTH_SECRET || 'dev-secret-change-me';
+// Credentials come from env (highest priority) OR from a row in the admin_settings
+// table (loaded into memory). Settings loaded from the DB avoid needing Render env vars.
+let settings = null; // { username, password, secret }
+
+export function setSettings(s) { settings = s || null; }
+export function getSettings() { return settings; }
+
+export function hasEnv() {
+  return !!(process.env.ADMIN_USER && process.env.ADMIN_PASS);
+}
+
+export function effective() {
+  if (hasEnv()) return { username: process.env.ADMIN_USER, password: process.env.ADMIN_PASS, secret: process.env.AUTH_SECRET || 'env-secret' };
+  return settings;
 }
 
 export function isConfigured() {
-  return !!(process.env.ADMIN_USER && process.env.ADMIN_PASS);
+  return !!effective();
+}
+
+function secret() {
+  const e = effective();
+  return e ? e.secret : 'dev-secret';
 }
 
 export function signToken(username) {
@@ -32,6 +47,7 @@ export function verifyCookies(headers) {
   const payload = token.slice(0, dot);
   const sig = token.slice(dot + 1);
   const expected = crypto.createHmac('sha256', secret()).update(payload).digest('base64url');
+  if (sig.length !== expected.length) return null;
   if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   let data;
   try { data = JSON.parse(Buffer.from(payload, 'base64url').toString()); } catch (e) { return null; }
@@ -40,10 +56,7 @@ export function verifyCookies(headers) {
 }
 
 export function requireAdmin(req, res, next) {
-  if (!isConfigured()) {
-    // Security not configured yet: refuse admin actions rather than be open.
-    return res.status(403).json({ error: 'Admin is not configured (set ADMIN_USER / ADMIN_PASS / AUTH_SECRET).' });
-  }
+  if (!isConfigured()) return res.status(403).json({ error: 'Admin is not configured yet (create credentials on the login page).' });
   const user = verifyCookies(req.headers);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
   req.adminUser = user;
@@ -51,7 +64,8 @@ export function requireAdmin(req, res, next) {
 }
 
 export function setAdminCookie(res) {
-  const value = signToken(process.env.ADMIN_USER);
+  const e = effective();
+  const value = signToken(e.username);
   res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200`);
 }
 

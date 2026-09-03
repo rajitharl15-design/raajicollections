@@ -11,8 +11,9 @@ import newsletterRouter from './routes/newsletter.js';
 import admRouter from './routes/admin.js';
 import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
-import { initDbConnection } from './db.js';
-import { requireAdmin, verifyCookies, setAdminCookie, clearAdminCookie, isConfigured } from './auth.js';
+import pool, { initDbConnection } from './db.js';
+import crypto from 'crypto';
+import { requireAdmin, verifyCookies, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -44,12 +45,34 @@ app.get('/admin-login', (req, res) => {
 // ---- Admin authentication ----
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body || {};
-  if (!isConfigured()) return res.status(500).json({ error: 'Admin is not configured on the server yet.' });
-  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+  const e = effective();
+  if (e && username === e.username && password === e.password) {
     setAdminCookie(res);
     return res.json({ ok: true });
   }
   return res.status(401).json({ error: 'Incorrect username or password.' });
+});
+
+// First-time setup: create admin credentials (DB-backed, no env vars needed).
+app.get('/api/admin/status', (req, res) => {
+  res.json({ configured: isConfigured() });
+});
+
+app.post('/api/admin/setup', async (req, res) => {
+  try {
+    if (hasEnv()) return res.status(403).json({ error: 'Admin is configured via environment variables.' });
+    if (isConfigured()) return res.status(409).json({ error: 'Admin is already configured.' });
+    const { username, password, auth_secret } = req.body || {};
+    if (!username || !password) return res.status(400).json({ error: 'Username and password are required.' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    const secret = (auth_secret && auth_secret.length >= 16) ? auth_secret : crypto.randomBytes(32).toString('hex');
+    await pool.query('INSERT INTO admin_settings(username, password, auth_secret) VALUES($1,$2,$3)', [username, password, secret]);
+    setSettings({ username, password, secret });
+    setAdminCookie(res);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Setup failed: ' + err.message });
+  }
 });
 
 app.post('/api/admin/logout', (req, res) => {
@@ -70,6 +93,8 @@ app.use('/api/upload', requireAdmin, uploadRouter);
 
 // Serve the static website (index.html, css/, js/, images/)
 app.use(express.static(publicDir));
+// Never expose backend source/config, database dumps, or git internals.
+app.use(['/backend', '/database', '/.git', '/node_modules'], (req, res) => res.status(404).end());
 if (process.env.UPLOAD_DIR) {
   app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR)));
 }
@@ -84,9 +109,21 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
+async function loadAdminSettings() {
+  try {
+    const { rows } = await pool.query('SELECT username, password, auth_secret FROM admin_settings ORDER BY id LIMIT 1');
+    setSettings(rows[0] ? { username: rows[0].username, password: rows[0].password, secret: rows[0].auth_secret } : null);
+    console.log('[auth] admin settings loaded from DB:', rows[0] ? 'yes' : 'no');
+  } catch (err) {
+    setSettings(null);
+    console.warn('[auth] could not load admin settings (DB may be off):', err.message);
+  }
+}
+
 async function start() {
   try {
     await initDbConnection();
+    await loadAdminSettings();
   } catch (err) {
     console.error('[db] initDbConnection failed:', err.message);
   }

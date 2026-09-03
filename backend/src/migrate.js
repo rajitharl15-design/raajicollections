@@ -206,4 +206,20 @@ export async function migrate() {
   } catch (err) {
     console.warn('[migrate] variant migrations skipped:', err.message);
   }
+
+  console.log('[migrate] applying admin_settings table...');
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS admin_settings (
+          id            SERIAL PRIMARY KEY,
+          username      VARCHAR(100) NOT NULL UNIQUE,
+          password      TEXT NOT NULL,
+          auth_secret   TEXT NOT NULL,
+          created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('[migrate] admin_settings table ready.');
+  } catch (err) {
+    console.warn('[migrate] admin_settings table skipped:', err.message);
+  }
 }
