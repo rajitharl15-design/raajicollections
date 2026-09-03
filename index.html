@@ -36,7 +36,7 @@
         <li><a href="#contact">Contact</a></li>
       </ul>
       <div class="nav-icons">
-        <a href="#" id="installAppBtn" aria-label="Install app" style="display:none" title="Install app"><i class="fas fa-download"></i></a>
+        <a href="#" id="installAppBtn" aria-label="Install app" title="Install app / Add to Home Screen" style="display:-webkit-inline-flex"><i class="fas fa-download"></i></a>
         <a href="#" aria-label="Search"><i class="fas fa-search"></i></a>
         <a href="#" aria-label="Wishlist"><i class="fas fa-heart"></i></a>
         <a href="#" class="cart-icon" id="cartOpen" aria-label="Open cart"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
@@ -390,21 +390,25 @@
   <script src="js/prices.js?v=4"></script>
   <script>ProductsRenderer.load();</script>
   <script>
-    // PWA install button
+    // PWA install button (always visible; guides if the browser won't auto-prompt)
     var deferredInstall = null;
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredInstall = e;
-      document.getElementById('installAppBtn').style.display = '';
     });
     document.getElementById('installAppBtn').addEventListener('click', function (e) {
       e.preventDefault();
-      if (!deferredInstall) return;
-      deferredInstall.prompt();
-      deferredInstall.userChoice.then(function () {
-        deferredInstall = null;
-        document.getElementById('installAppBtn').style.display = 'none';
-      });
+      if (deferredInstall) {
+        deferredInstall.prompt();
+        deferredInstall.userChoice.then(function () { deferredInstall = null; });
+        return;
+      }
+      var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      if (isIOS) {
+        alert('Tap the Share icon (square with ↑ arrow), then choose "Add to Home Screen".');
+      } else {
+        alert('Use your browser menu (⋮) → "Add to Home screen / Install app".');
+      }
     });
   </script>
 </body>
