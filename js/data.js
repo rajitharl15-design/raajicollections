@@ -27,10 +27,10 @@ const PRODUCTS = [
   { id: 8, name: "Slim-Fit Denim Jeans", cat: "Men", subcat: "Jeans", price: 1299, old: 2199, icon: "👖", grad: "linear-gradient(150deg,#4b6a8a,#243549)", size: ["28","30","32","34","36"], rating: 4.6, best: true, desc: "Stretch denim with a tailored slim fit that holds its shape all day." },
 
   // ---- KIDS ----
-  { id: 9, name: "Graphic Hoodie", cat: "Kids", subcat: "Hoodies", price: 699, old: 1299, icon: "🧸", grad: "linear-gradient(150deg,#4aa3c2,#1f5d75)", size: ["4","6","8","10"], rating: 4.8, new: true, desc: "Super-soft fleece with a playful print. Rugged for school and playground." },
-  { id: 10, name: "Cargo Pants", cat: "Kids", subcat: "Trousers", price: 599, old: 999, icon: "🩳", grad: "linear-gradient(150deg,#9aa95a,#5a6a2e)", size: ["4","6","8","10"], rating: 4.4, sale: true, desc: "Six pockets of adventure-proof storage with an adjustable waistband." },
-  { id: 11, name: "Rainbow T-Shirt", cat: "Kids", subcat: "T-Shirts", price: 399, old: 699, icon: "🌈", grad: "linear-gradient(150deg,#e86a6a,#a63a3a)", size: ["4","6","8","10"], rating: 4.9, best: true, desc: "Bright, cheerful and endlessly wearable. 100% organic cotton." },
-  { id: 12, name: "Tiered Party Frock", cat: "Kids", subcat: "Dresses", price: 799, old: 1499, icon: "🎀", grad: "linear-gradient(150deg,#c98bb0,#7a2f5a)", size: ["4","6","8","10"], rating: 4.7, new: true, desc: "A dreamy tiered frock in soft tulle — made for twirling and parties." },
+  { id: 9, name: "Graphic Hoodie", cat: "Kids", subcat: "Boys", price: 699, old: 1299, icon: "🧸", grad: "linear-gradient(150deg,#4aa3c2,#1f5d75)", size: ["4","6","8","10"], rating: 4.8, new: true, desc: "Super-soft fleece with a playful print. Rugged for school and playground." },
+  { id: 10, name: "Cargo Pants", cat: "Kids", subcat: "Boys", price: 599, old: 999, icon: "🩳", grad: "linear-gradient(150deg,#9aa95a,#5a6a2e)", size: ["4","6","8","10"], rating: 4.4, sale: true, desc: "Six pockets of adventure-proof storage with an adjustable waistband." },
+  { id: 11, name: "Rainbow T-Shirt", cat: "Kids", subcat: "Girls", price: 399, old: 699, icon: "🌈", grad: "linear-gradient(150deg,#e86a6a,#a63a3a)", size: ["4","6","8","10"], rating: 4.9, best: true, desc: "Bright, cheerful and endlessly wearable. 100% organic cotton." },
+  { id: 12, name: "Tiered Party Frock", cat: "Kids", subcat: "Girls", price: 799, old: 1499, icon: "🎀", grad: "linear-gradient(150deg,#c98bb0,#7a2f5a)", size: ["4","6","8","10"], rating: 4.7, new: true, desc: "A dreamy tiered frock in soft tulle — made for twirling and parties." },
 
   // ---- ACCESSORIES ----
   { id: 13, name: "Canvas Tote Bag", cat: "Accessories", subcat: "Bags", price: 499, old: 899, icon: "👜", grad: "linear-gradient(150deg,#c9a86a,#6b4f1e)", size: ["One Size"], rating: 4.7, best: true, desc: "Sturdy 12oz canvas with reinforced handles. Holds everything, goes everywhere." },
@@ -64,10 +64,10 @@ const PRODUCTS = [
   { id: 1024, name: "Blouses Img 20260802 Wa0134", cat: "Women", subcat: "Readymade Blouses", price: 599, old: 1078, img: "images/products/blouses-img-20260802-wa0134.jpg", size: ["S", "M", "L", "XL"], rating: 4.6 },
   { id: 1025, name: "Blouses Img 20260802 Wa0141", cat: "Women", subcat: "Readymade Blouses", price: 599, old: 1078, img: "images/products/blouses-img-20260802-wa0141.jpg", size: ["S", "M", "L", "XL"], rating: 4.6 },
   { id: 1026, name: "Blouses Nnlhm 512", cat: "Women", subcat: "Readymade Blouses", price: 599, old: 1078, img: "images/products/blouses-nnlhm-512.avif", size: ["S", "M", "L", "XL"], rating: 4.6 },
-  { id: 1027, name: "Blue 5To6Years", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/blue-5to6years.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
-  { id: 1028, name: "Boys 7To8 Years", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/boys-7to8-years.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
-  { id: 1029, name: "Boys Night Dress 5To6 Year Old", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/boys-night-dress-5to6-year-old.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
-  { id: 1030, name: "Boys", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/boys.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
+  { id: 1027, name: "Blue 5To6Years", cat: "Kids", subcat: "Boys", price: 599, old: 1078, img: "images/products/blue-5to6years.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
+  { id: 1028, name: "Boys 7To8 Years", cat: "Kids", subcat: "Boys", price: 599, old: 1078, img: "images/products/boys-7to8-years.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
+  { id: 1029, name: "Boys Night Dress 5To6 Year Old", cat: "Kids", subcat: "Boys", price: 599, old: 1078, img: "images/products/boys-night-dress-5to6-year-old.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
+  { id: 1030, name: "Boys", cat: "Kids", subcat: "Boys", price: 599, old: 1078, img: "images/products/boys.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
   { id: 1031, name: "Broso", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/broso.jpg", size: ["One Size"], rating: 4.6 },
   { id: 1032, name: "Brown Copper Silk Saree", cat: "Women", subcat: "Sarees", price: 1299, old: 2338, img: "images/products/brown-copper-silk-saree.jpg", size: ["Free"], rating: 4.6 },
   { id: 1033, name: "Buterfly", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/buterfly.jpg", size: ["One Size"], rating: 4.6 },
@@ -99,7 +99,7 @@ const PRODUCTS = [
   { id: 1059, name: "Emeralds Chain Set", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/emeralds-chain-set.jpg", size: ["One Size"], rating: 4.6 },
   { id: 1060, name: "Georgette", cat: "Women", subcat: "Sarees", price: 1299, old: 2338, img: "images/products/georgette.jpg", size: ["Free"], rating: 4.6 },
   { id: 1061, name: "Girl Maroon Night Dress", cat: "Women", subcat: "Night Dresses", price: 699, old: 1258, img: "images/products/girl-maroon-night-dress.jpg", size: ["S", "M", "L", "XL"], rating: 4.6 },
-  { id: 1062, name: "Girls 7To8 Years Old", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/girls-7to8-years-old.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
+  { id: 1062, name: "Girls 7To8 Years Old", cat: "Kids", subcat: "Girls", price: 599, old: 1078, img: "images/products/girls-7to8-years-old.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
   { id: 1063, name: "Green Beads Chain With Cz3 And Pearls", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/green-beads-chain-with-cz3-and-pearls.jpg", size: ["One Size"], rating: 4.6 },
   { id: 1064, name: "Jewellery Bangless", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/jewellery-bangless.jpg", size: ["One Size"], rating: 4.6 },
   { id: 1065, name: "Jewellery Img 20260802 Wa0025", cat: "Accessories", subcat: "Jewellery", price: 399, old: 718, img: "images/products/jewellery-img-20260802-wa0025.jpg", size: ["One Size"], rating: 4.6 },

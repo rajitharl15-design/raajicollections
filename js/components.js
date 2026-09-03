@@ -29,10 +29,9 @@ const HEADER_HTML = `
       <li><a href="/listing.html?cat=Kids">Kids <i class="fas fa-chevron-down"></i></a>
         <div class="dropdown">
           <h5>Kids Wear</h5>
-          <a href="/listing.html?cat=Kids&subcat=Dresses">Girls Dresses</a>
-          <a href="/listing.html?cat=Kids&subcat=Hoodies">Hoodies</a>
-          <a href="/listing.html?cat=Kids&subcat=T-Shirts">T-Shirts</a>
-          <a href="/listing.html?cat=Kids&subcat=Trousers">Trousers</a>
+          <a href="/listing.html?cat=Kids&subcat=Boys">Boys</a>
+          <a href="/listing.html?cat=Kids&subcat=Girls">Girls</a>
+          <a href="/listing.html?cat=Kids">All Kids</a>
         </div>
       </li>
       <li><a href="/listing.html?cat=Accessories">Accessories <i class="fas fa-chevron-down"></i></a>
