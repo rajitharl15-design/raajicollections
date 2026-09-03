@@ -7,6 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://wa.me; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' https://wa.me;">
   <title>Raaji Collections - Traditional Women's Wear</title>
   <meta name="description" content="Raaji Collections - Authentic traditional women's wear. Shop ready-made blouses, dresses, jewellery & night dresses at the best prices.">
   <link rel="manifest" href="manifest.json">
@@ -35,6 +36,7 @@
         <li><a href="#contact">Contact</a></li>
       </ul>
       <div class="nav-icons">
+        <a href="#" id="installAppBtn" aria-label="Install app" style="display:none" title="Install app"><i class="fas fa-download"></i></a>
         <a href="#" aria-label="Search"><i class="fas fa-search"></i></a>
         <a href="#" aria-label="Wishlist"><i class="fas fa-heart"></i></a>
         <a href="#" class="cart-icon" id="cartOpen" aria-label="Open cart"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
@@ -387,5 +389,23 @@
   <script src="js/products.js?v=25"></script>
   <script src="js/prices.js?v=4"></script>
   <script>ProductsRenderer.load();</script>
+  <script>
+    // PWA install button
+    var deferredInstall = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredInstall = e;
+      document.getElementById('installAppBtn').style.display = '';
+    });
+    document.getElementById('installAppBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      deferredInstall.userChoice.then(function () {
+        deferredInstall = null;
+        document.getElementById('installAppBtn').style.display = 'none';
+      });
+    });
+  </script>
 </body>
 </html>
