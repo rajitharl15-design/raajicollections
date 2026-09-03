@@ -33,7 +33,8 @@ const adminHtml = path.join(privateDir, 'admin.html');
 const loginHtml = path.join(privateDir, 'login.html');
 
 app.get(['/admin', '/admin.html'], (req, res) => {
-  if (!isConfigured()) return res.status(500).send('<h3>Admin is not configured (set ADMIN_USER / ADMIN_PASS / AUTH_SECRET).</h3>');
+  // Not signed in (or not configured yet): send to the login page, which offers
+  // first-time setup when no admin exists.
   if (!verifyCookies(req.headers)) return res.redirect('/admin-login');
   res.sendFile(adminHtml);
 });
