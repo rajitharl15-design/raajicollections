@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="peacockTitle">
+  <title id="peacockTitle">Emblematic peacock</title>
+  <defs>
+    <radialGradient id="eyeGold" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f6e0a1"/>
+      <stop offset="45%" stop-color="#d9a441"/>
+      <stop offset="70%" stop-color="#7a5a33"/>
+      <stop offset="100%" stop-color="#4c3823"/>
+    </radialGradient>
+    <linearGradient id="fan" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#1c5f52"/>
+      <stop offset="55%" stop-color="#2f8f74"/>
+      <stop offset="100%" stop-color="#54c2a0"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2f8f74"/>
+      <stop offset="100%" stop-color="#1a5449"/>
+    </linearGradient>
+    <linearGradient id="neck" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#123e46"/>
+      <stop offset="50%" stop-color="#2f8f74"/>
+      <stop offset="100%" stop-color="#123e46"/>
+    </linearGradient>
+  </defs>
+
+  <!-- fan of feathers -->
+  <g transform="translate(200 232) rotate(180)">
+    <g id="fanGroup">
+      <ellipse rx="72" ry="172" fill="url(#fan)" opacity="0.95"/>
+      <ellipse rx="148" ry="156" fill="url(#fan)" opacity="0.85"/>
+      <ellipse rx="196" ry="120" fill="url(#fan)" opacity="0.7"/>
+    </g>
+    <g fill="none" stroke="#123e46" stroke-width="1.2" opacity="0.55">
+      <path d="M0 0 C0 -90 55 -150 150 -165"/>
+      <path d="M0 0 C0 -90 -55 -150 -150 -165"/>
+      <path d="M0 0 C0 -70 30 -95 70 -145"/>
+      <path d="M0 0 C0 -70 -30 -95 -70 -145"/>
+    </g>
+  </g>
+
+  <!-- eyespots -->
+  <g>
+    <circle cx="150" cy="70" r="13" fill="url(#eyeGold)"/>
+    <circle cx="250" cy="70" r="13" fill="url(#eyeGold)"/>
+    <circle cx="180" cy="40" r="12" fill="url(#eyeGold)"/>
+    <circle cx="220" cy="40" r="12" fill="url(#eyeGold)"/>
+    <circle cx="200" cy="26" r="11" fill="url(#eyeGold)"/>
+    <circle cx="130" cy="112" r="12" fill="url(#eyeGold)"/>
+    <circle cx="270" cy="112" r="12" fill="url(#eyeGold)"/>
+    <circle cx="110" cy="150" r="11" fill="url(#eyeGold)"/>
+    <circle cx="290" cy="150" r="11" fill="url(#eyeGold)"/>
+  </g>
+
+  <!-- tail shaft -->
+  <path d="M178 150 C 196 120 206 108 200 100" stroke="#123e46" stroke-width="2" fill="none" opacity="0.6"/>
+
+  <!-- body -->
+  <path d="M200 150 C 232 170 244 205 236 244
+           C 228 282 212 300 200 300
+           C 188 300 172 282 164 244
+           C 156 205 168 170 200 150 Z"
+        fill="url(#body)"/>
+
+  <!-- neck & head -->
+  <path d="M198 168 C 206 150 216 136 222 120
+           C 224 113 222 106 218 102
+           C 214 98 208 96 204 100"
+        fill="none" stroke="url(#neck)" stroke-width="14" stroke-linecap="round"/>
+
+  <!-- head -->
+  <ellipse cx="204" cy="100" rx="12" ry="11" fill="url(#neck)"/>
+
+  <!-- eye -->
+  <circle cx="209" cy="98" r="2.4" fill="#f6e0a1"/>
+
+  <!-- beak -->
+  <path d="M214 99 L225 102 L215 106" fill="#8a6a2f"/>
+
+  <!-- crest -->
+  <g stroke="#2f8f74" stroke-width="2.4" stroke-linecap="round" fill="none">
+    <path d="M204 89 C 205 82 208 78 211 74"/>
+    <path d="M202 88 C 200 82 198 79 195 75"/>
+    <path d="M206 89 C 210 84 214 81 218 79"/>
+  </g>
+  <circle cx="211" cy="73" r="2.2" fill="#2f8f74"/>
+  <circle cx="195" cy="74" r="2.2" fill="#2f8f74"/>
+  <circle cx="218" cy="78" r="2.2" fill="#2f8f74"/>
+</svg>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Raaji Collections - Traditional Women's Wear</title>
+  <meta name="description" content="Raaji Collections - Authentic traditional women's wear. Shop ready-made blouses, dresses, jewellery & night dresses at the best prices.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8B1A2B">
+  <link rel="stylesheet" href="css/style.css?v=54">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header / Navigation -->
+  <header>
+    <div class="header-top">
+      <p>Free shipping on orders above ₹999</p>
+    </div>
+    <nav>
+      <div class="logo">
+        <img src="images/peacock-logo.svg" alt="Raaji Collections peacock logo" class="logo-img">
+        <h1>Raaji Collections</h1>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#categories">Categories</a></li>
+        <li><a href="#products">Featured</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <div class="nav-icons">
+        <a href="#" aria-label="Search"><i class="fas fa-search"></i></a>
+        <a href="#" aria-label="Wishlist"><i class="fas fa-heart"></i></a>
+        <a href="#" class="cart-icon" id="cartOpen" aria-label="Open cart"><i class="fas fa-shopping-bag"></i><span class="cart-count" id="cartCount">0</span></a>
+      </div>
+      <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero + Categories Section -->
+  <section id="home" class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <span class="hero-tag">New Collection 2026</span>
+      <h1>Elegance in Every Thread</h1>
+      <p>Discover our exquisite range of traditional dresses, tops, ready-made blouses & jewellery</p>
+      <div class="hero-actions">
+        <a href="#categories" class="btn-primary">Shop Now</a>
+        <button type="button" class="btn-install-hero" id="installAppBtnInline" data-install-trigger><i class="fas fa-download"></i> Install App</button>
+      </div>
+    </div>
+    <div class="hero-categories" id="categories">
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/saree-item-01.jpg" alt="Sarees">
+        </div>
+        <div class="category-info">
+          <h2>Sarees</h2>
+          <p>Banarasi, Kanjivaram, Silk & more</p>
+          <a href="sarees.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/dresses-category.jpg" alt="Dresses">
+        </div>
+        <div class="category-info">
+          <h2>Dresses</h2>
+          <p>Anarkali, Lehenga, Indo-Western</p>
+          <a href="dresses.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/top.svg" alt="Tops" class="icon-svg">
+        </div>
+        <div class="category-info">
+          <h2>Tops</h2>
+          <p>Kurtis, Tunics, Crop Tops</p>
+          <a href="tops.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/category-blouse-1.jpg" alt="Ready Made Blouses">
+        </div>
+        <div class="category-info">
+          <h2>Ready Made Blouses</h2>
+          <p>Stitched, Unstitched, Designer</p>
+          <a href="blouses.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/jewellery-category.jpg" alt="Jewellery">
+        </div>
+        <div class="category-info">
+          <h2>Jewellery</h2>
+          <p>Necklaces, Earrings, Bangles, Kundan</p>
+          <a href="jewellery.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">
+          <img src="images/nightwear-2.jpg" alt="Night Dresses">
+        </div>
+        <div class="category-info">
+          <h2>Night Dresses</h2>
+          <p>Comfortable & stylish nightwear</p>
+          <a href="nightdresses.html" class="btn-outline">Explore</a>
+        </div>
+      </div>
+      <div class="category-card kids-card">
+        <div class="category-img">
+          <img src="images/kids-category.jpg" alt="Kids Wear" class="kids-photo">
+        </div>
+        <div class="category-info">
+          <h2>Kids Wear</h2>
+          <p>Frocks, dresses, sets &amp; more</p>
+          <div class="category-links">
+            <a href="boys.html">Boys</a>
+            <a href="girls.html">Girls</a>
+            <a href="kidswear.html" class="btn-outline">Explore</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section id="products" class="products">
+    <div class="section-header">
+      <span class="subtitle">Best Sellers</span>
+      <h2>Featured Products</h2>
+      <div class="divider"><span></span></div>
+      <button class="btn-refresh" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button>
+    </div>
+    <div class="product-grid product-grid-home" data-products="all" data-limit="8">
+  </section>
+
+  <!-- Banner -->
+  <section class="banner">
+    <div class="banner-content">
+      <h2>Traditional Elegance, Modern Comfort</h2>
+      <p>Handcrafted with love for the woman who values tradition</p>
+      <a href="#" class="btn-primary">View All Collection</a>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="about">
+    <div class="about-grid">
+      <div class="about-img">
+        <img src="images/about.svg" alt="About Raaji Collections">
+      </div>
+      <div class="about-text">
+        <span class="subtitle">Our Story</span>
+        <h2>Celebrating Indian Craftsmanship</h2>
+        <div class="divider left"><span></span></div>
+        <p>At Raaji Collections, we bring you the finest traditional women's wear that blends timeless Indian craftsmanship with contemporary designs. Each piece tells a story of heritage, artistry, and elegance.</p>
+        <p>From exquisite blouses and graceful dresses to handcrafted jewellery, our curated collection celebrates the diverse beauty of Indian tradition.</p>
+        <div class="features">
+          <div class="feature">
+            <i class="fas fa-leaf"></i>
+            <span>100% Pure Fabrics</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-hand-sparkles"></i>
+            <span>Handcrafted Excellence</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-truck"></i>
+            <span>Free Delivery</span>
+          </div>
+          <div class="feature">
+            <i class="fas fa-undo-alt"></i>
+            <span>Easy Returns</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <div class="section-header">
+      <span class="subtitle">What They Say</span>
+      <h2>Customer Reviews</h2>
+      <div class="divider"><span></span></div>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"Absolutely stunning! The quality is so rich and the colours are exactly as pictured. Received so many compliments at the wedding."</p>
+        <div class="customer">
+          <div class="customer-avatar">P</div>
+          <div>
+            <h3>Priya S.</h3>
+            <span>Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p>"The blouse fit perfectly and the quality is exceptional. Will definitely be ordering more. Fast shipping too!"</p>
+        <div class="customer">
+          <div class="customer-avatar">A</div>
+          <div>
+            <h3>Ananya R.</h3>
+            <span>Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★☆</div>
+        <p>"Beautiful Anarkali dress, the embroidery work is exquisite. Slight delay in delivery but the product made up for it."</p>
+        <div class="customer">
+          <div class="customer-avatar">M</div>
+          <div>
+            <h3>Meera K.</h3>
+            <span>Verified Buyer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter -->
+  <section class="newsletter">
+    <div class="newsletter-content">
+      <h2>Stay in Touch</h2>
+      <p>Subscribe to get updates on new arrivals, offers & exclusive discounts</p>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email address" required>
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact">
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h2>Get in Touch</h2>
+        <div class="divider left"><span></span></div>
+        <p><i class="fas fa-map-marker-alt"></i> Mathrusree Nagar, Miyapur, Hyderabad</p>
+        <p><i class="fas fa-phone"></i> +91 81254 91097</p>
+        <p><i class="fab fa-whatsapp"></i> Chat with us on WhatsApp: <a href="https://wa.me/918125491097" target="_blank" rel="noopener" class="contact-wa-link">+91 81254 91097</a></p>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+        </div>
+      </div>
+      <div class="contact-form">
+        <form id="contactForm">
+          <input type="text" id="cfName" placeholder="Your Name" required>
+          <input type="tel" id="cfPhone" placeholder="Your Phone (optional)">
+          <textarea id="cfMessage" placeholder="Your Message" rows="4" required></textarea>
+          <button type="submit" class="btn-primary">Send on WhatsApp</button>
+          <p class="contact-form-note" id="cfNote"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img src="images/peacock-logo.svg" alt="Raaji Collections peacock logo" class="footer-logo">
+          <h3>Raaji Collections</h3>
+        </div>
+        <p>Your destination for authentic traditional women's wear. Celebrating Indian heritage through timeless fashion.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#categories">Categories</a></li>
+          <li><a href="#products">Featured</a></li>
+          <li><a href="#about">About Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Categories</h4>
+        <ul>
+          <li><a href="sarees.html">Sarees</a></li>
+          <li><a href="dresses.html">Dresses</a></li>
+          <li><a href="tops.html">Tops</a></li>
+          <li><a href="blouses.html">Blouses</a></li>
+          <li><a href="jewellery.html">Jewellery</a></li>
+          <li><a href="nightdresses.html">Night Dresses</a></li>
+          <li><a href="kidswear.html">Kids Wear</a></li>
+          <li><a href="boys.html">— Boys</a></li>
+          <li><a href="girls.html">— Girls</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Customer Service</h4>
+        <ul>
+          <li><a href="track.html">Track Order</a></li>
+          <li><a href="shipping-policy.html">Shipping Policy</a></li>
+          <li><a href="return-policy.html">Return Policy</a></li>
+          <li><a href="size-guide.html">Size Guide</a></li>
+          <li><a href="faqs.html">FAQs</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Raaji Collections. All rights reserved. | <a href="admin.html">Admin</a></p>
+    </div>
+  </footer>
+
+  <div class="cart-overlay" data-close-cart></div>
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Shopping Cart</h3>
+      <button class="cart-close" data-close-cart aria-label="Close cart"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="cart-body" id="cartItems"></div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotal">₹0</span>
+      </div>
+      <button class="btn-checkout payment-btn"><i class="fas fa-shopping-bag"></i> Checkout</button>
+    </div>
+  </div>
+
+  <div class="checkout-modal" id="checkoutModal">
+    <div class="checkout-box">
+      <h3>Place Your Order</h3>
+      <p class="sub">1. Place your order below · 2. Send payment screenshot on WhatsApp · 3. We confirm &amp; ship</p>
+      <div class="order-summary">
+        <div id="orderItems"></div>
+        <div class="order-total">
+          <span>Total</span>
+          <span id="orderTotal">₹0</span>
+        </div>
+      </div>
+      <form class="checkout-form" id="checkoutForm">
+        <input type="text" name="name" placeholder="Full Name" required>
+        <input type="tel" name="phone" placeholder="Phone Number" required>
+        <input type="text" name="address" placeholder="Delivery Address" required>
+        <input type="text" name="area" placeholder="Area / Locality" required>
+        <div class="checkout-row">
+          <input type="text" name="city" placeholder="City" required>
+          <input type="text" name="state" placeholder="State" required>
+        </div>
+        <input type="text" name="pincode" placeholder="PIN Code" required>
+      </form>
+      <a class="btn-whatsapp" id="whatsappLink" href="#" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> Confirm on WhatsApp</a>
+      <p class="checkout-hint">1. Tap Place Order · 2. WhatsApp button appears below for payment</p>
+      <button class="btn-place-order payment-btn" id="placeOrderBtn" type="button">Place Order</button>
+      <p class="order-note hidden" id="orderNote"></p>
+    </div>
+  </div>
+
+  <div class="cart-toast" id="cartToast"></div>
+
+  <script src="js/script.js?v=10"></script>
+  <div class="admin-bar" id="adminBar">
+    <span>Admin Mode</span>
+    <button data-admin-copy>Copy changes</button>
+    <button data-admin-reset>Reset</button>
+    <button data-admin-exit>Exit</button>
+  </div>
+
+  <div class="admin-toast" id="adminToast"></div>
+
+  <script src="js/config.js?v=6"></script>
+  <script src="js/cart.js?v=11"></script>
+  <script src="js/products.js?v=25"></script>
+  <script src="js/prices.js?v=4"></script>
+  <script>ProductsRenderer.load();</script>
+</body>
+</html>

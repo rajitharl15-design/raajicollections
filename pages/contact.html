@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — Peacock Fashions</title>
+  <link rel="stylesheet" href="../css/peacock.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div id="app-header"></div>
+
+  <section class="page-hero">
+    <h1>Get in touch</h1>
+    <p>Questions about an order, sizing or returns? Write to us.</p>
+  </section>
+
+  <div class="text-block">
+    <form class="contact-form" id="contactForm">
+      <div class="form-row">
+        <input type="text" placeholder="Your name" required>
+        <input type="email" placeholder="Email" required>
+      </div>
+      <div style="height:12px"></div>
+      <input type="text" placeholder="Subject">
+      <div style="height:12px"></div>
+      <textarea placeholder="How can we help?" rows="6" required></textarea>
+      <div style="height:14px"></div>
+      <button class="btn-pink" type="submit">Send message</button>
+    </form>
+    <p class="form-note" id="formNote"></p>
+    <div class="grid-3">
+      <div class="info-box"><i class="fas fa-phone"></i><h3>Support</h3><p>Mon–Sat, 9am–9pm</p></div>
+      <div class="info-box"><i class="fas fa-envelope"></i><h3>Email</h3><p>care@peacockfashions.in</p></div>
+      <div class="info-box"><i class="fas fa-comments"></i><h3>Chat</h3><p>Live chat on the app</p></div>
+    </div>
+  </div>
+
+  <div id="app-footer"></div>
+  <script src="../js/data.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/peacock.js"></script>
+  <script>
+    $("#contactForm").addEventListener("submit", (e) => {
+      e.preventDefault(); e.target.reset();
+      const n = $("#formNote"); n.textContent = "Thanks! We'll reply within 24 hours."; n.style.color = "var(--green)";
+    });
+  </script>
+</body>
+</html>
