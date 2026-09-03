@@ -177,10 +177,9 @@
   <script src="js/catalog-admin.js"></script>
   <script src="js/admin.js"></script>
   <script>
-    // This admin is served only after server login, so skip the client key gate and open dashboard.
+    // This admin is served only after server login; admin.js opens the dashboard.
+    // Here we just keep the Catalog tab's visibility in sync with the active tab.
     document.addEventListener('DOMContentLoaded', function () {
-      if (typeof showDashboard === 'function') showDashboard();
-      // Keep the Catalog tab's visibility in sync with the active tab.
       document.querySelectorAll('.tab-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
           document.getElementById('tab-catalog').classList.toggle('hidden', btn.dataset.tab !== 'catalog');

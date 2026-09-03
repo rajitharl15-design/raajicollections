@@ -19,7 +19,9 @@ const CARRIERS = [
   'Other',
 ];
 
-const apiBase = () => API_CONFIG.baseUrl || 'http://localhost:3000';
+// Admin runs on the backend origin itself, so use same-origin relative paths.
+// This guarantees the session cookie is always sent (no cross-origin lookup).
+const apiBase = () => '';
 
 let adminKey = localStorage.getItem(ADMIN_KEY_STORAGE) || '';
 let currentFilter = 'all';
