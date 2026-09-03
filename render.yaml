@@ -25,6 +25,15 @@ services:
       # repo (also served, but lost on redeploy). Alternative: object store (S3/Cloudinary).
       - key: UPLOAD_DIR
         value: /data
+      # ---- Secure admin credentials (REQUIRED for true admin security) ----
+      # /admin, /admin.html and /api/upload are only accessible after logging in
+      # with these credentials. Set AUTH_SECRET to a long random string.
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASS
+        value: CHANGE_ME_STRONG_PASSWORD
+      - key: AUTH_SECRET
+        value: CHANGE_ME_LONG_RANDOM_SECRET
     disks:
       - name: uploads
         mountPath: /data

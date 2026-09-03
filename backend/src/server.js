@@ -12,6 +12,7 @@ import admRouter from './routes/admin.js';
 import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import { initDbConnection } from './db.js';
+import { requireAdmin, verifyCookies, setAdminCookie, clearAdminCookie, isConfigured } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -23,15 +24,49 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'raaji-collections-backend' });
 });
 
+// ---- Secure admin area (gates run BEFORE express.static so /admin.html is not served open) ----
+const publicDir = path.resolve(__dirname, '../../');
+const adminHtml = path.join(publicDir, 'admin.html');
+const loginHtml = path.join(publicDir, 'login.html');
+
+app.get(['/admin', '/admin.html'], (req, res) => {
+  if (!isConfigured()) return res.status(500).send('<h3>Admin is not configured (set ADMIN_USER / ADMIN_PASS / AUTH_SECRET).</h3>');
+  if (!verifyCookies(req.headers)) return res.redirect('/admin-login');
+  res.sendFile(adminHtml);
+});
+app.get('/admin-login', (req, res) => {
+  if (verifyCookies(req.headers)) return res.redirect('/admin');
+  res.sendFile(loginHtml);
+});
+
+// ---- Admin authentication ----
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (!isConfigured()) return res.status(500).json({ error: 'Admin is not configured on the server yet.' });
+  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+    setAdminCookie(res);
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ error: 'Incorrect username or password.' });
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  clearAdminCookie(res);
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/me', requireAdmin, (req, res) => {
+  res.json({ ok: true, user: req.adminUser });
+});
+
 app.use('/api/products', productsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/newsletter', newsletterRouter);
-app.use('/api/admin', admRouter);
-app.use('/api/upload', uploadRouter);
+app.use('/api/admin', requireAdmin, admRouter);
+app.use('/api/upload', requireAdmin, uploadRouter);
 
 // Serve the static website (index.html, css/, js/, images/)
-const publicDir = path.resolve(__dirname, '../../');
 app.use(express.static(publicDir));
 if (process.env.UPLOAD_DIR) {
   app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR)));

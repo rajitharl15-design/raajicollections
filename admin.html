@@ -216,8 +216,18 @@
         if (appRoot) appRoot.style.display = '';
       }
 
-      if (sessionStorage.getItem(KEY) === '1') { unlock(); }
-      else { lock(); }
+      // If served by the secured backend (and already signed in), unlock automatically.
+      function checkServer() {
+        return fetch('/api/admin/me', { credentials: 'same-origin', cache: 'no-store' })
+          .then(function (r) { return r.ok; })
+          .catch(function () { return false; });
+      }
+
+      checkServer().then(function (isServerAuthed) {
+        if (isServerAuthed) { unlock(); return; }
+        if (sessionStorage.getItem(KEY) === '1') { unlock(); }
+        else { lock(); }
+      });
 
       var form = document.getElementById('loginForm');
       if (form) form.addEventListener('submit', function (e) {

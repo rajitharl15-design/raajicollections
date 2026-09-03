@@ -92,8 +92,24 @@ Push this repo to GitHub and deploy `backend/` to a host that supports Node (e.g
 - `AUTO_MIGRATE` — default `true`; schema and seed are applied automatically on first boot
 - `UPLOAD_TOKEN` — optional shared token that must be sent to `/api/upload`; leave unset for open uploads
 - `UPLOAD_DIR` — optional absolute path for uploaded images (e.g. a mounted disk `/data`); served at `/uploads`
+- `ADMIN_USER` / `ADMIN_PASS` — **required for a secure admin area**. The admin pages and the
+  upload/admin APIs are locked behind a server-side login (signed HttpOnly cookie) when set.
+- `AUTH_SECRET` — long random string used to sign the admin session cookie.
 
 No manual `psql` step needed — the server migrates itself on startup.
+
+### Secure admin (true server-side auth)
+
+When `ADMIN_USER` / `ADMIN_PASS` / `AUTH_SECRET` are set, the server enforces login:
+
+- `GET /admin` and `GET /admin.html` redirect to `/admin-login` until you sign in.
+- `POST /api/admin/login` verifies credentials and sets a signed HttpOnly cookie.
+- `/api/admin/*` and `/api/upload` return `401` without a valid session.
+- Sign out at `POST /api/admin/logout`.
+
+The static GitHub Pages copy of `/admin.html` cannot be truly secured (client JS only). For **real
+security**, serve the admin from this backend (e.g. `https://your-backend.onrender.com/admin`) and, if
+you keep the Pages site, block or remove the public `admin.html` so it isn't reachable.
 
 ### Catalog seeding (so the old site shows products)
 
