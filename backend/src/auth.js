@@ -66,7 +66,9 @@ export function requireAdmin(req, res, next) {
 export function setAdminCookie(res) {
   const e = effective();
   const value = signToken(e.username);
-  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200`);
+  // SameSite=None + Secure so the session cookie is sent on same-origin AND
+  // cross-origin API fetches (with CORS credentials). HttpOnly keeps it JS-invisible.
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=43200`);
 }
 
 export function clearAdminCookie(res) {
