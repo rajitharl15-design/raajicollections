@@ -57,6 +57,7 @@ async function api(path, options = {}) {
   if (!res.ok) {
     const err = new Error(data.error || `Request failed (${res.status})`);
     err.status = res.status;
+    err.detail = data;
     throw err;
   }
   return data;
@@ -70,7 +71,8 @@ async function loadOrders() {
     if (err.status === 401) {
       // Show a clear message instead of redirecting, to avoid a login loop.
       const el = document.getElementById('adminOrders');
-      if (el) el.innerHTML = '<p class="admin-loading">Your session expired (401). Reload, then sign in again.</p>';
+      const got = err.detail && err.detail.gotCookie;
+      if (el) el.innerHTML = `<p class="admin-loading">Session (401) — server got cookie: ${got === undefined ? 'unknown' : got} · ${err.message}</p>`;
     } else {
       document.getElementById('adminOrders').innerHTML =
         `<p class="admin-loading">Failed to load orders: ${err.message}</p>`;

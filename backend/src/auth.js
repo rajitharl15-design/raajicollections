@@ -58,7 +58,7 @@ export function verifyCookies(headers) {
 export function requireAdmin(req, res, next) {
   if (!isConfigured()) return res.status(403).json({ error: 'Admin is not configured yet (create credentials on the login page).' });
   const user = verifyCookies(req.headers);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  if (!user) return res.status(401).json({ error: 'Unauthorized', gotCookie: !!req.headers.cookie });
   req.adminUser = user;
   next();
 }
