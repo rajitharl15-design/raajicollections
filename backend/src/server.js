@@ -8,7 +8,8 @@ import productsRouter from './routes/products.js';
 import categoriesRouter from './routes/categories.js';
 import ordersRouter from './routes/orders.js';
 import newsletterRouter from './routes/newsletter.js';
-import adminRouter from './routes/admin.js';
+import admRouter from './routes/admin.js';
+import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import { initDbConnection } from './db.js';
 
@@ -26,11 +27,15 @@ app.use('/api/products', productsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/newsletter', newsletterRouter);
-app.use('/api/admin', adminRouter);
+app.use('/api/admin', admRouter);
+app.use('/api/upload', uploadRouter);
 
 // Serve the static website (index.html, css/, js/, images/)
 const publicDir = path.resolve(__dirname, '../../');
 app.use(express.static(publicDir));
+if (process.env.UPLOAD_DIR) {
+  app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR)));
+}
 
 app.use((err, req, res, next) => {
   console.error(err);

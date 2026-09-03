@@ -105,21 +105,42 @@ function exportDataJS() {
   $("#saveStatus").textContent = "✓ Exported data.js — replace js/data.js and push to make permanent";
 }
 
+function setImageLocal(id, dataUrl) {
+  overrides[id] = overrides[id] || {};
+  overrides[id].img = dataUrl;
+  persist();
+  renderRows();
+  $("#saveStatus").textContent = "✓ Image saved locally (export data.js to make permanent)";
+}
+
+async function uploadToBackend(id, file) {
+  const fd = new FormData();
+  fd.append("image", file);
+  const headers = {};
+  const token = localStorage.getItem("pf_token") || "";
+  if (token) headers["x-upload-token"] = token;
+  const res = await fetch("/api/upload", { method: "POST", body: fd, headers });
+  if (!res.ok) throw new Error("upload failed");
+  const data = await res.json();
+  overrides[id] = overrides[id] || {};
+  overrides[id].img = data.url;
+  persist();
+  renderRows();
+  $("#saveStatus").textContent = "✓ Image uploaded to server: " + data.url;
+}
+
 document.addEventListener("change", (e) => {
   const up = e.target.closest("[data-upimg]");
   if (up && up.files && up.files[0]) {
     const id = Number(up.dataset.upimg);
     const file = up.files[0];
-    if (file.size > 900 * 1024) { alert("Image too large for local storage. Use an image under ~900KB, or host it and paste the path."); return; }
-    const r = new FileReader();
-    r.onload = () => {
-      overrides[id] = overrides[id] || {};
-      overrides[id].img = r.result;
-      persist();
-      renderRows();
-      $("#saveStatus").textContent = "✓ Image saved locally (export data.js to make permanent)";
-    };
-    r.readAsDataURL(file);
+    // try the backend first; fall back to local base64 storage if it is unreachable
+    uploadToBackend(id, file).catch(() => {
+      if (file.size > 900 * 1024) { alert("Backend offline and image > ~900KB for local storage. Use a smaller image or start the backend."); return; }
+      const r = new FileReader();
+      r.onload = () => setImageLocal(id, r.result);
+      r.readAsDataURL(file);
+    });
   }
 });
 

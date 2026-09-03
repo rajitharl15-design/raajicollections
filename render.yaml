@@ -16,6 +16,19 @@ services:
         fromDatabase:
           name: raaji-collections-db
           property: connectionString
+      # Optional shared token for admin image uploads (must match the one entered
+      # in Catalog Admin -> localStorage "pf_token"). Leave unset to allow open uploads.
+      - key: UPLOAD_TOKEN
+        value: ""
+      # Persist uploads on a Render disk (ephemeral otherwise). Mounted at /data
+      # and served at /uploads. Without this, uploads go to images/products in the
+      # repo (also served, but lost on redeploy). Alternative: object store (S3/Cloudinary).
+      - key: UPLOAD_DIR
+        value: /data
+    disks:
+      - name: uploads
+        mountPath: /data
+        sizeGB: 1
 
 databases:
   - name: raaji-collections-db
