@@ -391,9 +391,9 @@ function initHome() {
   $("#next").addEventListener("click", () => go(i + 1));
   setInterval(() => go(i + 1), 5000);
 
-  renderInto("#rowNew", PRODUCTS.filter((p) => p.new || p.best).slice(0, 8));
-  renderInto("#rowBest", PRODUCTS.filter((p) => p.sale).concat(PRODUCTS.filter((p) => p.best)).slice(0, 4));
-  renderInto("#rowWomen", PRODUCTS.filter((p) => p.cat === "Women").slice(0, 5));
+  renderInto("#rowNew", PRODUCTS.slice(0, 8));
+  renderInto("#rowBest", PRODUCTS.slice(8, 14).concat(PRODUCTS.slice(0, 2)));
+  renderInto("#rowWomen", PRODUCTS.filter((p) => p.cat === "Women").slice(0, 6));
   renderInto("#rowMen", PRODUCTS.filter((p) => p.cat === "Men").slice(0, 5));
   renderInto("#rowAccess", PRODUCTS.filter((p) => p.cat === "Accessories").slice(0, 5));
 }
