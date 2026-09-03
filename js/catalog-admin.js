@@ -15,9 +15,11 @@ function subcatOptions(sel, cat) {
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
 
 function renderFilters() {
+  const extra = ["Readymade Blouses"];
   $("#catFilter").innerHTML =
     `<button class="chip ${!activeCat ? "chip-on" : ""}" data-cat="">All</button>` +
-    CATS.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("");
+    CATS.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("") +
+    extra.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("");
 }
 function renderCatFilter() {}
 
@@ -43,7 +45,9 @@ function rowHTML(p) {
 }
 
 function renderRows() {
-  let list = activeCat ? PRODUCTS.filter((p) => p.cat === activeCat) : PRODUCTS.slice();
+  let list = PRODUCTS.slice();
+  if (activeCat === "Readymade Blouses") list = list.filter((p) => p.subcat === "Readymade Blouses");
+  else if (activeCat) list = list.filter((p) => p.cat === activeCat);
   $("#rows").innerHTML = list.map(rowHTML).join("");
   $("#totalCount").textContent = PRODUCTS.length;
   $("#shownCount").textContent = list.length;
