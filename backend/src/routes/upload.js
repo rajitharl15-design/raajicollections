@@ -13,10 +13,22 @@ const useMount = !!process.env.UPLOAD_DIR;
 const productsDir = useMount
   ? path.resolve(process.env.UPLOAD_DIR)
   : path.resolve(__dirname, '../../../images/products');
-fs.mkdirSync(productsDir, { recursive: true });
+try {
+  fs.mkdirSync(productsDir, { recursive: true });
+} catch (err) {
+  // Missing/mount-less disk (e.g. Render free plan): fall back to the repo folder
+  // rather than crashing the server at boot.
+  console.warn('[upload] products dir not writable, falling back to repo images/products:', err.message);
+  process.env.UPLOAD_DIR = '';
+  globalThis.__uploadDir = path.resolve(__dirname, '../../../images/products');
+}
+function dir() { return globalThis.__uploadDir || productsDir; }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, productsDir),
+  destination: (req, file, cb) => {
+    try { fs.mkdirSync(dir(), { recursive: true }); } catch (e) {}
+    cb(null, dir());
+  },
   filename: (req, file, cb) => {
     const ext = (path.extname(file.originalname) || '.jpg').toLowerCase();
     const safe = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.jpg';
@@ -45,7 +57,8 @@ function checkToken(req, res, next) {
 
 router.post('/', checkToken, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
-  const url = useMount
+  const realMount = useMount && !globalThis.__uploadDir;
+  const url = realMount
     ? path.posix.join('/uploads', req.file.filename)
     : path.posix.join('images', 'products', req.file.filename);
   res.status(201).json({ url, filename: req.file.filename });

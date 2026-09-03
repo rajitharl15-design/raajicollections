@@ -20,11 +20,12 @@ services:
       # in Catalog Admin -> localStorage "pf_token"). Leave unset to allow open uploads.
       - key: UPLOAD_TOKEN
         value: ""
-      # Persist uploads on a Render disk (ephemeral otherwise). Mounted at /data
-      # and served at /uploads. Without this, uploads go to images/products in the
-      # repo (also served, but lost on redeploy). Alternative: object store (S3/Cloudinary).
+      # Persist uploads on a Render disk (ephemeral otherwise). On the free plan
+      # there is NO disk, so keep UPLOAD_DIR empty (files go to images/products in
+      # the repo). To make uploads survive redeploys, upgrade to a plan with a disk,
+      # set UPLOAD_DIR=/data and mount the "uploads" disk.
       - key: UPLOAD_DIR
-        value: /data
+        value: ""
       # ---- Secure admin credentials (REQUIRED for true admin security) ----
       # /admin, /admin.html and /api/upload are only accessible after logging in
       # with these credentials. Set AUTH_SECRET to a long random string.

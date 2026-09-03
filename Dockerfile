@@ -14,6 +14,7 @@ COPY manifest.json sw.js ./
 COPY backend/package*.json ./backend/
 RUN cd backend && npm install --omit=dev
 COPY backend/src ./backend/src
+COPY backend/private ./backend/private
 COPY backend/.env.example ./backend/.env.example
 
 ENV NODE_ENV=production
