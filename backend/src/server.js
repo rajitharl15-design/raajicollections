@@ -26,8 +26,10 @@ app.get('/api/health', (req, res) => {
 
 // ---- Secure admin area (gates run BEFORE express.static so /admin.html is not served open) ----
 const publicDir = path.resolve(__dirname, '../../');
-const adminHtml = path.join(publicDir, 'admin.html');
-const loginHtml = path.join(publicDir, 'login.html');
+// Admin/login pages live in backend/private (NOT the publicly-served site root).
+const privateDir = path.resolve(__dirname, '../private');
+const adminHtml = path.join(privateDir, 'admin.html');
+const loginHtml = path.join(privateDir, 'login.html');
 
 app.get(['/admin', '/admin.html'], (req, res) => {
   if (!isConfigured()) return res.status(500).send('<h3>Admin is not configured (set ADMIN_USER / ADMIN_PASS / AUTH_SECRET).</h3>');
