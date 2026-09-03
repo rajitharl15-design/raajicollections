@@ -399,7 +399,25 @@ function initHome() {
 }
 
 /* ---------- Boot ---------- */
+function applyOverrides() {
+  try {
+    const o = JSON.parse(localStorage.getItem("ms_overrides") || "{}");
+    for (const id in o) {
+      const p = PRODUCTS.find((x) => x.id === Number(id));
+      if (!p) continue;
+      const d = o[id];
+      if (d.name !== undefined) p.name = d.name;
+      if (d.price !== undefined) p.price = +d.price;
+      if (d.old !== undefined) p.old = d.old ? +d.old : 0;
+      if (d.cat) p.cat = d.cat;
+      if (d.subcat) p.subcat = d.subcat;
+      if (d.size) p.size = d.size.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+  } catch (e) {}
+}
+
 function boot() {
+  applyOverrides();
   mountApp();
   document.body.insertAdjacentHTML("beforeend", overlayHTML());
   bindHeader();
