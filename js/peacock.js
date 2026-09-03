@@ -73,17 +73,21 @@ function bindHeader() {
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredInstall = e;
-    const el = $("#appInstallBtn");
-    if (el) el.style.display = "";
-    $("#appInstallBtn").addEventListener("click", async () => {
-      if (!deferredInstall) return;
+  });
+  window.addEventListener("appinstalled", () => {});
+  $("#appInstallBtn").addEventListener("click", async () => {
+    if (deferredInstall) {
       deferredInstall.prompt();
       await deferredInstall.userChoice;
       deferredInstall = null;
-      if (el) el.style.display = "none";
-    });
+      return;
+    }
+    // No programmatic prompt available (e.g. iPhone, or first visit): guide the user.
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    toast(isIOS
+      ? 'Tap the Share icon ↓ and choose "Add to Home Screen"'
+      : 'Use your browser menu (⋮) → "Add to Home screen / Install app"');
   });
-  window.addEventListener("appinstalled", () => { const el = $("#appInstallBtn"); if (el) el.style.display = "none"; });
 
   // ---- Easy order modal ----
   document.addEventListener("click", (e) => {

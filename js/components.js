@@ -48,7 +48,7 @@ const HEADER_HTML = `
     </div>
     <div class="header-icons">
       <span class="hic" id="wishBtn"><i class="fas fa-heart"></i><span class="count" id="wishCount">0</span>Wishlist</span>
-      <span class="hic" id="appInstallBtn" style="display:none" title="Install app"><i class="fas fa-download"></i><span>Install</span></span>
+      <span class="hic" id="appInstallBtn" title="Install app"><i class="fas fa-download"></i><span>Install</span></span>
       <span class="hic" id="bagBtn"><i class="fas fa-shopping-bag"></i><span class="count" id="bagCount">0</span>Bag</span>
     </div>
   </div>
