@@ -63,6 +63,8 @@ function bindHeader() {
   $("#menuBtn").addEventListener("click", () => location.href = "/store.html");
   $("#bagBtn").addEventListener("click", () => { renderBag(); openDrawer("bagDrawer"); });
   $("#wishBtn").addEventListener("click", () => { renderWish(); openDrawer("wishDrawer"); });
+  $("#bnBag") && $("#bnBag").addEventListener("click", (e) => { e.preventDefault(); renderBag(); openDrawer("bagDrawer"); });
+  $("#bnWish") && $("#bnWish").addEventListener("click", (e) => { e.preventDefault(); renderWish(); openDrawer("wishDrawer"); });
   $("#wishClose").addEventListener("click", () => closeDrawer("wishDrawer"));
   $("#bagClose").addEventListener("click", () => closeDrawer("bagDrawer"));
   $("#overlay").addEventListener("click", closeAllDrawers);
@@ -375,6 +377,9 @@ function updateCounts() {
   const bc = $("#bagCount"), wc = $("#wishCount");
   if (bc) bc.textContent = bag.reduce((s, b) => s + b.qty, 0);
   if (wc) wc.textContent = wish.length;
+  const bnb = $("#bnBagCount"), bnw = $("#bnWishCount");
+  if (bnb) bnb.textContent = bag.reduce((s, b) => s + b.qty, 0);
+  if (bnw) bnw.textContent = wish.length;
 }
 
 /* ---------- Toast ---------- */
