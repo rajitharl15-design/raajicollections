@@ -13,6 +13,7 @@
     .admin-filters { display: flex; gap: 8px; flex-wrap: wrap; }
     .admin-filters .chip { cursor: pointer; }
     .admin-actions { display: flex; gap: 8px; align-items: center; }
+    .token-row { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--muted); }
     .btn-sm { padding: 8px 14px; font-size: 0.8rem; }
     .admin-bar { display: flex; gap: 12px; align-items: center; padding: 10px 0; color: var(--muted); font-size: 0.82rem; }
     .admin-bar b { color: var(--ink); }
@@ -38,6 +39,9 @@
     <div class="admin-top">
       <h1>🦚 Catalog Admin — Peacock Fashions</h1>
       <div class="admin-actions">
+        <label class="token-row">Upload token
+          <input id="tokenInput" type="text" placeholder="(empty = open)" style="border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:.78rem;width:130px">
+        </label>
         <button class="chip" id="reloadBtn">↺ Clear local edits</button>
         <a class="chip" href="index.html">← View site</a>
         <button class="btn-pink btn-sm" id="exportBtn">⬇ Export data.js</button>

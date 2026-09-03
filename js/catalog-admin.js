@@ -71,6 +71,16 @@ function persist() {
   localStorage.setItem(KEY, JSON.stringify(overrides));
 }
 
+function initToken() {
+  const inp = $("#tokenInput");
+  if (!inp) return;
+  inp.value = localStorage.getItem("pf_token") || "";
+  inp.addEventListener("change", () => {
+    localStorage.setItem("pf_token", inp.value.trim());
+    $("#saveStatus").textContent = "✓ Upload token saved";
+  });
+}
+
 function exportDataJS() {
   const list = PRODUCTS.map((p) => {
     const o = overrides[p.id] || {};
@@ -165,3 +175,4 @@ document.addEventListener("click", (e) => {
 
 renderFilters();
 renderRows();
+initToken();
