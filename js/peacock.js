@@ -153,6 +153,29 @@ function renderInto(selector, list) {
   el.innerHTML = list.length ? list.map(cardHTML).join("") : '<div class="empty-state">No products found.</div>';
 }
 
+/* ---------- Horizontal category carousel ---------- */
+const HCAT_CARDS = [
+  { title: "Sarees", cat: "Women", subcat: "Sarees", icon: "🪷", grad: "linear-gradient(135deg,#7f9b8a,#33503f)" },
+  { title: "Dresses", cat: "Women", subcat: "Dresses", icon: "👗", grad: "linear-gradient(135deg,#c0574f,#7a1f2b)" },
+  { title: "Night Dresses", cat: "Women", subcat: "Night Dresses", icon: "🌙", grad: "linear-gradient(135deg,#5c6aa8,#2a3566)" },
+  { title: "Jewellery", cat: "Accessories", subcat: "Jewellery", icon: "💎", grad: "linear-gradient(135deg,#d3b06f,#7a5a20)" },
+  { title: "Kids Wear", cat: "Kids", subcat: "Kids Wear", icon: "🧸", grad: "linear-gradient(135deg,#4aa3c2,#1f5d75)" },
+];
+
+function renderCats(containerId) {
+  const el = $(containerId);
+  if (!el) return;
+  el.innerHTML = HCAT_CARDS.map((c) => {
+    const count = PRODUCTS.filter((p) => p.cat === c.cat && p.subcat === c.subcat).length;
+    return `
+      <a class="hcard" href="/listing.html?cat=${encodeURIComponent(c.cat)}&subcat=${encodeURIComponent(c.subcat)}" style="background:${c.grad}">
+        <span class="hcard-icon">${c.icon}</span>
+        <span class="hcard-title">${c.title}</span>
+        <span class="hcard-sub">${count} items · ${c.cat}</span>
+      </a>`;
+  }).join("");
+}
+
 /* ---------- Modal (size) ---------- */
 function openSizeModal(p) {
   const sizes = p.size.join(", ");
@@ -398,6 +421,7 @@ const cat = params.get("cat") || "";
 const subcat = params.get("subcat") || "";
 
 function initListing() {
+  renderCats("#hcatList");
   if (!$("#plpGrid") && !$("#catList")) return;
   const grid = $("#plpGrid");
   if (grid) {
@@ -465,6 +489,7 @@ function initListing() {
 /* ---------- Home ---------- */
 function initHome() {
   if (!$("#slides")) return;
+  renderCats("#hcatHome");
   // carousel
   let i = 0;
   const slides = $("#slides"), total = $$(".slide", slides).length;

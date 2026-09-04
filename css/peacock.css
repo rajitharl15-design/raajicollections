@@ -320,6 +320,33 @@ footer { background: #0f241e; color: #c6c2b8; padding: 44px 0 0; }
 .footer-col .brand { font-family: var(--serif); font-size: 1.2rem; color: #fff; margin-bottom: 8px; }
 .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 16px 22px; text-align: center; font-size: 0.78rem; color: #8f8a82; }
 
+/* ---------- Horizontal category carousel ---------- */
+.hcat-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.hcat-head h2 { font-size: 1.5rem; color: var(--emerald-deep); }
+.hcat-head a { color: var(--emerald-soft); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--gold); }
+.hcar {
+  display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: 4px 2px 14px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.hcar::-webkit-scrollbar { display: none; }
+.hcard {
+  scroll-snap-align: start; flex: 0 0 auto;
+  width: 220px; min-height: 180px; border-radius: 18px; padding: 20px;
+  color: #fff; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+  box-shadow: var(--shadow); transition: transform 0.25s; position: relative; overflow: hidden;
+}
+.hcard::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(16,46,39,0.55)); }
+.hcard > * { position: relative; z-index: 1; }
+.hcard:hover { transform: translateY(-4px); }
+.hcard-icon { font-size: 1.9rem; margin-bottom: 6px; }
+.hcard-title { font-family: var(--serif); font-size: 1.35rem; line-height: 1.1; }
+.hcard-sub { font-size: 0.76rem; opacity: 0.92; }
+@media (max-width: 620px) {
+  .hcard { width: 150px; min-height: 140px; padding: 16px; border-radius: 14px; }
+  .hcard-title { font-size: 1.05rem; }
+  .hcard-icon { font-size: 1.5rem; }
+}
+
 /* ---------- Pro app bottom navigation ---------- */
 body { padding-bottom: 74px; }
 .bottom-nav {
