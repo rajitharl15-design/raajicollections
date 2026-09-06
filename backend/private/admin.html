@@ -84,7 +84,6 @@
         <button class="tab-btn active" data-tab="orders">Orders</button>
         <button class="tab-btn" data-tab="addproduct">Add Product</button>
         <button class="tab-btn" data-tab="manageproducts">Manage Products</button>
-        <button class="tab-btn" data-tab="catalog">Catalog Editor</button>
       </div>
 
       <!-- ORDERS -->
@@ -146,28 +145,7 @@
         </div>
       </div>
 
-      <!-- CATALOG EDITOR (Peacock static catalog) -->
-      <div id="tab-catalog" class="hidden catalog-section">
-        <div class="admin-bar">
-          <span>Showing <b id="shownCount">0</b> / <b id="totalCount">0</b> products</span>
-          <span class="saved" id="saveStatus"></span>
-          <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
-            <label class="token-row">Token <input id="tokenInput" type="text" placeholder="(empty = open)" style="width:110px;padding:6px 8px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px"></label>
-            <button class="chip" id="reloadBtn">↺ Clear edits</button>
-            <button class="btn btn-primary btn-sm" id="exportBtn">⬇ Export data.js</button>
-          </span>
-        </div>
-        <div class="admin-filters" id="catFilter"></div>
-        <div class="table-card">
-          <div class="table-scroll">
-            <table class="admin-table">
-              <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Sub-category</th><th>Price</th><th>Old Price</th><th>Sizes</th></tr></thead>
-              <tbody id="rows"></tbody>
-            </table>
-          </div>
-        </div>
-        <p class="save-note">Edits save to this browser (overlay on the static catalog). Use "Export data.js" to make them permanent for all visitors.</p>
-      </div>
+      <!-- CATALOG EDITOR REMOVED -->
 
     </section>
   </main>
@@ -187,18 +165,6 @@
 
   <script src="js/config.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/catalog-admin.js"></script>
   <script src="js/admin.js"></script>
-  <script>
-    // This admin is served only after server login; admin.js opens the dashboard.
-    // Here we just keep the Catalog tab's visibility in sync with the active tab.
-    document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('.tab-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          document.getElementById('tab-catalog').classList.toggle('hidden', btn.dataset.tab !== 'catalog');
-        });
-      });
-    });
-  </script>
 </body>
 </html>
