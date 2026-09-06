@@ -88,9 +88,8 @@
       <button class="btn btn-primary" id="addProductBtn"><i class="fas fa-plus"></i> Add product</button>
     </div>
     <div class="admin-intro">
-      Edit the Peacock store catalog (products, prices, categories, images). Use
-      <b>Publish to store</b> to update the live store immediately, or <i>Save changes</i> to
-      keep your edits in this browser first. Deleting a product marks it for removal on Publish.
+      Edit the Peacock store catalog, then click <b>Save &amp; Publish to store</b> to update the
+      live store immediately. Deleting a product marks it for removal on publish.
       <i>Export data.js</i> is optional (only if you also want the git repo file updated).
     </div>
 
@@ -100,9 +99,8 @@
       <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <label class="token-row">Upload token <input id="tokenInput" type="text" placeholder="(optional)" style="width:110px;padding:6px 8px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px"></label>
         <button class="chip" id="reloadBtn">↺ Clear edits</button>
-        <button class="btn btn-primary btn-sm" id="saveBtn"><i class="fas fa-save"></i> Save changes</button>
         <button class="btn btn-outline btn-sm" id="exportBtn">⬇ Export data.js</button>
-        <button class="btn btn-primary btn-sm" id="publishBtn"><i class="fas fa-cloud-upload-alt"></i> Publish to store</button>
+        <button class="btn btn-primary btn-sm" id="publishBtn"><i class="fas fa-cloud-upload-alt"></i> Save &amp; Publish to store</button>
       </span>
     </div>
 
@@ -147,13 +145,6 @@
         await fetch('/api/peacock-admin/logout', { method: 'POST' });
       } catch (e) {}
       location.href = '/peacock-admin-login';
-    });
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      if (typeof persist === 'function') persist();
-      const s = document.getElementById('saveStatus');
-      if (s) {
-        s.textContent = '✓ Changes saved to this browser (' + new Date().toLocaleTimeString() + '). Click "Publish to store" to make them live.';
-      }
     });
 
     // Tabs: Manage Catalog / Orders
