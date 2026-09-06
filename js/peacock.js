@@ -466,7 +466,7 @@ function initListing() {
     let activeCat = cat;
     if (bar) {
       const renderChips = () => {
-        const subs = [...new Set(PRODUCTS.filter((p) => p.cat === activeCat).map((p) => p.subcat))]
+        const subs = [...new Set(PRODUCTS.filter((p) => p.cat === activeCat && p.img).map((p) => p.subcat))]
           .filter((s) => s !== "Readymade Blouses"); // hidden from Peacock nav/filters
         bar.innerHTML = subs.map((s) =>
           `<button class="chip ${s === activeSub ? "chip-on" : ""}" data-sub="${s}">${s}</button>`).join("");
@@ -486,7 +486,7 @@ function initListing() {
       const sel = catList ? (document.querySelector('input[name="cat"]:checked')?.value || "") : cat;
       const maxP = $("#priceMax")?.value || 99999;
       const sort = $("#sortBy")?.value || "popularity";
-      let list = PRODUCTS.slice();
+      let list = PRODUCTS.filter((p) => p.img).slice();
       if (sel) list = list.filter((p) => p.cat === sel);
       if (activeSub) list = list.filter((p) => p.subcat === activeSub);
       if (subcat && !activeSub) list = list.filter((p) => p.subcat === subcat);
