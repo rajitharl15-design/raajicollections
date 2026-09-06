@@ -114,6 +114,31 @@ app.post('/api/peacock-admin/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// Published Peacock store catalog (public read)
+app.get('/api/peacock/catalog', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query('SELECT products FROM peacock_catalog WHERE id = 1');
+    if (rows.length === 0) return res.status(404).json({ error: 'No catalog published yet.' });
+    res.json({ products: rows[0].products });
+  } catch (err) { next(err); }
+});
+
+// Publish catalog from the Peacock admin (auth required)
+app.post('/api/peacock-admin/publish', async (req, res, next) => {
+  try {
+    const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
+    if (!user || user !== peacockUsername()) return res.status(401).json({ error: 'Unauthorized' });
+    const { products } = req.body || {};
+    if (!Array.isArray(products)) return res.status(400).json({ error: 'products must be an array' });
+    await pool.query(
+      `INSERT INTO peacock_catalog(id, products, updated_at) VALUES(1, $1::jsonb, NOW())
+       ON CONFLICT (id) DO UPDATE SET products = EXCLUDED.products, updated_at = NOW()`,
+      [JSON.stringify(products)]
+    );
+    res.json({ ok: true, count: products.length });
+  } catch (err) { next(err); }
+});
+
 // ---- Admin authentication ----
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body || {};

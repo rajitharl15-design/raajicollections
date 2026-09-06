@@ -237,4 +237,18 @@ export async function migrate() {
   } catch (err) {
     console.warn('[migrate] peacock_admin_settings table skipped:', err.message);
   }
+
+  console.log('[migrate] applying peacock_catalog table...');
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS peacock_catalog (
+          id         INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+          products   JSONB NOT NULL,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('[migrate] peacock_catalog table ready.');
+  } catch (err) {
+    console.warn('[migrate] peacock_catalog table skipped:', err.message);
+  }
 }

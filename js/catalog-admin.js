@@ -2,6 +2,8 @@
 const $ = (sel, c = document) => c.querySelector(sel);
 const KEY = "ms_overrides";
 let overrides = JSON.parse(localStorage.getItem(KEY) || "{}");
+let deleted = new Set(JSON.parse(localStorage.getItem("ms_deleted") || "[]"));
+function persistDeleted() { localStorage.setItem("ms_deleted", JSON.stringify([...deleted])); }
 let activeCat = "";
 let activeSubcat = "";
 
@@ -37,15 +39,17 @@ function renderSubcatFilter() {
 
 function rowHTML(p) {
   const o = overrides[p.id] || {};
+  const isDeleted = deleted.has(p.id);
   const effImg = o.img !== undefined ? o.img : p.img;
   const thumb = effImg ? `<img class="thumb" src="${effImg}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-ph',textContent:'📷'}))">`
                     : `<div class="thumb-ph">${p.icon || "🎽"}</div>`;
-  const dirty = (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size || o.img !== undefined) ? "row-dirty" : "";
+  const dirty = isDeleted || (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size || o.img !== undefined) ? "row-dirty" : "";
   return `<tr class="${dirty}" data-id="${p.id}">
     <td><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
       ${thumb}
       <label class="chip" style="padding:4px 8px;font-size:.68rem;cursor:pointer">⬆ img<input type="file" accept="image/*" data-upimg="${p.id}" hidden></label>
-      ${effImg ? `<button class="chip" style="padding:4px 8px;font-size:.68rem" data-delimg="${p.id}">✕ del</button>` : ""}
+      ${effImg ? `<button class="chip" style="padding:4px 8px;font-size:.68rem" data-delimg="${p.id}">✕ del img</button>` : ""}
+      <button class="chip" style="padding:4px 8px;font-size:.68rem" data-toggle-del="${p.id}">${isDeleted ? "↩ undo" : "🗑 delete"}</button>
     </div></td>
     <td><input data-f="name" value="${esc(o.name !== undefined ? o.name : p.name)}" title="${esc(p.name)}"></td>
     <td><select class="cat-sel" data-f="cat">${catOptions(o.cat || p.cat)}</select></td>
@@ -98,38 +102,68 @@ function initToken() {
   });
 }
 
-function exportDataJS() {
-  const list = PRODUCTS.map((p) => {
+// Build the final live catalog: apply edits AND drop deleted products.
+function finalCatalog() {
+  return PRODUCTS.filter((p) => !deleted.has(p.id)).map((p) => {
     const o = overrides[p.id] || {};
-    const img = o.img !== undefined ? o.img : p.img;
-    const effPrice = o.price !== undefined ? o.price : p.price;
-    const effOld = o.old !== undefined ? o.old : (p.old || 0);
-    const effName = o.name !== undefined ? o.name : p.name;
-    const effCat = o.cat || p.cat;
-    const effSub = o.subcat || p.subcat;
-    const effSize = (o.size || (p.size || []).join(",")).split(",").map((s) => s.trim()).filter(Boolean);
+    return {
+      id: p.id,
+      name: o.name !== undefined ? o.name : p.name,
+      cat: o.cat || p.cat,
+      subcat: o.subcat || p.subcat,
+      price: o.price !== undefined ? o.price : p.price,
+      old: o.old !== undefined ? o.old : (p.old || 0),
+      img: o.img !== undefined ? o.img : p.img,
+      size: (o.size || (p.size || []).join(",")).split(",").map((s) => s.trim()).filter(Boolean),
+      ...(p.icon ? { icon: p.icon } : {}),
+      ...(p.grad ? { grad: p.grad } : {}),
+      ...(p.rating ? { rating: p.rating } : {}),
+      ...(p.desc ? { desc: p.desc } : {}),
+    };
+  });
+}
+
+async function publish() {
+  const list = finalCatalog();
+  try {
+    const key = localStorage.getItem("peacock_admin_key") || "";
+    const res = await fetch("/api/peacock-admin/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(key ? { "x-admin-key": key } : {}) },
+      body: JSON.stringify({ products: list }),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.error || ("Publish failed (" + res.status + ")"));
+    $("#saveStatus").textContent = "✓ Published to store — " + list.length + " products live now";
+  } catch (err) {
+    $("#saveStatus").textContent = "✗ " + err.message + " (are you signed in? check the Admin login)";
+  }
+}
+
+function exportDataJS() {
+  const list = finalCatalog().map((p) => {
     const fields = [`  { id: ${p.id}`];
-    fields.push(`name: ${JSON.stringify(effName)}`);
-    fields.push(`cat: ${JSON.stringify(effCat)}`);
-    fields.push(`subcat: ${JSON.stringify(effSub)}`);
-    fields.push(`price: ${effPrice}`);
-    fields.push(`old: ${effOld}`);
-    if (p.img || (o.img !== undefined)) fields.push(`img: ${JSON.stringify(img)}`);
-    if (p.icon && (o.img === undefined || o.img)) fields.push(`icon: ${JSON.stringify(p.icon)}`);
-    if (p.grad && (o.img === undefined || o.img)) fields.push(`grad: ${JSON.stringify(p.grad)}`);
+    fields.push(`name: ${JSON.stringify(p.name)}`);
+    fields.push(`cat: ${JSON.stringify(p.cat)}`);
+    fields.push(`subcat: ${JSON.stringify(p.subcat)}`);
+    fields.push(`price: ${p.price}`);
+    fields.push(`old: ${p.old}`);
+    if (p.img) fields.push(`img: ${JSON.stringify(p.img)}`);
+    if (p.icon) fields.push(`icon: ${JSON.stringify(p.icon)}`);
+    if (p.grad) fields.push(`grad: ${JSON.stringify(p.grad)}`);
     if (p.rating) fields.push(`rating: ${p.rating}`);
-    fields.push(`size: ${JSON.stringify(effSize)}`);
+    fields.push(`size: ${JSON.stringify(p.size)}`);
     if (p.desc) fields.push(`desc: ${JSON.stringify(p.desc)}`);
     return fields.join(", ") + " },";
   }).join("\n");
-  const js = "const PRODUCTS = [\n" + list + "\n];\n\nfunction productById(id) {\n  return PRODUCTS.find((p) => p.id === Number(id));\n}\n\nconst CATS = [\"Women\", \"Men\", \"Kids\", \"Accessories\"];\nconst SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];\n";
+  const js = "let PRODUCTS = [\n" + list + "\n];\n\nfunction productById(id) {\n  return PRODUCTS.find((p) => p.id === Number(id));\n}\n\nlet CATS = [\"Women\", \"Men\", \"Kids\", \"Accessories\"];\nlet SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];\n";
   const blob = new Blob([js], { type: "text/javascript" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "data.js";
   a.click();
   URL.revokeObjectURL(a.href);
-  $("#saveStatus").textContent = "✓ Exported data.js — replace js/data.js and push to make permanent";
+  $("#saveStatus").textContent = "✓ Exported data.js — replace js/data.js and push (or just use Publish)";
 }
 
 function setImageLocal(id, dataUrl) {
@@ -184,14 +218,24 @@ document.addEventListener("click", (e) => {
     overrides[id].img = "";   // "" = no image -> fall back to icon/gradient
     persist();
     renderRows();
-    $("#saveStatus").textContent = "✓ Image removed locally (export data.js to make permanent)";
+    $("#saveStatus").textContent = "✓ Image removed (Publish or Export to save)";
+    return;
+  }
+  const tog = e.target.closest("[data-toggle-del]");
+  if (tog) {
+    const id = Number(tog.dataset.toggleDel);
+    if (deleted.has(id)) deleted.delete(id); else deleted.add(id);
+    persistDeleted();
+    renderRows();
+    $("#saveStatus").textContent = deleted.has(id) ? "Product marked for deletion — click Publish to remove it" : "Product undeleting — click Publish to keep it";
     return;
   }
   const cf = e.target.closest("[data-cat]");
   if (cf) { activeCat = cf.dataset.cat; activeSubcat = ""; renderFilters(); renderRows(); }
   if (e.target.id === "exportBtn") { persist(); exportDataJS(); }
+  if (e.target.id === "publishBtn") { persist(); publish(); }
   if (e.target.id === "reloadBtn") {
-    if (confirm("Clear all locally saved edits on this device?")) { localStorage.removeItem(KEY); location.reload(); }
+    if (confirm("Clear all locally saved edits and deletions on this device?")) { localStorage.removeItem(KEY); localStorage.removeItem("ms_deleted"); location.reload(); }
   }
 });
 

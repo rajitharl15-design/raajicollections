@@ -1,4 +1,4 @@
-const PRODUCTS = [
+let PRODUCTS = [
   { id: 1000, name: "Kids Wear 1786250547381 6055", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/Kids-wear-1786250547381-6055.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
   { id: 1001, name: "Kids Wear 1786250619119 5126", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/Kids-wear-1786250619119-5126.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
   { id: 1002, name: "Kids Wear 1786375321296 4981", cat: "Kids", subcat: "Kids Wear", price: 599, old: 1078, img: "images/products/Kids-wear-1786375321296-4981.jpg", size: ["4", "6", "8", "10"], rating: 4.6 },
@@ -244,5 +244,5 @@ function productById(id) {
   return PRODUCTS.find((p) => p.id === Number(id));
 }
 
-const CATS = ["Women", "Men", "Kids", "Accessories"]; 
-const SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];
+let CATS = ["Women", "Men", "Kids", "Accessories"]; 
+let SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];

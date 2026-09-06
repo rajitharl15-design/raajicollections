@@ -546,13 +546,25 @@ function applyOverrides() {
   } catch (e) {}
 }
 
-function boot() {
-  // NOTE: local admin overrides no longer apply to the public store. To publish
-  // edits (name/price/image), use the Catalog Editor's "Export data.js" and push.
+async function boot() {
   mountApp();
   document.body.insertAdjacentHTML("beforeend", overlayHTML());
   bindHeader();
   $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
+  // Prefer the catalog published from the Peacock admin (backend) so edits and
+  // deletions appear live. Fall back to the bundled data.js if the backend is
+  // unreachable.
+  try {
+    const r = await fetch("https://raaji-collections.onrender.com/api/peacock/catalog?cb=" + Date.now(), { cache: "no-store" });
+    if (r.ok) {
+      const d = await r.json();
+      if (d && Array.isArray(d.products) && d.products.length) {
+        PRODUCTS = d.products;
+        CATS = [...new Set(PRODUCTS.map((p) => p.cat))];
+        SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];
+      }
+    }
+  } catch (e) {}
   initHome();
   initListing();
 }
