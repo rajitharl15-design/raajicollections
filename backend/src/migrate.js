@@ -266,6 +266,9 @@ export async function migrate() {
           created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
       CREATE INDEX IF NOT EXISTS idx_peacock_orders_id ON peacock_orders(id);
+      ALTER TABLE peacock_orders
+        ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'new',
+        ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) NOT NULL DEFAULT 'pending';
     `);
     console.log('[migrate] peacock_orders table ready.');
   } catch (err) {

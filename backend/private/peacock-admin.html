@@ -55,6 +55,9 @@
     .po-body p{ margin:4px 0; }
     .po-items{ display:flex; flex-direction:column; gap:3px; margin:6px 0; font-size:12px; color:var(--text-light); }
     .po-total{ font-weight:700; color:var(--primary); }
+    .po-tools{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:8px; }
+    .po-tools label{ display:flex; flex-direction:column; font-size:11px; color:var(--text-light); gap:3px; }
+    .po-tools select{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:7px 10px; border:1px solid var(--beige); border-radius:6px; background:var(--white); }
     .admin-filters label{ font-size:13px; color:var(--text-light); display:flex; flex-direction:column; gap:5px; }
     .raf-filter{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:9px 12px; border:1px solid var(--beige); border-radius:6px; background:var(--white); min-width:180px; }
     .np-panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--white); border:1px solid var(--beige); border-radius:8px; padding:14px; margin:14px 0; }
@@ -178,9 +181,42 @@
               <p>${esc(o.address || '')}</p>
               <div class="po-items">${(o.items || []).map(i => `<span>${i.qty} × ${esc(i.name)}${i.size ? ' (' + esc(i.size) + ')' : ''} — ₹${Number(i.price) * Number(i.qty)}</span>`).join('')}</div>
               <p class="po-total">Total: ₹${Number(o.total).toLocaleString('en-IN')}</p>
-              ${o.phone ? `<a class="btn btn-outline btn-sm" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${String(o.phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi ' + o.customer_name + ', your Peacock order ' + o.order_number + ' (₹' + o.total + ') is confirmed.')}"><i class="fab fa-whatsapp"></i> WhatsApp customer</a>` : ''}
+              <div class="po-tools">
+                <label>Status
+                  <select data-ord-status="${o.id}">
+                    ${['new','packed','shipped','delivered','cancelled'].map(s => `<option value="${s}" ${(o.status||'new')===s?'selected':''}>${s}</option>`).join('')}
+                  </select>
+                </label>
+                <label>Payment
+                  <select data-ord-pay="${o.id}">
+                    ${['pending','paid'].map(s => `<option value="${s}" ${(o.payment_status||'pending')===s?'selected':''}>${s==='pending'?'Unpaid':'Paid'}</option>`).join('')}
+                  </select>
+                </label>
+                ${o.phone ? `<a class="btn btn-outline btn-sm" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${String(o.phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Hi ' + o.customer_name + ', your Peacock order ' + o.order_number + ' (₹' + o.total + ').')}"><i class="fab fa-whatsapp"></i> WhatsApp customer</a>` : ''}
+                <span class="pm-saved" id="poSaved-${o.id}"></span>
+              </div>
             </div>
           </div>`).join('');
+      box.querySelectorAll('[data-ord-status], [data-ord-pay]').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const id = sel.getAttribute('data-ord-status') || sel.getAttribute('data-ord-pay');
+          const statusSel = box.querySelector('[data-ord-status="' + id + '"]');
+          const paySel = box.querySelector('[data-ord-pay="' + id + '"]');
+          const saved = document.getElementById('poSaved-' + id);
+          if (saved) saved.textContent = 'Saving…';
+          try {
+            const key = localStorage.getItem('peacock_admin_key') || '';
+            const res = await fetch('/api/peacock-admin/orders/' + id, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json', ...(key ? { 'x-admin-key': key } : {}) },
+              body: JSON.stringify({ status: statusSel ? statusSel.value : undefined, payment_status: paySel ? paySel.value : undefined }),
+            });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || 'Failed');
+            if (saved) { saved.textContent = '✓ Saved ' + new Date().toLocaleTimeString(); setTimeout(() => saved.textContent = '', 2000); }
+          } catch (err) { if (saved) saved.textContent = '✗ ' + err.message; }
+        });
+      });
       } catch (err) {
         box.innerHTML = '<p class="admin-loading">Failed to load orders: ' + esc(err.message) + '</p>';
       }

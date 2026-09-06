@@ -164,10 +164,31 @@ app.get('/api/peacock-admin/orders', async (req, res, next) => {
     const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
     if (!user || user !== peacockUsername()) return res.status(401).json({ error: 'Unauthorized' });
     const { rows } = await pool.query(
-      `SELECT id, order_number, customer_name, phone, address, items, total, created_at
+      `SELECT id, order_number, customer_name, phone, address, items, total, status, payment_status, created_at
          FROM peacock_orders ORDER BY id DESC LIMIT 200`
     );
     res.json({ orders: rows });
+  } catch (err) { next(err); }
+});
+
+// Update a Peacock order's status / payment (admin)
+app.patch('/api/peacock-admin/orders/:id', async (req, res, next) => {
+  try {
+    const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
+    if (!user || user !== peacockUsername()) return res.status(401).json({ error: 'Unauthorized' });
+    const { status, payment_status } = req.body || {};
+    const allowed = ['new', 'packed', 'shipped', 'delivered', 'cancelled'];
+    if (status && !allowed.includes(status)) return res.status(400).json({ error: 'invalid order status' });
+    if (payment_status && !['pending', 'paid'].includes(payment_status)) return res.status(400).json({ error: 'invalid payment status' });
+    await pool.query(
+      `UPDATE peacock_orders SET
+         status = COALESCE($1, status),
+         payment_status = COALESCE($2, payment_status)
+       WHERE id = $3`,
+      [status || null, payment_status || null, req.params.id]
+    );
+    const { rows } = await pool.query('SELECT id, order_number, status, payment_status FROM peacock_orders WHERE id = $1', [req.params.id]);
+    res.json({ order: rows[0] });
   } catch (err) { next(err); }
 });
 
