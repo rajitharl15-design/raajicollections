@@ -41,23 +41,34 @@ function rowHTML(p) {
   const o = overrides[p.id] || {};
   const isDeleted = deleted.has(p.id);
   const effImg = o.img !== undefined ? o.img : p.img;
-  const thumb = effImg ? `<img class="thumb" src="${effImg}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'thumb-ph',textContent:'📷'}))">`
-                    : `<div class="thumb-ph">${p.icon || "🎽"}</div>`;
-  const dirty = isDeleted || (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size || o.img !== undefined) ? "row-dirty" : "";
-  return `<tr class="${dirty}" data-id="${p.id}">
-    <td><div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
-      ${thumb}
-      <label class="chip" style="padding:4px 8px;font-size:.68rem;cursor:pointer">⬆ img<input type="file" accept="image/*" data-upimg="${p.id}" hidden></label>
-      ${effImg ? `<button class="chip" style="padding:4px 8px;font-size:.68rem" data-delimg="${p.id}">✕ del img</button>` : ""}
-      <button class="chip" style="padding:4px 8px;font-size:.68rem" data-toggle-del="${p.id}">${isDeleted ? "↩ undo" : "🗑 delete"}</button>
-    </div></td>
-    <td><input data-f="name" value="${esc(o.name !== undefined ? o.name : p.name)}" title="${esc(p.name)}"></td>
-    <td><select class="cat-sel" data-f="cat">${catOptions(o.cat || p.cat)}</select></td>
-    <td><select class="subcat-sel" data-f="subcat">${subcatOptions(o.subcat || p.subcat, o.cat || p.cat)}</select></td>
-    <td><input class="narrow" type="number" min="0" data-f="price" value="${o.price !== undefined ? o.price : p.price}"></td>
-    <td><input class="narrow" type="number" min="0" data-f="old" value="${o.old !== undefined ? o.old : p.old || 0}"></td>
-    <td><input data-f="size" value="${esc((o.size || (p.size || []).join(",")))}" placeholder="S,M,L,XL"></td>
-  </tr>`;
+  const effName = o.name !== undefined ? o.name : p.name;
+  const effPrice = o.price !== undefined ? o.price : p.price;
+  const effOld = o.old !== undefined ? o.old : (p.old || 0);
+  const effSub = o.subcat || p.subcat;
+  const effSize = ((o.size || (p.size || []).join(",")) || "");
+  const dirty = isDeleted || (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size || o.img !== undefined) ? "pm-dirty" : "";
+  return `
+  <div class="pm-card ${dirty}" data-id="${p.id}">
+    <div class="pm-img">
+      ${effImg ? `<img src="${effImg}" alt="${esc(effName)}" onerror="this.remove()">` : `<span class="pm-ph">${p.icon || "📷"}</span>`}
+      <label class="pm-imgbtn" title="Upload image">📷<input type="file" accept="image/*" data-upimg="${p.id}" hidden></label>
+      ${effImg ? `<button class="pm-imgbtn" data-delimg="${p.id}" title="Remove image">✕</button>` : ""}
+    </div>
+    <div class="pm-body">
+      <input class="pm-name" data-f="name" value="${esc(effName)}" placeholder="Product name">
+      <select class="subcat-sel" data-f="subcat">${subcatOptions(effSub, o.cat || p.cat)}</select>
+      <div class="pm-price">
+        <input type="number" min="0" data-f="price" value="${effPrice}" title="Price">
+        <input type="number" min="0" data-f="old" value="${effOld}" title="Old price">
+      </div>
+      <input data-f="size" value="${esc(effSize)}" placeholder="Sizes e.g. S,M,L">
+      <div class="pm-actions">
+        <button class="btn btn-primary btn-sm" data-save-p="${p.id}"><i class="fas fa-save"></i> Save</button>
+        <button class="chip" data-toggle-del="${p.id}">${isDeleted ? "↩ Undo" : "🗑 Delete"}</button>
+      </div>
+      <span class="pm-saved" id="pmSaved-${p.id}"></span>
+    </div>
+  </div>`;
 }
 
 function renderRows() {
@@ -69,16 +80,22 @@ function renderRows() {
   $("#totalCount").textContent = PRODUCTS.length;
   $("#shownCount").textContent = list.length;
   $("#rows").querySelectorAll("input,select").forEach((el) => el.addEventListener("change", onEdit));
+  $("#rows").querySelectorAll("[data-save-p]").forEach((b) => b.addEventListener("click", () => {
+    persist();
+    const el = document.getElementById("pmSaved-" + b.dataset.saveP);
+    if (el) { el.textContent = "✓ Saved to this browser (" + new Date().toLocaleTimeString() + ")"; }
+  }));
 }
 
 function onEdit(e) {
   const el = e.target;
-  const tr = el.closest("tr");
-  const id = Number(tr.dataset.id);
+  const card = el.closest(".pm-card");
+  if (!card) return;
+  const id = Number(card.dataset.id);
   overrides[id] = overrides[id] || {};
   overrides[id][el.dataset.f] = el.value;
   if (overrides[id].old === "0" || overrides[id].old === "") overrides[id].old = 0;
-  tr.classList.add("row-dirty");
+  card.classList.add("pm-dirty");
   markSaved(true);
 }
 
