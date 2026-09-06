@@ -71,6 +71,7 @@
       <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <label class="token-row">Upload token <input id="tokenInput" type="text" placeholder="(optional)" style="width:110px;padding:6px 8px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px"></label>
         <button class="chip" id="reloadBtn">↺ Clear edits</button>
+        <button class="btn btn-primary btn-sm" id="saveBtn"><i class="fas fa-save"></i> Save changes</button>
         <button class="btn btn-primary btn-sm" id="exportBtn">⬇ Export data.js</button>
       </span>
     </div>
@@ -99,6 +100,13 @@
         await fetch('/api/peacock-admin/logout', { method: 'POST' });
       } catch (e) {}
       location.href = '/peacock-admin-login';
+    });
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      if (typeof persist === 'function') persist();
+      const s = document.getElementById('saveStatus');
+      if (s) {
+        s.textContent = '✓ Changes saved to this browser (' + new Date().toLocaleTimeString() + '). Click "Export data.js" to make them live.';
+      }
     });
   </script>
 </body>
