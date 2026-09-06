@@ -156,8 +156,9 @@ function renderInto(selector, list) {
 // Build a home row with variety: round-robin across subcategories so no single
 // category (e.g. Kids) fills an entire "New in"/"Best" section.
 function spreadHome(n) {
-  const subs = [...new Set(PRODUCTS.map((p) => p.subcat))];
-  const buckets = subs.map((s) => PRODUCTS.filter((p) => p.subcat === s));
+  const pimg = PRODUCTS.filter((p) => p.img);
+  const subs = [...new Set(pimg.map((p) => p.subcat))];
+  const buckets = subs.map((s) => pimg.filter((p) => p.subcat === s));
   const out = [];
   for (let i = 0; out.length < n; i++) {
     let added = false;
@@ -533,9 +534,9 @@ function initHome() {
 
   renderInto("#rowNew", spreadHome(8));
   renderInto("#rowBest", spreadHome(8));
-  renderInto("#rowWomen", PRODUCTS.filter((p) => p.cat === "Women").slice(0, 6));
-  renderInto("#rowMen", PRODUCTS.filter((p) => p.cat === "Men").slice(0, 5));
-  renderInto("#rowAccess", PRODUCTS.filter((p) => p.cat === "Accessories").slice(0, 5));
+  renderInto("#rowWomen", PRODUCTS.filter((p) => p.cat === "Women" && p.img).slice(0, 6));
+  renderInto("#rowMen", PRODUCTS.filter((p) => p.cat === "Men" && p.img).slice(0, 5));
+  renderInto("#rowAccess", PRODUCTS.filter((p) => p.cat === "Accessories" && p.img).slice(0, 5));
 }
 
 /* ---------- Boot ---------- */
