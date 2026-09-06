@@ -118,9 +118,18 @@ function closeAllDrawers() {
 /* ---------- Product card ---------- */
 function offPct(p) { return p.old ? Math.round((1 - p.price / p.old) * 100) : 0; }
 
+// Version-stamp image URLs so a freshly published/edited image isn't served
+// from the browser/installed-app cache. imgVer is set from the catalog's
+// updated_at in boot().
+let imgVer = Date.now();
+function imgv(u) {
+  if (!u) return u;
+  return u + (u.includes("?") ? "&" : "?") + "v=" + imgVer;
+}
+
 // Renders a real uploaded image, or falls back to the icon when none.
 function media(p, cls) {
-  if (p.img) return `<img class="${cls || ""}" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`;
+  if (p.img) return `<img class="${cls || ""}" src="${imgv(p.img)}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`;
   return `<span class="icon ${cls || ""}">${p.icon || "🎽"}</span>`;
 }
 
@@ -574,6 +583,7 @@ async function boot() {
         PRODUCTS = d.products;
         CATS = [...new Set(PRODUCTS.map((p) => p.cat))];
         SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];
+        if (d.updated_at) imgVer = d.updated_at;
       }
     }
   } catch (e) {}

@@ -117,9 +117,11 @@ app.post('/api/peacock-admin/logout', (req, res) => {
 // Published Peacock store catalog (public read)
 app.get('/api/peacock/catalog', async (req, res, next) => {
   try {
-    const { rows } = await pool.query('SELECT products FROM peacock_catalog WHERE id = 1');
+    const { rows } = await pool.query('SELECT products, updated_at FROM peacock_catalog WHERE id = 1');
     if (rows.length === 0) return res.status(404).json({ error: 'No catalog published yet.' });
-    res.json({ products: rows[0].products });
+    const at = rows[0].updated_at ? new Date(rows[0].updated_at).getTime() : Date.now();
+    res.set('Cache-Control', 'no-store');
+    res.json({ products: rows[0].products, updated_at: at });
   } catch (err) { next(err); }
 });
 
