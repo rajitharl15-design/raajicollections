@@ -3,6 +3,7 @@ const $ = (sel, c = document) => c.querySelector(sel);
 const KEY = "ms_overrides";
 let overrides = JSON.parse(localStorage.getItem(KEY) || "{}");
 let activeCat = "";
+let activeSubcat = "";
 
 function catOptions(sel) {
   return `<option value="">(none)</option>` + CATS.map((c) => `<option ${c === sel ? "selected" : ""}>${c}</option>`).join("");
@@ -20,8 +21,19 @@ function renderFilters() {
     `<button class="chip ${!activeCat ? "chip-on" : ""}" data-cat="">All</button>` +
     CATS.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("") +
     extra.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("");
+  renderSubcatFilter();
 }
 function renderCatFilter() {}
+
+function renderSubcatFilter() {
+  const el = $("#subcatFilter");
+  if (!el) return;
+  const subs = activeCat
+    ? [...new Set(PRODUCTS.filter((p) => p.cat === activeCat).map((p) => p.subcat))]
+    : SUBCATS;
+  el.innerHTML = `<option value="">(all subcategories)</option>` +
+    subs.map((s) => `<option value="${esc(s)}" ${s === activeSubcat ? "selected" : ""}>${esc(s)}</option>`).join("");
+}
 
 function rowHTML(p) {
   const o = overrides[p.id] || {};
@@ -48,6 +60,7 @@ function renderRows() {
   let list = PRODUCTS.slice();
   if (activeCat === "Readymade Blouses") list = list.filter((p) => p.subcat === "Readymade Blouses");
   else if (activeCat) list = list.filter((p) => p.cat === activeCat);
+  if (activeSubcat) list = list.filter((p) => p.subcat === activeSubcat);
   $("#rows").innerHTML = list.map(rowHTML).join("");
   $("#totalCount").textContent = PRODUCTS.length;
   $("#shownCount").textContent = list.length;
@@ -144,6 +157,11 @@ async function uploadToBackend(id, file) {
 }
 
 document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "subcatFilter") {
+    activeSubcat = e.target.value;
+    renderRows();
+    return;
+  }
   const up = e.target.closest("[data-upimg]");
   if (up && up.files && up.files[0]) {
     const id = Number(up.dataset.upimg);
@@ -170,7 +188,7 @@ document.addEventListener("click", (e) => {
     return;
   }
   const cf = e.target.closest("[data-cat]");
-  if (cf) { activeCat = cf.dataset.cat; renderFilters(); renderRows(); }
+  if (cf) { activeCat = cf.dataset.cat; activeSubcat = ""; renderFilters(); renderRows(); }
   if (e.target.id === "exportBtn") { persist(); exportDataJS(); }
   if (e.target.id === "reloadBtn") {
     if (confirm("Clear all locally saved edits on this device?")) { localStorage.removeItem(KEY); location.reload(); }
