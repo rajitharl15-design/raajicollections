@@ -9,7 +9,7 @@
     'ready-made-blouses': { cat: 'Women', sub: 'Readymade Blouses' },
     'night-dresses': { cat: 'Women', sub: 'Night Dresses' },
     'tops': { cat: 'Women', sub: 'Dresses' },
-    'jewellery': { cat: 'Accessories', sub: 'Jewellery' },
+    'jewellery': { cat: 'Accessories', sub: null },
     'kids-wear': { cat: 'Kids', sub: null },
     'kids-boys': { cat: 'Kids', sub: 'Boys' },
     'kids-girls': { cat: 'Kids', sub: 'Girls' },
