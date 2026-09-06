@@ -1,0 +1,25 @@
+name: Keep backend awake
+
+# Render's free tier sleeps after ~15 minutes of inactivity, which causes a
+# cold-start "Initializing"/5xx delay on first open. Pinging /api/health every
+# 5 minutes keeps the instance warm so the site and admin load instantly.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit Render health endpoint
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 \
+            https://raaji-collections.onrender.com/api/health || true)
+          echo "health check returned HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::warning::Backend returned $code for /api/health"
+          fi
