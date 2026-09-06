@@ -24,9 +24,22 @@ async function loadDbPrices() {
     const data = await res.json();
     dbPrices = {};
     (data.products || []).forEach(p => {
+      let price = Number(p.price);
+      let oldPrice = p.old_price != null ? Number(p.old_price) : null;
+      // DB catalog may be missing pricing; fall back to the static catalog
+      // (js/data.js) so the storefront never shows ₹0.
+      let sb = null;
+      if (typeof PRODUCTS !== 'undefined' && PRODUCTS) {
+        const key = String(p.image_url || '').replace(/\\/g, '/').split('/').pop().toLowerCase();
+        sb = PRODUCTS.find(s => String(s.img || '').replace(/\\/g, '/').split('/').pop().toLowerCase() === key) || null;
+      }
+      if (sb) {
+        if (price <= 0) price = Number(sb.price);
+        if (oldPrice == null || oldPrice <= 0) oldPrice = sb.old != null ? Number(sb.old) : oldPrice;
+      }
       dbPrices[p.name] = {
-        price: Number(p.price),
-        old_price: p.old_price != null ? Number(p.old_price) : null,
+        price,
+        old_price: oldPrice,
         stock_qty: Number(p.stock_qty),
       };
     });

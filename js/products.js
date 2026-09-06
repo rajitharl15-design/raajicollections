@@ -306,6 +306,21 @@ function openQuickView(product, isKids) {
   document.body.appendChild(overlay);
 }
 
+// Fall back to the static catalog (js/data.js -> PRODUCTS) for any price that
+// is missing or zero in the database, so items display with their correct
+// names/prices even if the DB catalog wasn't populated with pricing.
+function hydrateFromStatic(p) {
+  if (typeof PRODUCTS === 'undefined' || !PRODUCTS || !p) return p;
+  const urlKey = String(p.image_url || '').replace(/\\/g, '/').split('/').pop().toLowerCase();
+  const hit = PRODUCTS.find(s => String(s.img || '').replace(/\\/g, '/').split('/').pop().toLowerCase() === urlKey);
+  if (!hit) return p;
+  const merged = Object.assign({}, p);
+  if (merged.price == null || Number(merged.price) <= 0) merged.price = Number(hit.price) || merged.price;
+  if (merged.old_price == null || Number(merged.old_price) <= 0) merged.old_price = hit.old != null ? Number(hit.old) : merged.old_price;
+  if (!merged.name) merged.name = hit.name;
+  return merged;
+}
+
 window.ProductsRenderer = {
   apiBase: () => API_CONFIG.baseUrl || '',
   loaded: false,
@@ -330,7 +345,7 @@ window.ProductsRenderer = {
       const res = await fetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
       if (!res.ok) throw new Error('load failed');
       const data = await res.json();
-      let products = data.products || [];
+      let products = (data.products || []).map(hydrateFromStatic);
       const limitAttr = grid.getAttribute('data-limit');
       if (limitAttr) {
         const limit = parseInt(limitAttr, 10);
