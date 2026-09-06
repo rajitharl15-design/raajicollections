@@ -153,6 +153,22 @@ function renderInto(selector, list) {
   el.innerHTML = list.length ? list.map(cardHTML).join("") : '<div class="empty-state">No products found.</div>';
 }
 
+// Build a home row with variety: round-robin across subcategories so no single
+// category (e.g. Kids) fills an entire "New in"/"Best" section.
+function spreadHome(n) {
+  const subs = [...new Set(PRODUCTS.map((p) => p.subcat))];
+  const buckets = subs.map((s) => PRODUCTS.filter((p) => p.subcat === s));
+  const out = [];
+  for (let i = 0; out.length < n; i++) {
+    let added = false;
+    for (const b of buckets) {
+      if (i < b.length) { out.push(b[i]); added = true; if (out.length >= n) break; }
+    }
+    if (!added) break;
+  }
+  return out;
+}
+
 /* ---------- Horizontal category carousel ---------- */
 const HCAT_CARDS = [
   { title: "Sarees", cat: "Women", subcat: "Sarees", icon: "🪷", grad: "linear-gradient(135deg,#7f9b8a,#33503f)" },
@@ -504,8 +520,8 @@ function initHome() {
   $("#next").addEventListener("click", () => go(i + 1));
   setInterval(() => go(i + 1), 5000);
 
-  renderInto("#rowNew", PRODUCTS.slice(0, 8));
-  renderInto("#rowBest", PRODUCTS.slice(8, 14).concat(PRODUCTS.slice(0, 2)));
+  renderInto("#rowNew", spreadHome(8));
+  renderInto("#rowBest", spreadHome(8));
   renderInto("#rowWomen", PRODUCTS.filter((p) => p.cat === "Women").slice(0, 6));
   renderInto("#rowMen", PRODUCTS.filter((p) => p.cat === "Men").slice(0, 5));
   renderInto("#rowAccess", PRODUCTS.filter((p) => p.cat === "Accessories").slice(0, 5));
