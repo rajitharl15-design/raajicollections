@@ -444,11 +444,14 @@ function initListing() {
           `<button class="chip ${s === activeSub ? "chip-on" : ""}" data-sub="${s}">${s}</button>`).join("");
       };
       renderChips();
-      $$(".chip", bar).forEach((ch) => ch.addEventListener("click", () => {
+      // Delegate clicks on the container so re-rendered chips stay clickable.
+      bar.addEventListener("click", (e) => {
+        const ch = e.target.closest(".chip");
+        if (!ch) return;
         activeSub = activeSub === ch.dataset.sub ? "" : ch.dataset.sub;
         renderChips();
         apply();
-      }));
+      });
     }
 
     const apply = () => {
