@@ -1,4 +1,4 @@
-const CACHE = 'raaji-cache-v27';
+const CACHE = 'raaji-cache-v28';
 const ASSETS = [
   '/raajicollections/',
   '/raajicollections/index.html',
@@ -16,6 +16,9 @@ const ASSETS = [
   '/raajicollections/js/config.js',
   '/raajicollections/js/cart.js',
   '/raajicollections/js/prices.js',
+  '/raajicollections/js/products.js',
+  '/raajicollections/js/static-products.js',
+  '/raajicollections/js/data.js',
   '/raajicollections/js/script.js',
   '/raajicollections/manifest.json'
 ];
@@ -32,6 +35,13 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const url = e.request.url;
+  // Never serve a stale cached price/catalog from the API - always hit the
+  // network so admin edits are reflected in the installed (PWA) app.
+  if (url.includes('/api/') || url.includes('onrender.com')) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
   e.respondWith(
     fetch(e.request)
       .then(res => {
