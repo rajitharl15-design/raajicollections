@@ -101,7 +101,7 @@ const FOOTER_HTML = `
       <a href="#"><i class="fab fa-pinterest"></i> Pinterest</a>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 Peacock Fashions · Built like the fashion you love</div>
+  <div class="footer-bottom">© 2026 Peacock Fashions · Built like the fashion you love · <a href="https://raaji-collections.onrender.com/peacock-admin" target="_blank" rel="noopener">Admin</a></div>
 `;
 
 function mountApp() {
