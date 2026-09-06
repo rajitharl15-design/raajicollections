@@ -320,6 +320,10 @@ window.ProductsRenderer = {
     const base = API_CONFIG.baseUrl || '';
     if (!base) return; // no backend, keep static cards
 
+    // Show a placeholder while the Render backend is cold-starting, so the
+    // section doesn't look broken/empty during the ~30-60s wake-up delay.
+    grid.innerHTML = '<p class="admin-loading">Loading products…</p>';
+
     try {
       const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
       const sep = qs ? '&' : '?';

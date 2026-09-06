@@ -36,27 +36,40 @@
     };
   }
 
+  function staticProducts(url) {
+    var base;
+    try { base = new URL(url, location.origin); } catch (e) { base = null; }
+    var cat = base ? base.searchParams.get('category') : '';
+    var map = CATEGORY[cat] || CATEGORY['all'];
+    var all = (typeof PRODUCTS !== 'undefined') ? PRODUCTS : [];
+    var list = all.slice();
+    if (map.cat) {
+      list = list.filter(function (p) { return p.cat === map.cat && (!map.sub || p.subcat === map.sub); });
+    } else if (cat === 'featured') {
+      list = list.filter(function (p) { return p.new || p.best; });
+    }
+    var products = list.map(toOld);
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: function () { return Promise.resolve({ products: products }); }
+    });
+  }
+
   var origFetch = window.fetch && window.fetch.bind(window);
   window.fetch = function (url, opts) {
     var s = String(url);
     if (s.indexOf('/api/products') !== -1) {
-      var base;
-      try { base = new URL(s, location.origin); } catch (e) { base = null; }
-      var cat = base ? base.searchParams.get('category') : '';
-      var map = CATEGORY[cat] || CATEGORY['all'];
-      var all = (typeof PRODUCTS !== 'undefined') ? PRODUCTS : [];
-      var list = all.slice();
-      if (map.cat) {
-        list = list.filter(function (p) { return p.cat === map.cat && (!map.sub || p.subcat === map.sub); });
-      } else if (cat === 'featured') {
-        list = list.filter(function (p) { return p.new || p.best; });
+      // Prefer the live backend so prices/images edited in the DB appear on the
+      // site. Fall back to the static catalog only when the backend is unreachable.
+      if (origFetch) {
+        return origFetch(url, opts).then(function (res) {
+          return (res && res.ok) ? res : staticProducts(url);
+        }, function () {
+          return staticProducts(url);
+        });
       }
-      var products = list.map(toOld);
-      return Promise.resolve({
-        ok: true,
-        status: 200,
-        json: function () { return Promise.resolve({ products: products }); }
-      });
+      return staticProducts(url);
     }
     return origFetch ? origFetch(url, opts) : Promise.reject(new Error('fetch unavailable'));
   };
