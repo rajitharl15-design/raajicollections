@@ -60,6 +60,11 @@
     .pm-card .subcat-sel{ width:150px; }
     .pm-actions{ display:flex; gap:8px; align-items:center; margin-left:auto; }
     .pm-saved{ font-size:12px; color:var(--primary); width:100%; }
+    .hide, .hidden{ display:none !important; }
+    .np-panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--white); border:1px solid var(--beige); border-radius:8px; padding:14px; margin:14px 0; }
+    .np-panel input,.np-panel select{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:9px 11px; border:1px solid var(--beige); border-radius:6px; background:var(--white); }
+    .np-panel input:focus,.np-panel select:focus{ outline:none; border-color:var(--primary); }
+    .np-panel #npName{ width:200px; }
     .admin-intro{ font-size:13px; color:var(--text-light); line-height:1.6; margin:12px 0; }
   </style>
 </head>
@@ -91,9 +96,21 @@
         <label class="token-row">Upload token <input id="tokenInput" type="text" placeholder="(optional)" style="width:110px;padding:6px 8px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px"></label>
         <button class="chip" id="reloadBtn">↺ Clear edits</button>
         <button class="btn btn-primary btn-sm" id="saveBtn"><i class="fas fa-save"></i> Save changes</button>
+        <button class="btn btn-outline btn-sm" id="addProductBtn"><i class="fas fa-plus"></i> Add product</button>
         <button class="btn btn-outline btn-sm" id="exportBtn">⬇ Export data.js</button>
         <button class="btn btn-primary btn-sm" id="publishBtn"><i class="fas fa-cloud-upload-alt"></i> Publish to store</button>
       </span>
+    </div>
+
+    <div id="npPanel" class="np-panel hidden">
+      <input id="npName" placeholder="Product name">
+      <select id="npCat"><option value="">Category…</option></select>
+      <select id="npSubcat"><option value="">Subcategory…</option></select>
+      <input id="npPrice" type="number" min="0" placeholder="Price (₹)">
+      <input id="npOld" type="number" min="0" placeholder="Old price (optional)">
+      <input id="npSize" placeholder="Sizes e.g. S,M,L">
+      <button class="btn btn-primary btn-sm" id="npSave">Add product</button>
+      <span class="pm-saved" id="npStatus"></span>
     </div>
 
     <div class="admin-filters" id="catFilter"></div>

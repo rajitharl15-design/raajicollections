@@ -256,6 +256,64 @@ document.addEventListener("click", (e) => {
   }
 });
 
-renderFilters();
-renderRows();
-initToken();
+// Load the currently published catalog from the backend so the editor reflects
+// the live store (including products added/edited/deleted via earlier sessions).
+(async function initAdmin() {
+  try {
+    const r = await fetch("/api/peacock/catalog", { cache: "no-store" });
+    if (r.ok) {
+      const d = await r.json();
+      if (d && Array.isArray(d.products) && d.products.length) {
+        PRODUCTS = d.products;
+        CATS = [...new Set(PRODUCTS.map((p) => p.cat))];
+        SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];
+      }
+    }
+  } catch (e) {}
+  initAddForm();
+  renderFilters();
+  renderRows();
+  initToken();
+})();
+
+// --- Add product ---
+let npLastId = 0;
+function initAddForm() {
+  const catSel = $("#npCat");
+  if (catSel) {
+    catSel.innerHTML = CATS.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    catSel.addEventListener("change", () => {
+      const sub = $("#npSubcat");
+      if (sub) {
+        const subs = catSel.value ? [...new Set(PRODUCTS.filter((p) => p.cat === catSel.value).map((p) => p.subcat))] : [];
+        sub.innerHTML = `<option value="">Subcategory…</option>` + subs.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+      }
+    });
+  }
+  btn("#addProductBtn").addEventListener("click", () => {
+    const p = $("#npPanel");
+    if (p) { p.classList.toggle("hidden"); if (!p.classList.contains("hidden")) $("#npStatus").textContent = ""; }
+  });
+  btn("#npSave").addEventListener("click", addProduct);
+}
+
+function btn(id) { return document.getElementById(id) || { addEventListener() {} }; }
+
+function addProduct() {
+  const name = ($("#npName") || {}).value || "";
+  const cat = ($("#npCat") || {}).value || "";
+  const sub = ($("#npSubcat") || {}).value || "";
+  const price = Number(($("#npPrice") || {}).value) || 0;
+  const old = Number(($("#npOld") || {}).value) || 0;
+  const size = String(($("#npSize") || {}).value || "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (!name || !cat) { const st = $("#npStatus"); if (st) st.textContent = "Name and Category are required."; return; }
+  const id = Math.max(PRODUCTS.reduce((m, p) => Math.max(m, p.id), 0), npLastId) + 1;
+  npLastId = id;
+  PRODUCTS.push({ id, name, cat, subcat: sub, price, old, size });
+  renderFilters();
+  renderRows();
+  const st = $("#npStatus");
+  if (st) st.style.color = "#2e7d32";
+  if (st) st.textContent = "✓ Added \"" + name + "\". Click 'Publish to store' to make it live.";
+  ["npName", "npPrice", "npOld", "npSize"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+}
