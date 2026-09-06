@@ -203,14 +203,27 @@ function renderCats(containerId) {
 }
 
 /* ---------- Modal (size) ---------- */
+function previewImage(p) {
+  if (!p || !p.img) return;
+  const ov = document.createElement("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:1000;cursor:zoom-out";
+  const img = document.createElement("img");
+  img.src = imgv(p.img);
+  img.style.cssText = "max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px";
+  ov.addEventListener("click", () => ov.remove());
+  ov.appendChild(img);
+  document.body.appendChild(ov);
+}
+
 function openSizeModal(p) {
   const sizes = p.size.join(", ");
   $("#modalBox").innerHTML = `
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-      <div style="width:74px;height:92px;border-radius:6px;background:${p.grad};display:grid;place-items:center;color:#fff;font-size:1.8rem;overflow:hidden">${media(p, "m-img")}</div>
+      <div class="m-img-wrap" style="width:150px;height:180px;border-radius:8px;background:${p.grad};display:grid;place-items:center;color:#fff;font-size:1.8rem;overflow:hidden;cursor:zoom-in">${media(p, "m-img")}</div>
       <div>
         <h3>${p.name}</h3>
         <div class="sub">${p.cat} · ${p.subcat || ""} · ${INR(p.price)}${p.old ? ` <s style="color:var(--muted)">${INR(p.old)}</s>` : ""}</div>
+        <button class="btn-ghost" style="margin-top:8px;cursor:pointer" id="mPreviewBtn"><i class="fas fa-expand"></i> View large image</button>
       </div>
     </div>
     <div class="sub">Select size · <b>${sizes}</b></div>
@@ -222,6 +235,10 @@ function openSizeModal(p) {
       <button class="add" data-confirm="${p.id}">Add to Bag</button>
     </div>`;
   $("#modal").classList.add("show");
+  const mwb = $("#modalBox .m-img-wrap");
+  if (mwb) mwb.addEventListener("click", () => { closeModal(); previewImage(p); });
+  const mbtn = $("#modalBox #mPreviewBtn");
+  if (mbtn) mbtn.addEventListener("click", () => { closeModal(); previewImage(p); });
   let sel = null;
   $$(".size-chip", $("#modalBox")).forEach((c) => c.addEventListener("click", () => {
     $$(".size-chip", $("#modalBox")).forEach((x) => { x.style.borderColor = "var(--line)"; x.style.color = "var(--ink)"; });
