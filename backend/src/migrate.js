@@ -222,4 +222,19 @@ export async function migrate() {
   } catch (err) {
     console.warn('[migrate] admin_settings table skipped:', err.message);
   }
+
+  console.log('[migrate] applying peacock_admin_settings table...');
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS peacock_admin_settings (
+          id            SERIAL PRIMARY KEY,
+          username      VARCHAR(100) NOT NULL UNIQUE,
+          password      TEXT NOT NULL,
+          created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    console.log('[migrate] peacock_admin_settings table ready.');
+  } catch (err) {
+    console.warn('[migrate] peacock_admin_settings table skipped:', err.message);
+  }
 }

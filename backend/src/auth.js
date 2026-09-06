@@ -65,16 +65,28 @@ export function verifyCookies(headers) {
 // ---- Separate Peacock store admin (its own login/credentials) ----
 export const PEACOCK_COOKIE = 'raaji_peacock_admin';
 
+// Credentials come from env (highest priority) OR from a DB row in
+// peacock_admin_settings (loaded into memory on boot). DB-backed setup means no
+// Render env vars are needed - the owner creates them once on the login page.
+let peacockSettings = null; // { username, password }
+export function setPeacockSettings(s) { peacockSettings = s || null; }
+
 export function peacockConfigured() {
-  return !!(process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS);
+  return !!(process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS) || !!peacockSettings;
+}
+function peacockCreds() {
+  if (process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS) {
+    return { username: process.env.PEACOCK_ADMIN_USER, password: process.env.PEACOCK_ADMIN_PASS };
+  }
+  return peacockSettings || null;
 }
 export function peacockUsername() {
-  return process.env.PEACOCK_ADMIN_USER || '';
+  const c = peacockCreds();
+  return c ? c.username : '';
 }
 export function validatePeacock(username, password) {
-  return peacockConfigured() &&
-    username === process.env.PEACOCK_ADMIN_USER &&
-    password === process.env.PEACOCK_ADMIN_PASS;
+  const c = peacockCreds();
+  return !!c && username === c.username && password === c.password;
 }
 export function setPeacockCookie(res) {
   res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=${encodeURIComponent(signToken(peacockUsername()))}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=43200`);

@@ -14,7 +14,7 @@ import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import pool, { initDbConnection } from './db.js';
 import crypto from 'crypto';
-import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie } from './auth.js';
+import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie, setPeacockSettings } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -71,9 +71,6 @@ const peacockAdminHtml = path.join(privateDir, 'peacock-admin.html');
 const peacockLoginHtml = path.join(privateDir, 'peacock-login.html');
 
 app.get('/peacock-admin', (req, res) => {
-  if (!peacockConfigured()) {
-    return res.status(500).send('Peacock admin not configured. Set PEACOCK_ADMIN_USER and PEACOCK_ADMIN_PASS env vars.');
-  }
   const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
   if (!user || user !== peacockUsername()) return res.redirect('/peacock-admin-login');
   const html = fs.readFileSync(peacockAdminHtml, 'utf8');
@@ -94,6 +91,23 @@ app.post('/api/peacock-admin/login', (req, res) => {
     return res.json({ ok: true });
   }
   return res.status(401).json({ error: 'Incorrect username or password.' });
+});
+app.get('/api/peacock-admin/status', (req, res) => {
+  res.json({ configured: peacockConfigured() });
+});
+app.post('/api/peacock-admin/setup', async (req, res) => {
+  try {
+    if (peacockConfigured()) return res.status(409).json({ error: 'Peacock admin is already configured.' });
+    const { username, password } = req.body || {};
+    if (!username || !password) return res.status(400).json({ error: 'Username and password are required.' });
+    if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    await pool.query('INSERT INTO peacock_admin_settings(username, password) VALUES($1,$2)', [username.trim(), password]);
+    setPeacockSettings({ username: username.trim(), password });
+    setPeacockCookie(res);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Setup failed: ' + err.message });
+  }
 });
 app.post('/api/peacock-admin/logout', (req, res) => {
   clearPeacockCookie(res);
@@ -178,10 +192,22 @@ async function loadAdminSettings() {
   }
 }
 
+async function loadPeacockSettings() {
+  try {
+    const { rows } = await pool.query('SELECT username, password FROM peacock_admin_settings ORDER BY id LIMIT 1');
+    setPeacockSettings(rows[0] ? { username: rows[0].username, password: rows[0].password } : null);
+    console.log('[auth] peacock admin settings loaded from DB:', rows[0] ? 'yes' : 'no');
+  } catch (err) {
+    setPeacockSettings(null);
+    console.warn('[auth] could not load peacock admin settings (DB may be off):', err.message);
+  }
+}
+
 async function start() {
   try {
     await initDbConnection();
     await loadAdminSettings();
+    await loadPeacockSettings();
   } catch (err) {
     console.error('[db] initDbConnection failed:', err.message);
   }

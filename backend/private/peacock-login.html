@@ -21,13 +21,25 @@
     .err { color:#D32F2F; font-size:13px; margin-top:10px; min-height:18px; }
     .back { font-size:12px; color:var(--text-light); margin-top:16px; }
     .back a { color:var(--primary); text-decoration:none; }
+    .hide { display:none; }
   </style>
 </head>
 <body>
   <div class="box">
     <div class="badge"><i class="fas fa-feather"></i></div>
-    <h1>Peacock Fashions</h1>
-    <p>Catalog Admin Login</p>
+    <h1 id="title">Peacock Fashions</h1>
+    <p id="subtitle">Catalog Admin</p>
+
+    <!-- First-time setup -->
+    <form id="setupForm" class="hide">
+      <input type="text" id="suUser" placeholder="Choose username" autocomplete="username">
+      <input type="password" id="suPass" placeholder="Choose password (6+ chars)" autocomplete="new-password">
+      <button type="submit">Create Peacock admin</button>
+      <p class="err" id="suErr"></p>
+      <p class="back" style="color:var(--text-light)">This is the FIRST setup. Your Peacock admin credentials are stored securely on the server.</p>
+    </form>
+
+    <!-- Login -->
     <form id="loginForm">
       <input type="text" id="username" placeholder="Username" autocomplete="username">
       <input type="password" id="password" placeholder="Password" autocomplete="current-password">
@@ -38,7 +50,34 @@
   </div>
   <script>
     (function () {
+      var setupForm = document.getElementById('setupForm');
+      var loginForm = document.getElementById('loginForm');
+      var suErr = document.getElementById('suErr');
       var err = document.getElementById('err');
+
+      fetch('/api/peacock-admin/status', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.configured === false) {
+            setupForm.classList.remove('hide');
+            loginForm.classList.add('hide');
+            document.getElementById('title').textContent = 'Set up Peacock admin';
+            document.getElementById('subtitle').textContent = 'Create your credentials';
+          }
+        })
+        .catch(function () {});
+
+      setupForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        suErr.textContent = 'Creating…';
+        try {
+          var res = await fetch('/api/peacock-admin/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: document.getElementById('suUser').value.trim(), password: document.getElementById('suPass').value }) });
+          var d = await res.json();
+          if (res.ok && d.ok) { suErr.style.color = '#2e7d32'; suErr.textContent = 'Peacock admin created — opening…'; location.href = '/peacock-admin'; }
+          else { suErr.style.color = '#D32F2F'; suErr.textContent = d.error || 'Setup failed.'; }
+        } catch (e2) { suErr.textContent = 'Server unavailable.'; }
+      });
+
       document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         err.textContent = 'Signing in…';
