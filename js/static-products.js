@@ -60,15 +60,8 @@
   window.fetch = function (url, opts) {
     var s = String(url);
     if (s.indexOf('/api/products') !== -1) {
-      // Prefer the live backend so prices/images edited in the DB appear on the
-      // site. Fall back to the static catalog only when the backend is unreachable.
-      if (origFetch) {
-        return origFetch(url, opts).then(function (res) {
-          return (res && res.ok) ? res : staticProducts(url);
-        }, function () {
-          return staticProducts(url);
-        });
-      }
+      // Serve the catalog purely from js/data.js (static). This keeps the display
+      // source identical to the Peacock store and avoids DB/database pricing issues.
       return staticProducts(url);
     }
     return origFetch ? origFetch(url, opts) : Promise.reject(new Error('fetch unavailable'));
