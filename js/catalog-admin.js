@@ -43,29 +43,22 @@ function rowHTML(p) {
   const isDeleted = deleted.has(p.id);
   const effImg = o.img !== undefined ? o.img : p.img;
   const effName = o.name !== undefined ? o.name : p.name;
-  const effPrice = o.price !== undefined ? o.price : p.price;
-  const effOld = o.old !== undefined ? o.old : (p.old || 0);
+  const effCat = o.cat || p.cat;
   const effSub = o.subcat || p.subcat;
-  const effSize = ((o.size || (p.size || []).join(",")) || "");
-  const dirty = isDeleted || (o.name !== undefined || o.price !== undefined || o.old !== undefined || o.cat || o.subcat || o.size || o.img !== undefined) ? "pm-dirty" : "";
   return `
-  <div class="pm-card ${dirty}" data-id="${p.id}">
-    <div class="pm-img">
-      ${effImg ? `<img src="${effImg}" alt="${esc(effName)}" onerror="this.remove()">` : `<span class="pm-ph">${p.icon || "📷"}</span>`}
-      <label class="pm-imgbtn" title="Upload image">📷<input type="file" accept="image/*" data-upimg="${p.id}" hidden></label>
-      ${effImg ? `<button class="pm-imgbtn" data-delimg="${p.id}" title="Remove image">✕</button>` : ""}
-    </div>
-    <div class="pm-body">
-      <input class="pm-name" data-f="name" value="${esc(effName)}" placeholder="Product name">
-      <select class="subcat-sel" data-f="subcat">${subcatOptions(effSub, o.cat || p.cat)}</select>
-      <div class="pm-price">
-        <input type="number" min="0" data-f="price" value="${effPrice}" title="Price">
-        <input type="number" min="0" data-f="old" value="${effOld}" title="Old price">
-      </div>
-      <input data-f="size" value="${esc(effSize)}" placeholder="Sizes e.g. S,M,L">
-      <div class="pm-actions">
-        <button class="btn btn-primary btn-sm" data-save-p="${p.id}"><i class="fas fa-save"></i> Save</button>
-        <button class="chip" data-toggle-del="${p.id}">${isDeleted ? "↩ Undo" : "🗑 Delete"}</button>
+  <div class="pm-product ${isDeleted ? "pm-del" : ""}" data-id="${p.id}">
+    <img src="${effImg || ""}" alt="${esc(effName)}" onerror="this.style.display='none'">
+    <div class="pm-info">
+      <h4>${esc(effName)} <span class="pm-id">#${p.id}</span></h4>
+      <label>Category <select data-f="cat">${catOptions(effCat)}</select></label>
+      <label>Subcategory <select data-f="subcat">${subcatOptions(effSub, effCat)}</select></label>
+      <label>Price (₹) <input type="number" min="0" data-f="price" value="${o.price !== undefined ? o.price : p.price}"></label>
+      <label>Old Price (₹) <input type="number" min="0" data-f="old" value="${o.old !== undefined ? o.old : p.old || ""}" placeholder="none"></label>
+      <label>Sizes <input data-f="size" value="${esc((o.size || (p.size || []).join(",")) || "")}" placeholder="S,M,L"></label>
+      <div style="margin-top:10px">
+        <button class="btn-link" data-save-p="${p.id}"><i class="fas fa-save"></i> Save</button>
+        ${effImg ? `<button class="btn-link" data-delimg="${p.id}"><i class="fas fa-image"></i> Remove img</button>` : ""}
+        <button class="btn-link btn-delete" data-toggle-del="${p.id}"><i class="fas fa-trash-alt"></i> ${isDeleted ? "Undo" : "Delete"}</button>
       </div>
       <span class="pm-saved" id="pmSaved-${p.id}"></span>
     </div>
@@ -90,7 +83,7 @@ function renderRows() {
 
 function onEdit(e) {
   const el = e.target;
-  const card = el.closest(".pm-card");
+  const card = el.closest(".pm-product");
   if (!card) return;
   const id = Number(card.dataset.id);
   overrides[id] = overrides[id] || {};

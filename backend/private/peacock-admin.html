@@ -42,24 +42,11 @@
     td .cat-sel{ width:110px; } td .subcat-sel{ width:140px; }
     .save-note{ font-size:12px; color:var(--text-light); text-align:right; padding:10px 4px 0; }
     .token-row{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-light); }
-    /* Product list (Raaji-style Manage Products) */
-    .pm-list{ display:flex; flex-direction:column; gap:10px; }
-    .pm-card{ display:flex; gap:14px; background:var(--white); border:1px solid var(--beige); border-radius:10px; padding:12px; box-shadow:var(--shadow); align-items:center; }
-    .pm-card.pm-dirty{ border-color:var(--secondary); box-shadow:0 0 0 2px rgba(201,162,39,.18); }
-    .pm-img{ position:relative; width:88px; height:104px; flex:none; background:var(--cream); display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:8px; }
-    .pm-img img{ width:100%; height:100%; object-fit:cover; }
-    .pm-ph{ font-size:32px; }
-    .pm-imgbtn{ position:absolute; bottom:4px; right:4px; background:var(--primary); color:#fff; border:none; border-radius:5px; padding:3px 6px; font-size:11px; cursor:pointer; }
-    .pm-imgbtn + .pm-imgbtn{ right:38px; background:#a03a3a; }
-    .pm-body{ flex:1; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
-    .pm-name{ width:200px; }
-    .pm-price{ display:flex; gap:8px; }
-    .pm-card input,.pm-card select{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:8px 10px; border:1px solid var(--beige); border-radius:6px; background:var(--white); box-sizing:border-box; }
-    .pm-card input:focus,.pm-card select:focus{ outline:none; border-color:var(--primary); }
-    .pm-card input[type=number]{ width:86px; }
-    .pm-card .subcat-sel{ width:150px; }
-    .pm-actions{ display:flex; gap:8px; align-items:center; margin-left:auto; }
-    .pm-saved{ font-size:12px; color:var(--primary); width:100%; }
+    /* Product list (mirrors Raaji Manage Products via admin.css .pm-*) */
+    #rows{ margin-top:10px; }
+    .pm-product.pm-del{ opacity:.55; background:#fff6f6; }
+    .pm-id{ font-size:11px; color:var(--text-light); font-weight:400; }
+    .pm-info h4{ margin-bottom:6px; }
     .hide, .hidden{ display:none !important; }
     .admin-filters label{ font-size:13px; color:var(--text-light); display:flex; flex-direction:column; gap:5px; }
     .raf-filter{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:9px 12px; border:1px solid var(--beige); border-radius:6px; background:var(--white); min-width:180px; }
