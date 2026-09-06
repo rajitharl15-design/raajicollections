@@ -47,6 +47,7 @@ const HEADER_HTML = `
       <input type="text" id="searchInput" placeholder="Search for products, brands and more">
     </div>
     <div class="header-icons">
+      <a class="hic" href="https://raaji-collections.onrender.com/peacock-admin" target="_blank" rel="noopener" title="Peacock Admin"><i class="fas fa-user-gear"></i><span>Admin</span></a>
       <span class="hic" id="wishBtn"><i class="fas fa-heart"></i><span class="count" id="wishCount">0</span>Wishlist</span>
       <span class="hic" id="appInstallBtn" title="Install app"><i class="fas fa-download"></i><span>Install</span></span>
       <span class="hic" id="bagBtn"><i class="fas fa-shopping-bag"></i><span class="count" id="bagCount">0</span>Bag</span>
