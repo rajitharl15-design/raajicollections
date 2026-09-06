@@ -19,7 +19,7 @@ import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, cl
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*', credentials: true, allowedHeaders: ['Content-Type', 'x-admin-key'] }));
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*', credentials: true, allowedHeaders: ['Content-Type', 'x-admin-key', 'Cache-Control', 'Pragma', 'Expires'] }));
 app.use(express.json({ limit: '25mb' }));
 
 // Avoid stale-cached admin/html/js so fixes go live immediately.
