@@ -48,6 +48,13 @@
     .pm-id{ font-size:11px; color:var(--text-light); font-weight:400; }
     .pm-info h4{ margin-bottom:6px; }
     .hide, .hidden{ display:none !important; }
+    .po-card{ background:var(--white); border:1px solid var(--beige); border-radius:10px; padding:14px; margin-bottom:12px; box-shadow:var(--shadow); }
+    .po-head{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-light); border-bottom:1px solid var(--beige); padding-bottom:8px; margin-bottom:8px; }
+    .po-head b{ color:var(--dark); }
+    .po-body{ font-size:13px; color:var(--text); }
+    .po-body p{ margin:4px 0; }
+    .po-items{ display:flex; flex-direction:column; gap:3px; margin:6px 0; font-size:12px; color:var(--text-light); }
+    .po-total{ font-weight:700; color:var(--primary); }
     .admin-filters label{ font-size:13px; color:var(--text-light); display:flex; flex-direction:column; gap:5px; }
     .raf-filter{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:9px 12px; border:1px solid var(--beige); border-radius:6px; background:var(--white); min-width:180px; }
     .np-panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--white); border:1px solid var(--beige); border-radius:8px; padding:14px; margin:14px 0; }
@@ -71,6 +78,12 @@
 
   <main class="admin-main">
 
+    <nav class="admin-tabs">
+      <button class="tab-btn active" data-view="catalog">Manage Catalog</button>
+      <button class="tab-btn" data-view="orders">Orders</button>
+    </nav>
+
+    <div id="view-catalog">
     <div class="admin-intro">
       Edit the Peacock store catalog (products, prices, categories, images). Use
       <b>Publish to store</b> to update the live store immediately, or <i>Save changes</i> to
@@ -112,7 +125,13 @@
     </div>
 
     <div class="pm-list" id="rows"></div>
-    <p class="save-note">Edits save to this browser. Use "Export data.js" then replace js/data.js and push to make permanent for all visitors.</p>
+    <p class="save-note">Edits save to this browser. Use "Publish to store" to make them live.</p>
+    </div>
+
+    <div id="view-orders" class="hidden">
+      <div class="admin-bar"><span>Peacock store orders</span><button class="btn btn-outline btn-sm" id="peacockOrdersRefresh"><i class="fas fa-sync-alt"></i> Refresh</button></div>
+      <div id="peacockOrders"><p class="admin-loading">Loading orders...</p></div>
+    </div>
 
   </main>
 
@@ -134,6 +153,48 @@
         s.textContent = '✓ Changes saved to this browser (' + new Date().toLocaleTimeString() + '). Click "Publish to store" to make them live.';
       }
     });
+
+    // Tabs: Manage Catalog / Orders
+    document.querySelectorAll('.tab-btn[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn[data-view]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('view-catalog').classList.toggle('hidden', btn.dataset.view !== 'catalog');
+        document.getElementById('view-orders').classList.toggle('hidden', btn.dataset.view !== 'orders');
+        if (btn.dataset.view === 'orders') loadPeacockOrders();
+      });
+    });
+
+    async function loadPeacockOrders() {
+      const box = document.getElementById('peacockOrders');
+      const key = localStorage.getItem('peacock_admin_key') || '';
+      try {
+        const res = await fetch('/api/peacock-admin/orders', { headers: { ...(key ? { 'x-admin-key': key } : {}) } });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Failed (' + res.status + ')');
+        const orders = d.orders || [];
+        if (orders.length === 0) { box.innerHTML = '<p class="admin-loading">No orders yet.</p>'; return; }
+        box.innerHTML = orders.map(o => `
+          <div class="po-card">
+            <div class="po-head">
+              <b>${o.order_number}</b>
+              <span>${new Date(o.created_at).toLocaleString()}</span>
+            </div>
+            <div class="po-body">
+              <p><b>${esc(o.customer_name)}</b> · ${o.phone || ''}</p>
+              <p>${esc(o.address || '')}</p>
+              <div class="po-items">${(o.items || []).map(i => `<span>${i.qty} × ${esc(i.name)}${i.size ? ' (' + esc(i.size) + ')' : ''} — ₹${Number(i.price) * Number(i.qty)}</span>`).join('')}</div>
+              <p class="po-total">Total: ₹${Number(o.total).toLocaleString('en-IN')}</p>
+            </div>
+          </div>`).join('');
+      } catch (err) {
+        box.innerHTML = '<p class="admin-loading">Failed to load orders: ' + esc(err.message) + '</p>';
+      }
+    }
+
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    const orBtn = document.getElementById('peacockOrdersRefresh');
+    if (orBtn) orBtn.addEventListener('click', loadPeacockOrders);
   </script>
 </body>
 </html>

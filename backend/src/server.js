@@ -139,6 +139,36 @@ app.post('/api/peacock-admin/publish', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// Record a Peacock store order (public - from the storefront checkout)
+app.post('/api/peacock/orders', async (req, res, next) => {
+  try {
+    const { name, phone, address, items, total } = req.body || {};
+    if (!name || !items || !Array.isArray(items)) {
+      return res.status(400).json({ error: 'name and items are required' });
+    }
+    const orderNumber = 'PFA' + Date.now().toString(36).toUpperCase();
+    const r = await pool.query(
+      `INSERT INTO peacock_orders(order_number, customer_name, phone, address, items, total)
+       VALUES($1, $2, $3, $4, $5, $6) RETURNING id, order_number`,
+      [orderNumber, String(name).trim(), phone || null, address || null, JSON.stringify(items), Number(total) || 0]
+    );
+    res.json({ ok: true, order_number: r.rows[0].order_number });
+  } catch (err) { next(err); }
+});
+
+// List Peacock store orders (admin)
+app.get('/api/peacock-admin/orders', async (req, res, next) => {
+  try {
+    const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
+    if (!user || user !== peacockUsername()) return res.status(401).json({ error: 'Unauthorized' });
+    const { rows } = await pool.query(
+      `SELECT id, order_number, customer_name, phone, address, items, total, created_at
+         FROM peacock_orders ORDER BY id DESC LIMIT 200`
+    );
+    res.json({ orders: rows });
+  } catch (err) { next(err); }
+});
+
 // ---- Admin authentication ----
 app.post('/api/admin/login', (req, res) => {
   const { username, password } = req.body || {};

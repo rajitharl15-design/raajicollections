@@ -251,4 +251,24 @@ export async function migrate() {
   } catch (err) {
     console.warn('[migrate] peacock_catalog table skipped:', err.message);
   }
+
+  console.log('[migrate] applying peacock_orders table...');
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS peacock_orders (
+          id            SERIAL PRIMARY KEY,
+          order_number  VARCHAR(40) NOT NULL,
+          customer_name TEXT NOT NULL,
+          phone         TEXT,
+          address       TEXT,
+          items         JSONB NOT NULL,
+          total         NUMERIC(10,2) NOT NULL DEFAULT 0,
+          created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_peacock_orders_id ON peacock_orders(id);
+    `);
+    console.log('[migrate] peacock_orders table ready.');
+  } catch (err) {
+    console.warn('[migrate] peacock_orders table skipped:', err.message);
+  }
 }

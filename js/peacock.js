@@ -324,6 +324,17 @@ function sendOrder() {
     return `${b.qty} × ${p.name} (₹${p.price})${b.size ? " [Size " + b.size + "]" : ""} = ₹${p.price * b.qty}`;
   }).join("\n");
   const total = bagTotal();
+  // Record the order server-side so it appears in the Peacock admin (Orders).
+  try {
+    fetch("https://raaji-collections.onrender.com/api/peacock/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name, phone, address: addr, total,
+        items: bag.map((b) => { const p = productById(b.id); return { name: p.name, size: b.size || "", qty: b.qty, price: p.price }; }),
+      }),
+    }).catch(() => {});
+  } catch (e) {}
   const text = `*NEW ORDER — Peacock Fashions*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n\n*Items:*\n${items}\n\n*Total: ₹${total}*`;
   const wa = (window.STORE_CONFIG && window.STORE_CONFIG.whatsappNumber) ? window.STORE_CONFIG.whatsappNumber : "918125491097";
   window.open("https://wa.me/" + wa + "?text=" + encodeURIComponent(text), "_blank");
