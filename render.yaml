@@ -35,11 +35,6 @@ services:
         value: CHANGE_ME_STRONG_PASSWORD
       - key: AUTH_SECRET
         value: CHANGE_ME_LONG_RANDOM_SECRET
-      # ---- Peacock store catalog admin (SEPARATE login) ----
-      - key: PEACOCK_ADMIN_USER
-        value: peacock
-      - key: PEACOCK_ADMIN_PASS
-        value: CHANGE_ME_PEACOCK_PASSWORD
     disks:
       - name: uploads
         mountPath: /data
