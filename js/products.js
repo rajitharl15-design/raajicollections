@@ -173,9 +173,10 @@ function openQuickView(product, isKids) {
   overlay.className = 'quickview-modal';
 
   const variants = (product.variants || []).filter(v => v && v.size && v.color);
-  const inStock = (q) => q == null ? true : Number(q) > 0;
-  const productStock = Number(product.stock_qty) || 0;
-  const productStockKnown = product.stock_qty != null;
+  // No real inventory for the online catalog — treat every item as in stock.
+  const inStock = () => true;
+  const productStock = 1;
+  const productStockKnown = false;
   const sizeHasStock = (s) => (variants || []).some(v =>
     String(v.size).trim().toLowerCase() === String(s).trim().toLowerCase() &&
     inStock(v.stock_qty));
@@ -250,8 +251,7 @@ function openQuickView(product, isKids) {
       else picked = { size: `${s} yr`, color: '', image: product.image_url, price, variantLabel: `Size ${s} yr` };
     } else {
       const v = (variants || []).find(x =>
-        String(x.size).trim().toLowerCase() === String(s).trim().toLowerCase() &&
-        Number(x.stock_qty) > 0);
+        String(x.size).trim().toLowerCase() === String(s).trim().toLowerCase());
       if (!v) picked = null;
       else picked = {
         size: v.size,
