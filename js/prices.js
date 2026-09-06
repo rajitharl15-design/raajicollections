@@ -19,7 +19,7 @@ function savePriceOverrides() {
 async function loadDbPrices() {
   if (!window.API_CONFIG || !API_CONFIG.baseUrl) return;
   try {
-    const res = await fetch(`${API_CONFIG.baseUrl}/api/products`);
+    const res = await fetch(`${API_CONFIG.baseUrl}/api/products?cb=${Date.now()}`, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
     if (!res.ok) throw new Error('Failed to load products');
     const data = await res.json();
     dbPrices = {};
