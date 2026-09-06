@@ -68,17 +68,20 @@ export const PEACOCK_COOKIE = 'raaji_peacock_admin';
 // Credentials come from env (highest priority) OR from a DB row in
 // peacock_admin_settings (loaded into memory on boot). DB-backed setup means no
 // Render env vars are needed - the owner creates them once on the login page.
+// Note: gating (configured/setup) is based on the DB row only, so leftover
+// PEACOCK_ADMIN_* Render env placeholders can't block the first-time setup.
 let peacockSettings = null; // { username, password }
 export function setPeacockSettings(s) { peacockSettings = s || null; }
 
 export function peacockConfigured() {
-  return !!(process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS) || !!peacockSettings;
+  return !!peacockSettings;
 }
 function peacockCreds() {
+  if (peacockSettings) return peacockSettings;
   if (process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS) {
     return { username: process.env.PEACOCK_ADMIN_USER, password: process.env.PEACOCK_ADMIN_PASS };
   }
-  return peacockSettings || null;
+  return null;
 }
 export function peacockUsername() {
   const c = peacockCreds();
