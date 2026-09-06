@@ -61,6 +61,8 @@
     .pm-actions{ display:flex; gap:8px; align-items:center; margin-left:auto; }
     .pm-saved{ font-size:12px; color:var(--primary); width:100%; }
     .hide, .hidden{ display:none !important; }
+    .admin-filters label{ font-size:13px; color:var(--text-light); display:flex; flex-direction:column; gap:5px; }
+    .raf-filter{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:9px 12px; border:1px solid var(--beige); border-radius:6px; background:var(--white); min-width:180px; }
     .np-panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--white); border:1px solid var(--beige); border-radius:8px; padding:14px; margin:14px 0; }
     .np-panel input,.np-panel select{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:9px 11px; border:1px solid var(--beige); border-radius:6px; background:var(--white); }
     .np-panel input:focus,.np-panel select:focus{ outline:none; border-color:var(--primary); }
@@ -113,11 +115,13 @@
       <span class="pm-saved" id="npStatus"></span>
     </div>
 
-    <div class="admin-filters" id="catFilter"></div>
-    <div style="margin:10px 0 4px">
-      <select id="subcatFilter" style="padding:8px 12px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:13px;color:var(--text);background:var(--white)">
-        <option value="">Filter by subcategory…</option>
-      </select>
+    <div class="admin-filters" style="align-items:flex-end">
+      <label>Category
+        <select id="catFilter" class="raf-filter"><option value="">All categories</option></select>
+      </label>
+      <label>Subcategory
+        <select id="subcatFilter" class="raf-filter"><option value="">All subcategories</option></select>
+      </label>
     </div>
 
     <div class="pm-list" id="rows"></div>

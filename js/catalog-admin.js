@@ -18,11 +18,12 @@ function subcatOptions(sel, cat) {
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
 
 function renderFilters() {
-  const extra = ["Readymade Blouses"];
-  $("#catFilter").innerHTML =
-    `<button class="chip ${!activeCat ? "chip-on" : ""}" data-cat="">All</button>` +
-    CATS.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("") +
-    extra.map((c) => `<button class="chip ${activeCat === c ? "chip-on" : ""}" data-cat="${c}">${c}</button>`).join("");
+  const catSel = $("#catFilter");
+  if (!catSel) return;
+  catSel.innerHTML =
+    `<option value="">All categories</option>` +
+    CATS.map((c) => `<option value="${esc(c)}" ${c === activeCat ? "selected" : ""}>${esc(c)}</option>`).join("") +
+    `<option value="Readymade Blouses" ${activeCat === "Readymade Blouses" ? "selected" : ""}>Readymade Blouses</option>`;
   renderSubcatFilter();
 }
 function renderCatFilter() {}
@@ -208,6 +209,13 @@ async function uploadToBackend(id, file) {
 }
 
 document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "catFilter") {
+    activeCat = e.target.value;
+    activeSubcat = "";
+    renderFilters();
+    renderRows();
+    return;
+  }
   if (e.target && e.target.id === "subcatFilter") {
     activeSubcat = e.target.value;
     renderRows();
