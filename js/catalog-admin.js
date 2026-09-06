@@ -218,13 +218,17 @@ document.addEventListener("change", (e) => {
   if (up && up.files && up.files[0]) {
     const id = Number(up.dataset.upimg);
     const file = up.files[0];
-    // try the backend first; fall back to local base64 storage if it is unreachable
-    uploadToBackend(id, file).catch(() => {
-      if (file.size > 900 * 1024) { alert("Backend offline and image > ~900KB for local storage. Use a smaller image or start the backend."); return; }
-      const r = new FileReader();
-      r.onload = () => setImageLocal(id, r.result);
-      r.readAsDataURL(file);
-    });
+    // Embed the image into the published catalog (database) as base64 so it
+    // persists across server restarts/redepoys on the free tier (the temporary
+    // upload folder gets wiped). Cap the size so the catalog stays reasonable.
+    if (file.size > 1.5 * 1024 * 1024) {
+      alert("Image is over ~1.5MB. Please use a smaller image so it stores reliably.");
+      return;
+    }
+    const r = new FileReader();
+    r.onload = () => setImageLocal(id, r.result);
+    r.readAsDataURL(file);
+    return;
   }
 });
 
