@@ -48,14 +48,53 @@ export function verifyToken(token) {
   return data.u;
 }
 
-export function verifyCookies(headers) {
+export function getCookieValue(headers, name) {
   const raw = headers.cookie || '';
   const cookies = {};
   raw.split(';').forEach((pair) => {
     const idx = pair.indexOf('=');
     if (idx > -1) cookies[pair.slice(0, idx).trim()] = decodeURIComponent(pair.slice(idx + 1).trim());
   });
-  return verifyToken(cookies[ADMIN_COOKIE]);
+  return cookies[name];
+}
+
+export function verifyCookies(headers) {
+  return verifyToken(getCookieValue(headers, ADMIN_COOKIE));
+}
+
+// ---- Separate Peacock store admin (its own login/credentials) ----
+export const PEACOCK_COOKIE = 'raaji_peacock_admin';
+
+export function peacockConfigured() {
+  return !!(process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS);
+}
+export function peacockUsername() {
+  return process.env.PEACOCK_ADMIN_USER || '';
+}
+export function validatePeacock(username, password) {
+  return peacockConfigured() &&
+    username === process.env.PEACOCK_ADMIN_USER &&
+    password === process.env.PEACOCK_ADMIN_PASS;
+}
+export function setPeacockCookie(res) {
+  res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=${encodeURIComponent(signToken(peacockUsername()))}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=43200`);
+}
+export function clearPeacockCookie(res) {
+  res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+}
+export function verifyPeacockAuth(headers) {
+  return verifyToken(getCookieValue(headers, PEACOCK_COOKIE));
+}
+export function requirePeacockAdmin(req, res, next) {
+  if (!peacockConfigured()) {
+    return res.status(403).json({ error: 'Peacock admin is not configured (set PEACOCK_ADMIN_USER / PEACOCK_ADMIN_PASS env vars).' });
+  }
+  const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
+  if (!user || user !== peacockUsername()) {
+    return res.status(401).json({ error: 'Unauthorized', gotCookie: !!req.headers.cookie, gotHeader: !!req.get('x-admin-key') });
+  }
+  req.peacockUser = user;
+  next();
 }
 
 export function requireAdmin(req, res, next) {

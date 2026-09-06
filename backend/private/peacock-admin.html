@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peacock Fashions — Catalog Admin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #1F5D75;
+      --primary-dark: #143f50;
+      --secondary: #C9A227;
+      --accent: #b8942a;
+      --cream: #F8F6F0;
+      --beige: #EAE4D8;
+      --dark: #1b2a20;
+      --text: #25382c;
+      --text-light: #5d6b63;
+      --white: #FFFFFF;
+      --shadow: 0 4px 20px rgba(27, 42, 32, 0.1);
+    }
+    .admin-bar { display:flex; gap:16px; align-items:center; flex-wrap:wrap; padding:12px 16px; background:var(--white); border:1px solid var(--beige); border-radius:8px; margin:14px 0; font-size:13px; color:var(--text-light); }
+    .admin-bar b{color:var(--dark);} .admin-bar .saved{color:var(--primary);font-weight:600;}
+    .chip { font-family:'Poppins',sans-serif; font-size:13px; font-weight:500; padding:8px 16px; border:1px solid var(--beige); border-radius:999px; background:var(--white); color:var(--text); cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .2s; }
+    .chip:hover{ border-color:var(--primary-dark); color:var(--primary); }
+    .chip-on{ background:var(--primary); border-color:var(--primary); color:#fff; }
+    .btn-sm{ padding:8px 14px; font-size:12px; }
+    .table-card{ background:var(--white); border:1px solid var(--beige); border-radius:10px; overflow:hidden; box-shadow:var(--shadow); }
+    .table-scroll{ overflow:auto; }
+    table.admin-table{ width:100%; border-collapse:collapse; }
+    .admin-table th{ background:var(--cream); text-align:left; font-size:12px; letter-spacing:.4px; text-transform:uppercase; color:var(--text-light); padding:12px 14px; border-bottom:1px solid var(--beige); }
+    .admin-table td{ padding:10px 14px; border-bottom:1px solid var(--beige); vertical-align:middle; }
+    .admin-table tr:hover td{ background:#F7FAF8; }
+    .admin-table tr.row-dirty td{ background:#FBF7EA; }
+    .thumb{ width:46px; height:54px; border-radius:6px; object-fit:cover; background:var(--beige); }
+    .thumb-ph{ width:46px; height:54px; border-radius:6px; display:grid; place-items:center; background:var(--beige); font-size:22px; }
+    .admin-table input,.admin-table select{ font-family:'Poppins',sans-serif; font-size:13px; color:var(--text); padding:8px 10px; border:1px solid var(--beige); border-radius:6px; width:100%; min-width:90px; background:var(--white); }
+    .admin-table input:focus,.admin-table select:focus{ outline:none; border-color:var(--primary); }
+    .admin-table input.narrow{ min-width:76px; width:76px; }
+    td .cat-sel{ width:110px; } td .subcat-sel{ width:140px; }
+    .save-note{ font-size:12px; color:var(--text-light); text-align:right; padding:10px 4px 0; }
+    .token-row{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-light); }
+    .admin-intro{ font-size:13px; color:var(--text-light); line-height:1.6; margin:12px 0; }
+  </style>
+</head>
+<body class="admin-page">
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <h1>Peacock Fashions <span>Catalog Admin</span></h1>
+      <div class="admin-actions">
+        <a class="admin-link" href="store.html">View Peacock store</a>
+        <button class="btn btn-outline btn-danger" id="peacockLogoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <div class="admin-intro">
+      Edit the Peacock store catalog (products, prices, categories, images). Changes are saved to
+      this browser and can be downloaded as a new <b>data.js</b> using <i>Export data.js</i> — then
+      replace <code>js/data.js</code> in the repo and push to make them live for all visitors.
+    </div>
+
+    <div class="admin-bar">
+      <span>Showing <b id="shownCount">0</b> / <b id="totalCount">0</b> products</span>
+      <span class="saved" id="saveStatus"></span>
+      <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <label class="token-row">Upload token <input id="tokenInput" type="text" placeholder="(optional)" style="width:110px;padding:6px 8px;border:1px solid var(--beige);border-radius:6px;font-family:'Poppins',sans-serif;font-size:12px"></label>
+        <button class="chip" id="reloadBtn">↺ Clear edits</button>
+        <button class="btn btn-primary btn-sm" id="exportBtn">⬇ Export data.js</button>
+      </span>
+    </div>
+
+    <div class="admin-filters" id="catFilter"></div>
+
+    <div class="table-card">
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Sub-category</th><th>Price</th><th>Old Price</th><th>Sizes</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="save-note">Edits save to this browser. Use "Export data.js" then replace js/data.js and push to make permanent for all visitors.</p>
+
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/catalog-admin.js"></script>
+  <script>
+    document.getElementById('peacockLogoutBtn').addEventListener('click', async () => {
+      try {
+        localStorage.removeItem('peacock_admin_key');
+        await fetch('/api/peacock-admin/logout', { method: 'POST' });
+      } catch (e) {}
+      location.href = '/peacock-admin-login';
+    });
+  </script>
+</body>
+</html>

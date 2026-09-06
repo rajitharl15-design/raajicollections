@@ -14,7 +14,7 @@ import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import pool, { initDbConnection } from './db.js';
 import crypto from 'crypto';
-import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective } from './auth.js';
+import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -64,6 +64,40 @@ app.get(['/admin', '/admin.html'], (req, res) => {
 app.get('/admin-login', (req, res) => {
   if (verifyCookies(req.headers)) return res.redirect('/admin');
   res.sendFile(loginHtml);
+});
+
+// ---- Peacock store admin (separate login) ----
+const peacockAdminHtml = path.join(privateDir, 'peacock-admin.html');
+const peacockLoginHtml = path.join(privateDir, 'peacock-login.html');
+
+app.get('/peacock-admin', (req, res) => {
+  if (!peacockConfigured()) {
+    return res.status(500).send('Peacock admin not configured. Set PEACOCK_ADMIN_USER and PEACOCK_ADMIN_PASS env vars.');
+  }
+  const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
+  if (!user || user !== peacockUsername()) return res.redirect('/peacock-admin-login');
+  const html = fs.readFileSync(peacockAdminHtml, 'utf8');
+  const out = html.replace(
+    '<script src="js/catalog-admin.js"></script>',
+    '<script>try{localStorage.setItem(\'peacock_admin_key\', ' + JSON.stringify(signToken(peacockUsername())) + ');}catch(e){}</script>\n  <script src="js/catalog-admin.js"></script>'
+  );
+  res.set('Content-Type', 'text/html').send(out);
+});
+app.get('/peacock-admin-login', (req, res) => {
+  if (verifyPeacockAuth(req.headers) === peacockUsername()) return res.redirect('/peacock-admin');
+  res.sendFile(peacockLoginHtml);
+});
+app.post('/api/peacock-admin/login', (req, res) => {
+  const { username, password } = req.body || {};
+  if (validatePeacock(username, password)) {
+    setPeacockCookie(res);
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ error: 'Incorrect username or password.' });
+});
+app.post('/api/peacock-admin/logout', (req, res) => {
+  clearPeacockCookie(res);
+  res.json({ ok: true });
 });
 
 // ---- Admin authentication ----

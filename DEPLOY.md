@@ -8,6 +8,7 @@
 | `raajicollections.com/store.html` | Peacock Fashions storefront |
 | `raajicollections.com/<category>.html` | Old Raaji category pages (static catalog) |
 | `<backend>/admin` | **Secure** catalog admin (server-login protected) |
+| `<backend>/peacock-admin` | **Secure** Peacock store catalog admin (separate login) |
 
 The front-end runs on **GitHub Pages** (static, no server). The **admin is not on Pages** — it is
 served by the backend from `backend/private/` and is protected by a real server login.
@@ -39,6 +40,19 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 - Open **`https://<your-backend>.onrender.com/admin`**.
 - You'll be redirected to `/admin-login` until you sign in with `ADMIN_USER` / `ADMIN_PASS`.
 - A **signed HttpOnly cookie** is set; `/api/admin/*` and `/api/upload` return **401** otherwise.
+
+## Peacock store catalog admin (separate login)
+
+- Open **`https://<your-backend>.onrender.com/peacock-admin`**.
+- Sign in at `/peacock-admin-login` with the **separate** `PEACOCK_ADMIN_USER` / `PEACOCK_ADMIN_PASS`
+  (independent of the Raaji admin).
+- Edit products (name / price / category / image), then **Export data.js** → replace `js/data.js`
+  and push to make changes live for all visitors.
+- Set `PEACOCK_ADMIN_USER` and `PEACOCK_ADMIN_PASS` in the Render env, e.g.:
+  ```env
+  PEACOCK_ADMIN_USER=peacock
+  PEACOCK_ADMIN_PASS=REPLACE_WITH_A_STRONG_PASSWORD
+  ```
 
 ## Security notes
 
