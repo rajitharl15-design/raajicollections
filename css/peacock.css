@@ -178,7 +178,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 500; line-height: 1.14; }
 }
 .pcard:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
 .pimg {
-  aspect-ratio: 3/3.7; display: grid; place-items: center; color: #fff; position: relative;
+  aspect-ratio: 4/4.15; display: grid; place-items: center; color: #fff; position: relative;
   cursor: pointer; overflow: hidden;
 }
 .pimg img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s; }
