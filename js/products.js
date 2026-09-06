@@ -422,7 +422,21 @@ window.ProductsRenderer = {
         try { parsed = JSON.parse(subcats); } catch (err) { parsed = []; }
         const groups = Array.isArray(parsed) ? parsed : [];
         const norm = (s) => String(s || '').trim().toLowerCase();
+        // Products whose image is a known jhumka are grouped into the "Jhumkas"
+        // subtab even when their name/subcategory is generic (catalog imports).
+        const JHUMKA_SLUGS = new Set([
+          'img-20260817-wa0085', 'img-20260817-wa0087', 'img-20260817-wa0088',
+          'img-20260817-wa0089', 'img-20260817-wa0090', 'img-20260817-wa0091',
+          'img-20260817-wa0092', 'img-20260817-wa0094', 'img-20260817-wa0095',
+          'img-20260817-wa0096', 'img-20260817-wa0097', 'img-20260817-wa0100',
+          'img-20260821-wa0089', 'img-20260821-wa0090', 'img-20260821-wa0091',
+          'img-20260821-wa0092', 'img-20260821-wa0093', 'img-20260821-wa0094',
+          'img-20260821-wa0095'
+        ]);
+        const imgSlug = (p) => String(p.image_url || '').replace(/\\/g, '/').split('/').pop()
+          .toLowerCase().replace(/\.(jpe?g|png|webp|avif)$/, '').replace(/^jewellery-/, '');
         const assignedSubcat = (p) => {
+          if (JHUMKA_SLUGS.has(imgSlug(p))) return 'Jhumkas';
           if (!p.subcategory) return null;
           const want = norm(p.subcategory);
           for (const g of groups) {
