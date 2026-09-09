@@ -58,10 +58,20 @@
 
   var origFetch = window.fetch && window.fetch.bind(window);
   window.fetch = function (url, opts) {
-    // Raaji storefront is database-only: prices/names come straight from the
-    // backend DB. No static data.js fallback, so admin edits always reflect and
-    // stale catalog values never appear. If the backend is unreachable the grid
-    // simply won't load rather than showing outdated data.
+    var s = String(url);
+    if (s.indexOf('/api/products') !== -1) {
+      // Use the live database when the backend is up (admin edits show);
+      // fall back to the bundled data.js catalog when it's unreachable so the
+      // store never goes blank. Cache-busting is handled by products.js/prices.js.
+      if (origFetch) {
+        return origFetch(url, opts).then(function (res) {
+          return (res && res.ok) ? res : staticProducts(url);
+        }, function () {
+          return staticProducts(url);
+        });
+      }
+      return staticProducts(url);
+    }
     return origFetch ? origFetch(url, opts) : Promise.reject(new Error('fetch unavailable'));
   };
 })();
