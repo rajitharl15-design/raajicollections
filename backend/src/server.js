@@ -14,7 +14,7 @@ import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import pool, { initDbConnection } from './db.js';
 import crypto from 'crypto';
-import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie, setPeacockSettings } from './auth.js';
+import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie, setPeacockSettings, hashPassword, verifyPassword, isHashed } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -84,13 +84,31 @@ app.get('/peacock-admin-login', (req, res) => {
   if (verifyPeacockAuth(req.headers) === peacockUsername()) return res.redirect('/peacock-admin');
   res.sendFile(peacockLoginHtml);
 });
-app.post('/api/peacock-admin/login', (req, res) => {
-  const { username, password } = req.body || {};
-  if (validatePeacock(username, password)) {
-    setPeacockCookie(res);
-    return res.json({ ok: true });
-  }
-  return res.status(401).json({ error: 'Incorrect username or password.' });
+app.post('/api/peacock-admin/login', async (req, res, next) => {
+  try {
+    const lim = rateLimit('peacock-login', req.ip || (req.socket && req.socket.remoteAddress));
+    if (!lim.ok) return res.status(429).json({ error: 'Too many attempts. Please wait a few minutes.' });
+    const { username, password } = req.body || {};
+    const dbCreds = peacockSettings; // DB-backed creds (upgradable to hash)
+    const envCreds = (!dbCreds && process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS)
+      ? { username: process.env.PEACOCK_ADMIN_USER, password: process.env.PEACOCK_ADMIN_PASS }
+      : null;
+    const creds = dbCreds || envCreds;
+    if (creds && username === creds.username) {
+      const v = verifyPassword(creds.password, password);
+      if (v) {
+        if (v === 'legacy' && dbCreds && !isHashed(creds.password)) {
+          const hashed = hashPassword(password);
+          await pool.query('UPDATE peacock_admin_settings SET password = $1 WHERE username = $2', [hashed, creds.username]);
+          creds.password = hashed;
+        }
+        setPeacockCookie(res);
+        return res.json({ ok: true });
+      }
+    }
+    lim.fail();
+    return res.status(401).json({ error: 'Incorrect username or password.' });
+  } catch (err) { next(err); }
 });
 app.get('/api/peacock-admin/status', (req, res) => {
   res.json({ configured: peacockConfigured() });
@@ -193,14 +211,39 @@ app.patch('/api/peacock-admin/orders/:id', async (req, res, next) => {
 });
 
 // ---- Admin authentication ----
-app.post('/api/admin/login', (req, res) => {
-  const { username, password } = req.body || {};
-  const e = effective();
-  if (e && username === e.username && password === e.password) {
-    setAdminCookie(res);
-    return res.json({ ok: true });
-  }
-  return res.status(401).json({ error: 'Incorrect username or password.' });
+const limiterBuckets = new Map();
+function rateLimit(group, id) {
+  const key = group + ':' + id;
+  const now = Date.now();
+  const win = 15 * 60 * 1000; // 15 minutes
+  const rec = limiterBuckets.get(key) || { n: 0, start: now };
+  if (now - rec.start > win) { rec.n = 0; rec.start = now; }
+  if (rec.n >= 10) return { ok: false, fail() {} };
+  limiterBuckets.set(key, rec);
+  return { ok: true, fail() { rec.n++; limiterBuckets.set(key, rec); } };
+}
+
+app.post('/api/admin/login', async (req, res, next) => {
+  try {
+    const lim = rateLimit('admin-login', req.ip || (req.socket && req.socket.remoteAddress));
+    if (!lim.ok) return res.status(429).json({ error: 'Too many attempts. Please wait a few minutes.' });
+    const { username, password } = req.body || {};
+    const e = effective();
+    if (e && username === e.username) {
+      const v = verifyPassword(e.password, password);
+      if (v) {
+        if (v === 'legacy' && !hasEnv()) {
+          const hashed = hashPassword(password);
+          await pool.query('UPDATE admin_settings SET password = $1 WHERE username = $2', [hashed, e.username]);
+          e.password = hashed; // update the in-memory settings object too
+        }
+        setAdminCookie(res);
+        return res.json({ ok: true });
+      }
+    }
+    lim.fail();
+    return res.status(401).json({ error: 'Incorrect username or password.' });
+  } catch (err) { next(err); }
 });
 
 // First-time setup: create admin credentials (DB-backed, no env vars needed).

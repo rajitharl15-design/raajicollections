@@ -87,12 +87,45 @@ export function peacockUsername() {
   const c = peacockCreds();
   return c ? c.username : '';
 }
+// --- Password hashing (scrypt, no external deps) ---
+// Stored format: scrypt$<saltHex>$<hashHex>. A stored value without the prefix is
+// treated as legacy plaintext and upgraded to a hash on the next successful login.
+export function hashPassword(pw) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(pw), salt, 64).toString('hex');
+  return `scrypt$${salt}$${hash}`;
+}
+
+// Returns true (hashed OK), 'legacy' (plaintext match -> caller should upgrade), or false.
+export function verifyPassword(stored, input) {
+  if (!stored) return false;
+  if (String(stored).startsWith('scrypt$')) {
+    const parts = String(stored).split('$');
+    if (parts.length !== 3) return false;
+    const [, salt, hash] = parts;
+    if (!salt || !hash) return false;
+    try {
+      const h = crypto.scryptSync(String(input), salt, 64).toString('hex');
+      const a = Buffer.from(h), b = Buffer.from(hash);
+      return (a.length === b.length) && crypto.timingSafeEqual(a, b);
+    } catch (e) { return false; }
+  }
+  return String(stored) === String(input) ? 'legacy' : false;
+}
+
+// For Peacock, the stored value is potentially plaintext (legacy) or a scrypt hash.
+// Returns true for a password that should be stored as-is (i.e. already a hash),
+// false if it must be upgraded to a hash (after a successful 'legacy' match).
+export function isHashed(stored) {
+  return !!stored && String(stored).startsWith('scrypt$');
+}
+
 export function validatePeacock(username, password) {
   const c = peacockCreds();
-  return !!c && username === c.username && password === c.password;
+  return !!c && username === c.username && !!verifyPassword(c.password, password);
 }
 export function setPeacockCookie(res) {
-  res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=${encodeURIComponent(signToken(peacockUsername()))}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=43200`);
+  res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=${encodeURIComponent(signToken(peacockUsername()))}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=43200`);
 }
 export function clearPeacockCookie(res) {
   res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
@@ -126,9 +159,10 @@ export function requireAdmin(req, res, next) {
 export function setAdminCookie(res) {
   const e = effective();
   const value = signToken(e.username);
-  // SameSite=None + Secure so the session cookie is sent on same-origin AND
-  // cross-origin API fetches (with CORS credentials). HttpOnly keeps it JS-invisible.
-  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=43200`);
+  // SameSite=Lax keeps the session cookie on same-origin admin/API requests only
+  // (the admin is served from the backend), improving CSRF resistance. HttpOnly
+  // keeps it JS-invisible.
+  res.setHeader('Set-Cookie', `${ADMIN_COOKIE}=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=43200`);
 }
 
 export function clearAdminCookie(res) {
