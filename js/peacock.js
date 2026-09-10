@@ -340,33 +340,43 @@ function renderOrderReview() {
   $("#oPhone").value = ""; $("#oName").value = ""; $("#oAddr").value = "";
 }
 
-function sendOrder() {
+async function sendOrder() {
   const name = $("#oName").value.trim();
   const phone = $("#oPhone").value.trim();
   const addr = $("#oAddr").value.trim();
   if (!name || !phone || !addr) return toast("Please fill your name, phone and address");
   if (bag.length === 0) return toast("Your bag is empty");
+  const sb = $("#oSend"); if (sb) sb.disabled = true;
   const items = bag.map((b) => {
     const p = productById(b.id);
     return `${b.qty} × ${p.name} (₹${p.price})${b.size ? " [Size " + b.size + "]" : ""} = ₹${p.price * b.qty}`;
   }).join("\n");
   const total = bagTotal();
   // Record the order server-side so it appears in the Peacock admin (Orders).
+  let orderNumber = "";
   try {
-    fetch("https://raaji-collections.onrender.com/api/peacock/orders", {
+    const res = await fetch("https://raaji-collections.onrender.com/api/peacock/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name, phone, address: addr, total,
         items: bag.map((b) => { const p = productById(b.id); return { name: p.name, size: b.size || "", qty: b.qty, price: p.price }; }),
       }),
-    }).catch(() => {});
+    });
+    if (res.ok) {
+      const d = await res.json();
+      if (d && d.order_number) orderNumber = d.order_number;
+    }
   } catch (e) {}
-  const text = `*NEW ORDER — Peacock Fashions*\n\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n\n*Items:*\n${items}\n\n*Total: ₹${total}*`;
+  if (sb) sb.disabled = false;
+  const text = `*NEW ORDER — Peacock Fashions*\n\n*Order No:* ${orderNumber || "(not recorded)"}\n*Customer:* ${name}\n*Phone:* ${phone}\n*Address:* ${addr}\n\n*Items:*\n${items}\n\n*Total: ₹${total}*`;
   const wa = (window.STORE_CONFIG && window.STORE_CONFIG.whatsappNumber) ? window.STORE_CONFIG.whatsappNumber : "918125491097";
   window.open("https://wa.me/" + wa + "?text=" + encodeURIComponent(text), "_blank");
-  $("#oStatus").textContent = "Opening WhatsApp — press Send there to confirm your order.";
   $("#oStatus").style.color = "var(--green)";
+  $("#oStatus").innerHTML = orderNumber
+    ? `✓ Order recorded! <strong>Your order number is ${orderNumber}</strong> — save it to track your order (Peacock Fashions → Track).`
+    : "Opening WhatsApp — press Send there to confirm your order.";
+  bag = []; save("ms_bag", bag); updateCounts(); renderBag();
 }
 
 function setShip(total, freeAbove) {

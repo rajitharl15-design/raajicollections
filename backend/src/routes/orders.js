@@ -209,6 +209,22 @@ router.post('/', async (req, res, next) => {
 // GET /api/orders/:orderNumber
 router.get('/:orderNumber', async (req, res, next) => {
   try {
+    const num = req.params.orderNumber;
+    // Peacock store orders live in a separate table (PFA…). Normalize statuses
+    // to the track page's timeline so customers can track them.
+    if (/^PFA/i.test(num)) {
+      const { rows } = await pool.query(
+        `SELECT id, order_number, status, payment_status, total, created_at
+           FROM peacock_orders WHERE order_number = $1 LIMIT 1`,
+        [num]
+      );
+      if (rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+      const o = rows[0];
+      const STATUS_MAP = { new: 'pending', packed: 'confirmed', shipped: 'shipped', delivered: 'delivered', cancelled: 'cancelled' };
+      o.status = STATUS_MAP[o.status] || 'pending';
+      return res.json({ order: o });
+    }
+
     const tracking = await hasTrackingColumns();
     const trackingCols = tracking
       ? ', tracking_carrier, tracking_number'
