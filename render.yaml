@@ -2,7 +2,7 @@ services:
   - type: web
     name: raaji-collections
     runtime: docker
-    plan: free
+    plan: starter
     rootDir: .
     healthCheckPath: /api/health
     envVars:
@@ -16,32 +16,19 @@ services:
         fromDatabase:
           name: raaji-collections-db
           property: connectionString
-      # Optional shared token for admin image uploads (must match the one entered
-      # in Catalog Admin -> localStorage "pf_token"). Leave unset to allow open uploads.
-      - key: UPLOAD_TOKEN
-        value: ""
-      # Persist uploads on a Render disk (ephemeral otherwise). On the free plan
-      # there is NO disk, so keep UPLOAD_DIR empty (files go to images/products in
-      # the repo). To make uploads survive redeploys, upgrade to a plan with a disk,
-      # set UPLOAD_DIR=/data and mount the "uploads" disk.
+      # Persist uploads on a Render disk (Starter+ plans include one free).
+      # The "uploads" disk is mounted at /data, so uploaded images survive redeploys.
+      # NOTE: admin credentials are NOT set here — the Raaji + Peacock admins are
+      # DB-backed (first-time setup at /admin) so no secrets live in this repo.
       - key: UPLOAD_DIR
-        value: ""
-      # ---- Secure admin credentials (REQUIRED for true admin security) ----
-      # /admin, /admin.html and /api/upload are only accessible after logging in
-      # with these credentials. Set AUTH_SECRET to a long random string.
-      - key: ADMIN_USER
-        value: admin
-      - key: ADMIN_PASS
-        value: CHANGE_ME_STRONG_PASSWORD
-      - key: AUTH_SECRET
-        value: CHANGE_ME_LONG_RANDOM_SECRET
-    disks:
-      - name: uploads
-        mountPath: /data
-        sizeGB: 1
+        value: /data
+    disk:
+      name: uploads
+      mountPath: /data
+      sizeGB: 1
 
 databases:
   - name: raaji-collections-db
-    plan: free
+    plan: 0.1c-256mb
     databaseName: raaji_collections
     user: raaji_app
