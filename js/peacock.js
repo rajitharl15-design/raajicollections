@@ -474,6 +474,7 @@ const q = (params.get("q") || "").trim().toLowerCase();
 const cat = params.get("cat") || "";
 const subcat = params.get("subcat") || "";
 
+let listingBound = false;
 function initListing() {
   renderCats("#hcatList");
   if (!$("#plpGrid") && !$("#catList")) return;
@@ -490,22 +491,15 @@ function initListing() {
     const bar = $("#subcatBar");
     let activeSub = subcat;
     let activeCat = cat;
+    let renderChips = () => {};
     if (bar) {
-      const renderChips = () => {
+      renderChips = () => {
         const subs = [...new Set(PRODUCTS.filter((p) => p.cat === activeCat && p.img).map((p) => p.subcat))]
           .filter((s) => s !== "Readymade Blouses"); // hidden from Peacock nav/filters
         bar.innerHTML = subs.map((s) =>
           `<button class="chip ${s === activeSub ? "chip-on" : ""}" data-sub="${s}">${s}</button>`).join("");
       };
       renderChips();
-      // Delegate clicks on the container so re-rendered chips stay clickable.
-      bar.addEventListener("click", (e) => {
-        const ch = e.target.closest(".chip");
-        if (!ch) return;
-        activeSub = activeSub === ch.dataset.sub ? "" : ch.dataset.sub;
-        renderChips();
-        apply();
-      });
     }
 
     const apply = () => {
@@ -526,37 +520,51 @@ function initListing() {
       renderInto("#plpGrid", list);
     };
 
-    $("#applyFilters").addEventListener("click", apply);
-    $$('input[name="cat"]').forEach((r) => r.addEventListener("change", () => {
-      activeCat = document.querySelector('input[name="cat"]:checked')?.value || "";
-      activeSub = "";
-      renderChips();
-      apply();
-    }));
-    $("#sortBy") && $("#sortBy").addEventListener("change", apply);
-    $("#priceMax") && $("#priceMax").addEventListener("input", () => {
-      $("#priceLabel").textContent = INR($("#priceMax").value);
-      apply();
-    });
+    // Bind persistent controls once; re-calls (post-catalog refresh) only re-apply.
+    if (!listingBound) {
+      if (bar) bar.addEventListener("click", (e) => {
+        const ch = e.target.closest(".chip");
+        if (!ch) return;
+        activeSub = activeSub === ch.dataset.sub ? "" : ch.dataset.sub;
+        renderChips();
+        apply();
+      });
+      $("#applyFilters").addEventListener("click", apply);
+      $$('input[name="cat"]').forEach((r) => r.addEventListener("change", () => {
+        activeCat = document.querySelector('input[name="cat"]:checked')?.value || "";
+        activeSub = "";
+        renderChips();
+        apply();
+      }));
+      $("#sortBy") && $("#sortBy").addEventListener("change", apply);
+      $("#priceMax") && $("#priceMax").addEventListener("input", () => {
+        $("#priceLabel").textContent = INR($("#priceMax").value);
+        apply();
+      });
+      listingBound = true;
+    }
     apply();
     return;
   }
 }
 
 /* ---------- Home ---------- */
+let homeBound = false;
 function initHome() {
   if (!$("#slides")) return;
-  renderCats("#hcatHome");
-  // carousel
-  let i = 0;
-  const slides = $("#slides"), total = $$(".slide", slides).length;
-  const go = (n) => {
-    i = (n + total) % total;
-    slides.style.transform = `translateX(-${i * 100}%)`;
-  };
-  $("#prev").addEventListener("click", () => go(i - 1));
-  $("#next").addEventListener("click", () => go(i + 1));
-  setInterval(() => go(i + 1), 5000);
+  if (!homeBound) { // bind carousel once (re-calls only re-render the rows)
+    renderCats("#hcatHome");
+    let i = 0;
+    const slides = $("#slides"), total = $$(".slide", slides).length;
+    const go = (n) => {
+      i = (n + total) % total;
+      slides.style.transform = `translateX(-${i * 100}%)`;
+    };
+    $("#prev").addEventListener("click", () => go(i - 1));
+    $("#next").addEventListener("click", () => go(i + 1));
+    setInterval(() => go(i + 1), 5000);
+    homeBound = true;
+  }
 
   renderInto("#rowNew", spreadHome(8));
   renderInto("#rowBest", spreadHome(8));
@@ -589,9 +597,15 @@ async function boot() {
   document.body.insertAdjacentHTML("beforeend", overlayHTML());
   bindHeader();
   $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
-  // Prefer the catalog published from the Peacock admin (backend) so edits and
-  // deletions appear live. Fall back to the bundled data.js if the backend is
-  // unreachable.
+
+  // Render the bundled catalog (js/data.js) immediately so products never sit
+  // on a "loading" state, then refresh from the published Peacock admin catalog
+  // (backend) in the background so admin edits/deletions appear live. Since
+  // initHome()/initListing() are idempotent, they can be called again after the
+  // backend catalog arrives without blank screens on cold starts.
+  initHome();
+  initListing();
+
   try {
     const r = await fetch("https://raaji-collections.onrender.com/api/peacock/catalog?cb=" + Date.now(), { cache: "no-store" });
     if (r.ok) {
@@ -601,11 +615,11 @@ async function boot() {
         CATS = [...new Set(PRODUCTS.map((p) => p.cat))];
         SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];
         if (d.updated_at) imgVer = d.updated_at;
+        initHome();
+        initListing();
       }
     }
   } catch (e) {}
-  initHome();
-  initListing();
 }
 
 document.addEventListener("DOMContentLoaded", boot);
