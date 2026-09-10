@@ -59,7 +59,7 @@ function rowHTML(p) {
         <button class="btn-link" data-save-p="${p.id}"><i class="fas fa-save"></i> Save</button>
         <label class="btn-link" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer" title="Change image (works from mobile)">
           <i class="fas fa-upload"></i> Change img
-          <input type="file" data-upimg="${p.id}" accept="image/*" capture="environment" style="display:none">
+          <input type="file" data-upimg="${p.id}" accept="image/*" style="display:none">
         </label>
         ${effImg ? `<button class="btn-link" data-delimg="${p.id}"><i class="fas fa-image"></i> Remove img</button>` : ""}
         <button class="btn-link btn-delete" data-toggle-del="${p.id}"><i class="fas fa-trash-alt"></i> ${isDeleted ? "Undo" : "Delete"}</button>
