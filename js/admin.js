@@ -968,10 +968,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveBtn = document.getElementById('pfSaveBtn');
   if (saveBtn) saveBtn.addEventListener('click', saveNewProduct);
 
-  document.getElementById('adminLogoutBtn').addEventListener('click', () => {
+  document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
     localStorage.removeItem(ADMIN_KEY_STORAGE);
     adminKey = '';
-    showLogin();
+    try {
+      // Clear the server session cookie too, otherwise /admin re-authenticates
+      // from the still-valid HttpOnly cookie on the next visit.
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch (e) {}
+    location.href = '/admin-login';
   });
 
   document.querySelectorAll('.admin-filters .filter-btn').forEach(btn => {
