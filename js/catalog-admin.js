@@ -57,6 +57,10 @@ function rowHTML(p) {
       <label>Sizes <input data-f="size" value="${esc((o.size || (p.size || []).join(",")) || "")}" placeholder="S,M,L"></label>
       <div style="margin-top:10px">
         <button class="btn-link" data-save-p="${p.id}"><i class="fas fa-save"></i> Save</button>
+        <label class="btn-link" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer" title="Change image (works from mobile)">
+          <i class="fas fa-upload"></i> Change img
+          <input type="file" data-upimg="${p.id}" accept="image/*" capture="environment" style="display:none">
+        </label>
         ${effImg ? `<button class="btn-link" data-delimg="${p.id}"><i class="fas fa-image"></i> Remove img</button>` : ""}
         <button class="btn-link btn-delete" data-toggle-del="${p.id}"><i class="fas fa-trash-alt"></i> ${isDeleted ? "Undo" : "Delete"}</button>
       </div>
@@ -218,19 +222,47 @@ document.addEventListener("change", (e) => {
   if (up && up.files && up.files[0]) {
     const id = Number(up.dataset.upimg);
     const file = up.files[0];
-    // Embed the image into the published catalog (database) as base64 so it
-    // persists across server restarts/redepoys on the free tier (the temporary
-    // upload folder gets wiped). Cap the size so the catalog stays reasonable.
-    if (file.size > 1.5 * 1024 * 1024) {
-      alert("Image is over ~1.5MB. Please use a smaller image so it stores reliably.");
-      return;
-    }
-    const r = new FileReader();
-    r.onload = () => setImageLocal(id, r.result);
-    r.readAsDataURL(file);
+    // Downscale long-edge to ~1200px and compress to JPEG so phone photos fit the
+    // store's ~1.5MB base64 budget and still save reliably on the free tier.
+    compressImage(file).then((dataUrl) => {
+      setImageLocal(id, dataUrl);
+      $("#saveStatus").textContent = "✓ Image set (auto-compressed). Publish or Export data.js to save permanently.";
+    }).catch(() => {
+      $("#saveStatus").textContent = "Sorry, that image could not be read.";
+    });
     return;
   }
 });
+
+// Resize + re-encode an image to JPEG keeping it under budget (default 1.5MB).
+function compressImage(file, maxBytes = 1.5 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const L = 1200;
+      const scale = Math.min(1, L / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      let quality = 0.82;
+      let dataUrl = canvas.toDataURL("image/jpeg", quality);
+      // Lower quality until it fits the budget.
+      while ((dataUrl.length * 0.75) > maxBytes && quality > 0.35) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL("image/jpeg", quality);
+      }
+      URL.revokeObjectURL(url);
+      resolve(dataUrl);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("not an image")); };
+    img.src = url;
+  });
+}
 
 document.addEventListener("click", (e) => {
   const del = e.target.closest("[data-delimg]");
