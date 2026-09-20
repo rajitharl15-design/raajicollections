@@ -14,7 +14,7 @@ import uploadRouter from './routes/upload.js';
 import { migrate } from './migrate.js';
 import pool, { initDbConnection } from './db.js';
 import crypto from 'crypto';
-import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie, setPeacockSettings, hashPassword, verifyPassword, isHashed } from './auth.js';
+import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, clearAdminCookie, isConfigured, hasEnv, setSettings, effective, peacockConfigured, peacockUsername, validatePeacock, verifyPeacockAuth, setPeacockCookie, clearPeacockCookie, setPeacockSettings, getPeacockSettings, hashPassword, verifyPassword, isHashed } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -89,7 +89,7 @@ app.post('/api/peacock-admin/login', async (req, res, next) => {
     const lim = rateLimit('peacock-login', req.ip || (req.socket && req.socket.remoteAddress));
     if (!lim.ok) return res.status(429).json({ error: 'Too many attempts. Please wait a few minutes.' });
     const { username, password } = req.body || {};
-    const dbCreds = peacockSettings; // DB-backed creds (upgradable to hash)
+    const dbCreds = getPeacockSettings(); // DB-backed creds (upgradable to hash)
     const envCreds = (!dbCreds && process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS)
       ? { username: process.env.PEACOCK_ADMIN_USER, password: process.env.PEACOCK_ADMIN_PASS }
       : null;

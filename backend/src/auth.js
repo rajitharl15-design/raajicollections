@@ -72,6 +72,7 @@ export const PEACOCK_COOKIE = 'raaji_peacock_admin';
 // PEACOCK_ADMIN_* Render env placeholders can't block the first-time setup.
 let peacockSettings = null; // { username, password }
 export function setPeacockSettings(s) { peacockSettings = s || null; }
+export function getPeacockSettings() { return peacockSettings; }
 
 export function peacockConfigured() {
   return !!peacockSettings;
