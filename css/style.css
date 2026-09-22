@@ -987,18 +987,20 @@ nav {
 .pl-detail {
   position: relative;
   display: flex;
-  gap: 22px;
+  flex-direction: column;
+  gap: 14px;
   background: #fff;
   border-radius: 10px;
   padding: 18px;
-  max-width: 1180px;
+  max-width: 960px;
   width: 100%;
-  max-height: 94vh;
+  max-height: 96vh;
   overflow: auto;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.35);
 }
 .pl-img-panel {
-  flex: 1;
+  flex: none;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1006,9 +1008,8 @@ nav {
   border-radius: 8px;
   overflow: auto;
   position: relative;
-  min-width: 0;
   min-height: 320px;
-  height: min(84vh, 720px);
+  height: min(62vh, 540px);
   cursor: zoom-in;
 }
 .pl-img-panel.zoomed { cursor: zoom-out; }
@@ -1038,9 +1039,9 @@ nav {
   pointer-events: none;
 }
 .pl-info {
-  flex: 0 0 340px;
-  min-width: 0;
-  padding: 4px 6px;
+  flex: none;
+  width: 100%;
+  padding: 4px 6px 0;
 }
 .pl-cat {
   font-size: 11px;
