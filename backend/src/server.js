@@ -132,14 +132,20 @@ app.post('/api/peacock-admin/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-// Published Peacock store catalog (public read)
+// Published Peacock store catalog (public read). Sarees & Jewellery belong to
+// the Raaji side, so they are always stripped server-side — the Peacock store is
+// independent of Raaji's products regardless of what is published.
 app.get('/api/peacock/catalog', async (req, res, next) => {
   try {
     const { rows } = await pool.query('SELECT products, updated_at FROM peacock_catalog WHERE id = 1');
     if (rows.length === 0) return res.status(404).json({ error: 'No catalog published yet.' });
     const at = rows[0].updated_at ? new Date(rows[0].updated_at).getTime() : Date.now();
+    let products = Array.isArray(rows[0].products) ? rows[0].products : [];
+    products = products.filter((p) =>
+      !(p.cat === 'Women' && p.subcat === 'Sarees') &&
+      !(p.cat === 'Accessories' && p.subcat === 'Jewellery'));
     res.set('Cache-Control', 'no-store');
-    res.json({ products: rows[0].products, updated_at: at });
+    res.json({ products, updated_at: at });
   } catch (err) { next(err); }
 });
 
@@ -285,8 +291,19 @@ app.use('/api/admin', requireAdmin, admRouter);
 app.use('/api/upload', requireAdmin, uploadRouter);
 
 // Serve the static website (index.html, css/, js/, images/)
+// Optional: if a separate Peacock subdomain is configured (PEACOCK_HOST env),
+// make that host's root land on the Peacock store instead of the Raaji landing page.
+if (process.env.PEACOCK_HOST) {
+  const hosts = process.env.PEACOCK_HOST.toLowerCase().split(',').map((s) => s.trim());
+  app.use((req, res, next) => {
+    const host = (req.headers.host || '').toLowerCase();
+    if (hosts.includes(host) && (req.path === '/' || req.path === '/index.html')) {
+      return res.redirect(302, '/store.html');
+    }
+    next();
+  });
+}
 app.use(express.static(publicDir));
-// Never expose backend source/config, database dumps, or git internals.
 app.use(['/backend', '/database', '/.git', '/node_modules'], (req, res) => res.status(404).end());
 if (process.env.UPLOAD_DIR) {
   app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR)));

@@ -2,19 +2,91 @@ function escapeAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function openProductLightbox(src, alt) {
+// Derive a compressed WebP thumbnail for locally-served product photos, so
+// grid cards load a small image instead of the full-res file. Returns null for
+// external/uploaded images (caller keeps the full image in that case).
+function thumbSrc(u) {
+  const s = String(u || '').replace(/\\/g, '/');
+  if (!s.startsWith('/images/products/') && !s.startsWith('images/products/')) return null;
+  const i = s.lastIndexOf('/');
+  return s.slice(0, i + 1) + 'thumbs/' + s.slice(i + 1).replace(/\.[^./]+$/, '') + '.webp';
+}
+
+// Build a grid <img> that uses the thumbnail and falls back to the full image
+// if the thumb is missing or fails to load.
+function imgSrcset(u, cls, alt) {
+  const full = u || 'images/dress.svg';
+  const thumb = thumbSrc(full);
+  const a = escapeAttr(alt || '');
+  if (!thumb) {
+    return `<img class="${cls}" src="${escapeAttr(full)}" alt="${a}" loading="lazy" decoding="async">`;
+  }
+  const escFull = escapeAttr(full);
+  const onerr = "onerror=\"this.onerror=null;this.removeAttribute('srcset');this.removeAttribute('sizes');this.src='" + escFull + "'\"";
+  return `<img class="${cls}" src="${escapeAttr(thumb)}" srcset="${escapeAttr(thumb)} 500w, ${escFull} 1000w" sizes="(max-width:600px) 46vw, 24vw" alt="${a}" loading="lazy" decoding="async" ${onerr}>`;
+}
+
+function openProductLightbox(src, alt, product, isKids) {
   const box = document.createElement('div');
   box.className = 'product-lightbox';
-  const img = document.createElement('img');
-  img.src = src;
-  img.alt = alt || '';
   const close = document.createElement('span');
   close.className = 'pl-close';
   close.innerHTML = '&times;';
   close.addEventListener('click', e => { e.stopPropagation(); box.remove(); });
-  box.appendChild(close);
-  box.appendChild(img);
-  box.addEventListener('click', () => box.remove());
+
+  if (product) {
+    // Two-panel "open image": zoomable photo alongside full product details.
+    box.className = 'product-lightbox product-detail-view';
+    const inner = document.createElement('div');
+    inner.className = 'pl-detail';
+    inner.appendChild(close);
+
+    const imgPanel = document.createElement('div');
+    imgPanel.className = 'pl-img-panel';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = alt || product.name || '';
+    img.className = 'pl-img';
+    img.loading = 'eager';
+    let zoomed = false;
+    const toggleZoom = (e) => { e.stopPropagation(); zoomed = !zoomed; img.classList.toggle('zoomed', zoomed); };
+    img.addEventListener('click', toggleZoom);
+    const hint = document.createElement('span');
+    hint.className = 'pl-zoom-hint';
+    hint.textContent = 'Click to zoom';
+    imgPanel.appendChild(img);
+    imgPanel.appendChild(hint);
+
+    const details = document.createElement('div');
+    details.className = 'pl-info';
+    const price = Number(product.price);
+    const old = product.old_price != null ? Number(product.old_price) : null;
+    let html = '';
+    if (product.category_name) html += `<p class="pl-cat">${escapeAttr(product.category_name)}</p>`;
+    html += `<h2>${escapeAttr(product.name)}</h2>`;
+    if (product.material) html += `<p class="pl-material">${escapeAttr(product.material)}</p>`;
+    if (product.description) html += `<p class="pl-desc">${escapeAttr(product.description)}</p>`;
+    html += `<p class="pl-price">${old && old > price ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span>` : ''} <b>₹${price.toLocaleString('en-IN')}</b></p>`;
+    html += `<button class="btn-add pl-action">Add to Bag</button>`;
+    details.innerHTML = html;
+    details.querySelector('.pl-action').addEventListener('click', (e) => {
+      e.stopPropagation();
+      box.remove();
+      openQuickView(product, !!isKids);
+    });
+
+    inner.appendChild(imgPanel);
+    inner.appendChild(details);
+    box.appendChild(inner);
+  } else {
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = alt || '';
+    box.appendChild(close);
+    box.appendChild(img);
+  }
+
+  box.addEventListener('click', (e) => { if (e.target === box) box.remove(); });
   document.addEventListener('keydown', function esc(e) {
     if (e.key === 'Escape') { box.remove(); document.removeEventListener('keydown', esc); }
   });
@@ -296,7 +368,7 @@ function openQuickView(product, isKids) {
 
   overlay.querySelector('.quickview-img-wrap').addEventListener('click', e => {
     e.stopPropagation();
-    openProductLightbox(imgEl.src, imgEl.alt);
+    openProductLightbox(imgEl.src, imgEl.alt, product, isKids);
   });
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   overlay.querySelector('.quickview-close').addEventListener('click', () => overlay.remove());
@@ -332,152 +404,182 @@ window.ProductsRenderer = {
     const grid = document.querySelector('.product-grid[data-products]');
     if (!grid) return;
     const categorySlug = grid.getAttribute('data-products');
-    const base = API_CONFIG.baseUrl || '';
-    if (!base) return; // no backend, keep static cards
 
-    // Show a placeholder while the Render backend is cold-starting, so the
-    // section doesn't look broken/empty during the ~30-60s wake-up delay.
-    grid.innerHTML = '<p class="admin-loading">Loading products…</p>';
+    // Per-grid render helpers, defined once so the static and live renders share them.
+    const renderGrid = (list) => {
+      grid.innerHTML = list.map(p => {
+        const isKids = grid.hasAttribute('data-kids-sizes');
+        const forcePlain = grid.hasAttribute('data-no-variants');
+        const hasVariants = !forcePlain && Array.isArray(p.variants) && p.variants.length > 0;
+        const sizes = hasVariants ? [...new Set(p.variants.map(v => v.size))] : [];
+        const price = Number(p.price);
+        const old = p.old_price != null ? Number(p.old_price) : null;
+        const priceHtml = (old && old > price)
+          ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ₹${price.toLocaleString('en-IN')}`
+          : `₹${price.toLocaleString('en-IN')}`;
+        const badgeHtml = p.badge
+          ? `<div class="product-badge ${p.badge.toLowerCase() === 'sale' ? 'sale' : ''}">${p.badge}</div>`
+          : '';
+        const variantMeta = hasVariants
+          ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
+          : '';
+        const actionHtml = `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
+        return `
+        <div class="product-card${hasVariants ? ' has-variants' : ''}">
+          ${badgeHtml}
+          <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
+            ${imgSrcset(p.image_url, 'product-img-main', p.name)}
+            ${p.image_url_2 ? imgSrcset(p.image_url_2, 'product-img-hover', p.name) : ''}
+          </a>
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <p class="product-category">${p.category_name}</p>
+            ${p.material ? `<p class="product-material">${escapeAttr(p.material)}</p>` : ''}
+            ${p.description ? `<p class="product-desc">${escapeAttr(p.description)}</p>` : ''}
+            <p class="product-price">${priceHtml}</p>
+            ${variantMeta}
+            ${actionHtml}
+          </div>
+        </div>`;
+      }).join('');
+      if (list.length === 0) {
+        grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
+      }
+      if (typeof observer !== 'undefined') {
+        document.querySelectorAll('.product-card').forEach(el => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(30px)';
+          observer.observe(el);
+        });
+      }
+      document.dispatchEvent(new CustomEvent('products:rendered'));
+    };
 
-    try {
-      const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
-      const sep = qs ? '&' : '?';
-      const res = await fetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' } });
-      if (!res.ok) throw new Error('load failed');
-      const data = await res.json();
-      let products = (data.products || []).map(hydrateFromStatic);
+    const wireCardEvents = (list) => {
+      grid.querySelectorAll('.product-img-link').forEach(link => {
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const card = link.closest('.product-card');
+          const qvBtn = card.querySelector('.quickview-open');
+          const product = list.find(pr => String(pr.id) === (qvBtn || {}).dataset.pid);
+          if (product) {
+            // Open image with product details + zoom in one view.
+            openProductLightbox(link.dataset.img, link.querySelector('img').alt, product, grid.hasAttribute('data-kids-sizes'));
+          } else {
+            openProductLightbox(link.dataset.img, link.querySelector('img').alt);
+          }
+        });
+      });
+      grid.querySelectorAll('.quickview-open').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const product = list.find(pr => String(pr.id) === btn.dataset.pid);
+          if (product) openQuickView(product, grid.hasAttribute('data-kids-sizes'));
+        });
+      });
+    };
+
+    const norm = (s) => String(s || '').trim().toLowerCase();
+    const JHUMKA_SLUGS = new Set([
+      'img-20260817-wa0085', 'img-20260817-wa0087', 'img-20260817-wa0088',
+      'img-20260817-wa0089', 'img-20260817-wa0090', 'img-20260817-wa0091',
+      'img-20260817-wa0092', 'img-20260817-wa0094', 'img-20260817-wa0095',
+      'img-20260817-wa0096', 'img-20260817-wa0097', 'img-20260817-wa0100',
+      'img-20260821-wa0089', 'img-20260821-wa0090', 'img-20260821-wa0091',
+      'img-20260821-wa0092', 'img-20260821-wa0093', 'img-20260821-wa0094',
+      'img-20260821-wa0095'
+    ]);
+    const imgSlug = (p) => String(p.image_url || '').replace(/\\/g, '/').split('/').pop()
+      .toLowerCase().replace(/\.(jpe?g|png|webp|avif)$/, '').replace(/^jewellery-/, '');
+    const matchSubcat = (groups, p, group) => {
+      const assigned = (() => {
+        if (JHUMKA_SLUGS.has(imgSlug(p))) return 'Jhumkas';
+        if (!p.subcategory) return null;
+        const want = norm(p.subcategory);
+        for (const g of groups) {
+          if (norm(g.label) === want || g.rules.some(r => norm(r) === want)) return g.label;
+        }
+        return null;
+      })();
+      if (assigned) return assigned === group.label;
+      const rules = group.rules;
+      if (rules.length === 0) return true;
+      const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();
+      return rules.some(r => text.includes(r.toLowerCase()));
+    };
+
+    // Mutable source list so subcat tabs (built once) can re-filter after the
+    // live DB refresh without rebuilding the tab bar.
+    let sourceList = [];
+    let activeGroup = null;
+    let tabWrap = null;
+
+    // Applies featured/limit, then renders a product list. Static list paints
+    // the grid instantly; the live DB call re-renders it in the background.
+    const renderProducts = (list) => {
+      let src = list || [];
       const limitAttr = grid.getAttribute('data-limit');
       if (limitAttr) {
         const limit = parseInt(limitAttr, 10);
         if (Number.isFinite(limit) && limit > 0) {
-          const featured = products.filter(p => p.is_featured);
-          products = (featured.length ? featured : products).slice(0, limit);
+          const featured = src.filter(p => p.is_featured);
+          src = (featured.length ? featured : src).slice(0, limit);
         }
       }
-      if (products.length === 0) {
-        grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
-        return;
-      }
+      sourceList = src;
 
-      const renderGrid = (list) => {
-        grid.innerHTML = list.map(p => {
-          const isKids = grid.hasAttribute('data-kids-sizes');
-          const forcePlain = grid.hasAttribute('data-no-variants');
-          const hasVariants = !forcePlain && Array.isArray(p.variants) && p.variants.length > 0;
-          const sizes = hasVariants ? [...new Set(p.variants.map(v => v.size))] : [];
-          const price = Number(p.price);
-          const old = p.old_price != null ? Number(p.old_price) : null;
-          const priceHtml = (old && old > price)
-            ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ₹${price.toLocaleString('en-IN')}`
-            : `₹${price.toLocaleString('en-IN')}`;
-          const badgeHtml = p.badge
-            ? `<div class="product-badge ${p.badge.toLowerCase() === 'sale' ? 'sale' : ''}">${p.badge}</div>`
-            : '';
-          const variantMeta = hasVariants
-            ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
-            : '';
-          const actionHtml = `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
-          return `
-          <div class="product-card${hasVariants ? ' has-variants' : ''}">
-            ${badgeHtml}
-            <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
-              <img class="product-img-main" src="${p.image_url || 'images/dress.svg'}" alt="${p.name}" loading="lazy">
-              ${p.image_url_2 ? `<img class="product-img-hover" src="${escapeAttr(p.image_url_2)}" alt="${p.name}" loading="lazy">` : ''}
-            </a>
-            <div class="product-info">
-              <h3>${p.name}</h3>
-              <p class="product-category">${p.category_name}</p>
-              <p class="product-price">${priceHtml}</p>
-              ${variantMeta}
-              ${actionHtml}
-            </div>
-          </div>`;
-        }).join('');
-        if (list.length === 0) {
-          grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
+      const subcats = grid.getAttribute('data-subcats');
+      if (!subcats) {
+        if (src.length === 0) {
+          if (!grid.dataset.rendered) grid.innerHTML = '<p class="admin-loading">No products in this category yet.</p>';
+          return;
         }
-        if (typeof observer !== 'undefined') {
-          document.querySelectorAll('.product-card').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            observer.observe(el);
-          });
-        }
-        document.dispatchEvent(new CustomEvent('products:rendered'));
-      };
-
-      const wireCardEvents = (list) => {
-        grid.querySelectorAll('.product-img-link').forEach(link => {
-          link.addEventListener('click', e => {
-            e.preventDefault();
-            e.stopPropagation();
-            const card = link.closest('.product-card');
-            const qvBtn = card.querySelector('.quickview-open');
-            const product = list.find(pr => String(pr.id) === (qvBtn || {}).dataset.pid);
-            if (product) {
-              openQuickView(product, grid.hasAttribute('data-kids-sizes'));
-            } else {
-              openProductLightbox(link.dataset.img, link.querySelector('img').alt);
-            }
-          });
-        });
-        grid.querySelectorAll('.quickview-open').forEach(btn => {
+        renderGrid(src);
+        wireCardEvents(src);
+        grid.querySelectorAll('.btn-var').forEach(btn => {
           btn.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
-            const product = list.find(pr => String(pr.id) === btn.dataset.pid);
-            if (product) openQuickView(product, grid.hasAttribute('data-kids-sizes'));
+            let variants;
+            try { variants = JSON.parse(btn.dataset.variants); } catch (err) { variants = []; }
+            openVariantPicker({
+              id: btn.dataset.pid,
+              productId: btn.dataset.pid,
+              name: btn.dataset.name,
+              price: Number(btn.dataset.price),
+              image_url: btn.dataset.img,
+              variants,
+            });
           });
         });
+        grid.dataset.rendered = '1';
+        return;
+      }
+
+      let parsed;
+      try { parsed = JSON.parse(subcats); } catch (err) { parsed = []; }
+      const groups = Array.isArray(parsed) ? parsed : [];
+      const noAll = grid.hasAttribute('data-no-all');
+      const allGroup = { label: 'All', rules: [] };
+      const tabGroups = noAll ? groups : [allGroup, ...groups];
+
+      const needTabs = !tabWrap || !tabWrap.isConnected;
+      if (needTabs) {
+        tabWrap = document.createElement('div');
+        tabWrap.className = 'subcat-tabs';
+        grid.parentNode.insertBefore(tabWrap, grid);
+      }
+
+      const showGroup = (group) => {
+        tabWrap.querySelectorAll('.subcat-tab').forEach(t => t.classList.toggle('active', t.dataset.label === group.label));
+        const filtered = sourceList.filter(p => matchSubcat(groups, p, group));
+        renderGrid(filtered);
+        wireCardEvents(filtered);
       };
 
-      const subcats = grid.getAttribute('data-subcats');
-      if (subcats) {
-        let parsed;
-        try { parsed = JSON.parse(subcats); } catch (err) { parsed = []; }
-        const groups = Array.isArray(parsed) ? parsed : [];
-        const norm = (s) => String(s || '').trim().toLowerCase();
-        // Products whose image is a known jhumka are grouped into the "Jhumkas"
-        // subtab even when their name/subcategory is generic (catalog imports).
-        const JHUMKA_SLUGS = new Set([
-          'img-20260817-wa0085', 'img-20260817-wa0087', 'img-20260817-wa0088',
-          'img-20260817-wa0089', 'img-20260817-wa0090', 'img-20260817-wa0091',
-          'img-20260817-wa0092', 'img-20260817-wa0094', 'img-20260817-wa0095',
-          'img-20260817-wa0096', 'img-20260817-wa0097', 'img-20260817-wa0100',
-          'img-20260821-wa0089', 'img-20260821-wa0090', 'img-20260821-wa0091',
-          'img-20260821-wa0092', 'img-20260821-wa0093', 'img-20260821-wa0094',
-          'img-20260821-wa0095'
-        ]);
-        const imgSlug = (p) => String(p.image_url || '').replace(/\\/g, '/').split('/').pop()
-          .toLowerCase().replace(/\.(jpe?g|png|webp|avif)$/, '').replace(/^jewellery-/, '');
-        const assignedSubcat = (p) => {
-          if (JHUMKA_SLUGS.has(imgSlug(p))) return 'Jhumkas';
-          if (!p.subcategory) return null;
-          const want = norm(p.subcategory);
-          for (const g of groups) {
-            if (norm(g.label) === want || g.rules.some(r => norm(r) === want)) return g.label;
-          }
-          return null;
-        };
-        const matchSubcat = (p, group) => {
-          const assigned = assignedSubcat(p);
-          if (assigned) return assigned === group.label;
-          const rules = group.rules;
-          if (rules.length === 0) return true;
-          const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();
-          return rules.some(r => text.includes(r.toLowerCase()));
-        };
-        const tabWrap = document.createElement('div');
-        tabWrap.className = 'subcat-tabs';
-        const noAll = grid.hasAttribute('data-no-all');
-        const allGroup = { label: 'All', rules: [] };
-        const showGroup = (group) => {
-          tabWrap.querySelectorAll('.subcat-tab').forEach(t => t.classList.toggle('active', t.dataset.label === group.label));
-          const list = products.filter(p => matchSubcat(p, group));
-          renderGrid(list);
-          wireCardEvents(list);
-        };
-        const tabGroups = noAll ? groups : [allGroup, ...groups];
+      if (needTabs) {
         for (const g of tabGroups) {
           const btn = document.createElement('button');
           btn.type = 'button';
@@ -487,7 +589,6 @@ window.ProductsRenderer = {
           btn.addEventListener('click', () => showGroup(g));
           tabWrap.appendChild(btn);
         }
-        grid.parentNode.insertBefore(tabWrap, grid);
         if (typeof observer !== 'undefined') {
           document.querySelectorAll('.product-card').forEach(el => {
             el.style.opacity = '0';
@@ -495,30 +596,42 @@ window.ProductsRenderer = {
             observer.observe(el);
           });
         }
-        showGroup(noAll && groups[0] ? groups[0] : allGroup);
-        return;
       }
+      if (!activeGroup) activeGroup = noAll && groups[0] ? groups[0] : allGroup;
+      showGroup(activeGroup);
+      grid.dataset.rendered = '1';
+    };
 
-      renderGrid(products);
-      wireCardEvents(products);
-      grid.querySelectorAll('.btn-var').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          let variants;
-          try { variants = JSON.parse(btn.dataset.variants); } catch (err) { variants = []; }
-          openVariantPicker({
-            id: btn.dataset.pid,
-            productId: btn.dataset.pid,
-            name: btn.dataset.name,
-            price: Number(btn.dataset.price),
-            image_url: btn.dataset.img,
-            variants,
-          });
+    // 1) Paint instantly from the bundled static catalog (js/data.js) so the
+    //    grid is never blank while the Render backend cold-starts.
+    const SS = window.StaticProducts || { list: () => [] };
+    renderProducts(SS.list(categorySlug));
+
+    // 2) Refresh from the live DB in the background. A 5s timeout means a cold
+    //    Render instance can't stall the page — the static render stays up.
+    const base = API_CONFIG.baseUrl || '';
+    if (!base) return;
+    try {
+      const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
+      const sep = qs ? '&' : '?';
+      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = ctrl ? setTimeout(() => ctrl.abort(), 5000) : null;
+      try {
+        const res = await fetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, {
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' },
+          signal: ctrl ? ctrl.signal : undefined,
         });
-      });
-    } catch (err) {
-      /* keep hardcoded cards if backend unavailable */
+        if (timer) clearTimeout(timer);
+        if (res.ok) {
+          const data = await res.json();
+          renderProducts((data.products || []).map(hydrateFromStatic));
+        }
+      } catch (e) {
+        if (timer) clearTimeout(timer);
+        /* keep the static render */
+      }
+    } catch (e) {
+      /* keep the static render */
     }
   }
 };

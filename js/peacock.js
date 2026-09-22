@@ -127,9 +127,32 @@ function imgv(u) {
   return u + (u.includes("?") ? "&" : "?") + "v=" + imgVer;
 }
 
-// Renders a real uploaded image, or falls back to the icon when none.
+// For locally-served product photos (images/products/...) derive a compressed
+// WebP thumbnail path, so cards load a small image instead of the full-res file.
+// External/uploaded images are left untouched.
+function thumbOf(u) {
+  const s = String(u || "").replace(/\\/g, "/");
+  if (!s.startsWith("images/products/")) return u;
+  const i = s.lastIndexOf("/");
+  const base = s.slice(0, i + 1); // e.g. "images/products/"
+  const stem = s.slice(i + 1).replace(/\.[^./]+$/, "");
+  return base + "thumbs/" + stem + ".webp";
+}
+
+// Renders a real uploaded image (thumbnail with full-res srcset, falling back
+// to the full image if the thumb is missing), or the icon when none.
 function media(p, cls) {
-  if (p.img) return `<img class="${cls || ""}" src="${imgv(p.img)}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`;
+  if (p.img) {
+    const full = imgv(p.img);
+    const thumb = thumbOf(p.img) === p.img ? full : imgv(thumbOf(p.img));
+    const baseAttrs = `class="${cls || ""}" alt="${p.name}" loading="lazy" decoding="async"`;
+    if (thumb === full) {
+      // No thumbnail available (external/uploads): load the full image directly.
+      return `<img ${baseAttrs} src="${full}" onerror="this.style.display='none'">`;
+    }
+    const fallback = "onerror=\"if(!this.dataset.t){this.dataset.t='1';this.src=this.dataset.f;this.removeAttribute('srcset');this.removeAttribute('sizes')}else{this.style.display='none'}\"";
+    return `<img ${baseAttrs} data-f="${full}" src="${thumb}" srcset="${thumb} 500w, ${full} 1000w" sizes="(max-width:600px) 46vw, 24vw" ${fallback}>`;
+  }
   return `<span class="icon ${cls || ""}">${p.icon || "🎽"}</span>`;
 }
 
@@ -181,10 +204,8 @@ function spreadHome(n) {
 
 /* ---------- Horizontal category carousel ---------- */
 const HCAT_CARDS = [
-  { title: "Sarees", cat: "Women", subcat: "Sarees", icon: "🪷", grad: "linear-gradient(135deg,#7f9b8a,#33503f)" },
   { title: "Dresses", cat: "Women", subcat: "Dresses", icon: "👗", grad: "linear-gradient(135deg,#c0574f,#7a1f2b)" },
   { title: "Night Dresses", cat: "Women", subcat: "Night Dresses", icon: "🌙", grad: "linear-gradient(135deg,#5c6aa8,#2a3566)" },
-  { title: "Jewellery", cat: "Accessories", subcat: "Jewellery", icon: "💎", grad: "linear-gradient(135deg,#d3b06f,#7a5a20)" },
   { title: "Kids Wear", cat: "Kids", subcat: "Kids Wear", icon: "🧸", grad: "linear-gradient(135deg,#4aa3c2,#1f5d75)" },
 ];
 
@@ -608,7 +629,7 @@ async function boot() {
   bindHeader();
   $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
 
-  // Render the bundled catalog (js/data.js) immediately so products never sit
+  // Render the bundled catalog (js/peacock-data.js) immediately so products never sit
   // on a "loading" state, then refresh from the published Peacock admin catalog
   // (backend) in the background so admin edits/deletions appear live. Since
   // initHome()/initListing() are idempotent, they can be called again after the

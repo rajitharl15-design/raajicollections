@@ -12,6 +12,11 @@ services:
         value: 3000
       - key: CORS_ORIGIN
         value: https://raajicollections.com,https://www.raajicollections.com,https://rajitharl15-design.github.io
+      # If you give Peacock its own subdomain (e.g. peacock.raajicollections.com),
+      # set it here so that host's root opens the Peacock store instead of the
+      # Raaji landing page.
+      - key: PEACOCK_HOST
+        value: peacock.raajicollections.com
       - key: DATABASE_URL
         fromDatabase:
           name: raaji-collections-db
@@ -26,6 +31,19 @@ services:
       name: uploads
       mountPath: /data
       sizeGB: 1
+
+  # Keep the web instance warm so visitors never hit a 30-60s cold start.
+  # (Requires a paid plan; on free tier remove this and use an external
+  # uptime monitor like UptimeRobot instead.)
+  - type: cron
+    name: raaji-keep-warm
+    runtime: python
+    plan: starter
+    schedule: "*/10 * * * *"
+    startCommand: python keepwarm.py
+    envVars:
+      - key: KEEP_WARM_URL
+        value: https://raaji-collections.onrender.com/api/health
 
 databases:
   - name: raaji-collections-db

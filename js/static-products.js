@@ -36,11 +36,8 @@
     };
   }
 
-  function staticProducts(url) {
-    var base;
-    try { base = new URL(url, location.origin); } catch (e) { base = null; }
-    var cat = base ? base.searchParams.get('category') : '';
-    var map = CATEGORY[cat] || CATEGORY['all'];
+  function buildList(cat) {
+    var map = CATEGORY[cat || ''] || CATEGORY['all'];
     var all = (typeof PRODUCTS !== 'undefined') ? PRODUCTS : [];
     var list = all.slice();
     if (map.cat) {
@@ -48,7 +45,14 @@
     } else if (cat === 'featured') {
       list = list.filter(function (p) { return p.new || p.best; });
     }
-    var products = list.map(toOld);
+    return list.map(toOld);
+  }
+
+  function staticProducts(url) {
+    var base;
+    try { base = new URL(url, location.origin); } catch (e) { base = null; }
+    var cat = base ? base.searchParams.get('category') : '';
+    var products = buildList(cat);
     return Promise.resolve({
       ok: true,
       status: 200,
@@ -56,15 +60,30 @@
     });
   }
 
+  // Synchronous access to the bundled catalog so category pages can paint
+  // instantly (no waiting on the Render backend to wake up).
+  window.StaticProducts = { list: buildList };
+
   var origFetch = window.fetch && window.fetch.bind(window);
   window.fetch = function (url, opts) {
     var s = String(url);
     if (s.indexOf('/api/products') !== -1) {
       // Use the live database when the backend is up (admin edits show);
       // fall back to the bundled data.js catalog when it's unreachable so the
-      // store never goes blank. Cache-busting is handled by products.js/prices.js.
+      // store never goes blank. A short timeout caps how long a cold Render
+      // instance (30-60s wake-up) can hold the page hostage.
       if (origFetch) {
-        return origFetch(url, opts).then(function (res) {
+        var o = Object.assign({}, opts || {});
+        var timedOut = false;
+        if (typeof AbortController !== 'undefined') {
+          var ctrl = o.signal ? null : new AbortController();
+          if (ctrl) {
+            o.signal = ctrl.signal;
+            setTimeout(function () { if (!timedOut) { timedOut = true; try { ctrl.abort(); } catch (e) {} } }, 6000);
+          }
+        }
+        return origFetch(url, o).then(function (res) {
+          timedOut = true;
           return (res && res.ok) ? res : staticProducts(url);
         }, function () {
           return staticProducts(url);

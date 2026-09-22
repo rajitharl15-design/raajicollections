@@ -444,6 +444,8 @@ function renderAdminProducts() {
         <label>Old Price (₹) <input data-field="old_price" data-slug="${p.slug}" type="number" min="0" value="${p.old_price != null ? p.old_price : ''}" placeholder="none"></label>
         <label>Stock <input data-field="stock_qty" data-slug="${p.slug}" type="number" min="0" value="${p.stock_qty}"></label>
         <label>Badge <input data-field="badge" data-slug="${p.slug}" type="text" value="${escapeHtml(p.badge || '')}" placeholder="New / Sale"></label>
+        <label>Material <input data-field="material" data-slug="${p.slug}" type="text" value="${escapeHtml(p.material || '')}" placeholder="e.g. Cotton, Silk"></label>
+        <label>Description <textarea data-field="description" data-slug="${p.slug}" rows="2" placeholder="Optional description">${escapeHtml(p.description || '')}</textarea></label>
         <label class="pm-check">Visible on store
           <input data-field="is_active" data-slug="${p.slug}" type="checkbox" ${p.is_active ? 'checked' : ''}>
         </label>
@@ -486,7 +488,7 @@ function renderAdminProducts() {
     btn.addEventListener('click', () => openVariantEditor(btn.dataset.variants, btn.dataset.vname, btn.dataset.kids === '1'));
   });
 
-  list.querySelectorAll('#pmList input[data-field], #pmList select[data-field]').forEach(inp => {
+  list.querySelectorAll('#pmList input[data-field], #pmList select[data-field], #pmList textarea[data-field]').forEach(inp => {
     if (inp.type === 'checkbox') return;
     inp.addEventListener('change', async () => {
       const slug = inp.dataset.slug;
@@ -525,6 +527,10 @@ async function saveAdminProduct(slug) {
     else if (field === 'stock_qty' && val !== '') payload.stock_qty = Number(val);
     else if (field === 'badge') payload.badge = val;
   });
+  const mtEl = list.querySelector(`input[data-field="material"][data-slug="${slug}"]`);
+  if (mtEl) payload.material = mtEl.value.trim();
+  const dsEl = list.querySelector(`textarea[data-field="description"][data-slug="${slug}"]`);
+  if (dsEl) payload.description = dsEl.value.trim();
   const catSel = list.querySelector(`select[data-field="category_id"][data-slug="${slug}"]`);
   if (catSel) payload.category_id = Number(catSel.value);
   const subSel = list.querySelector(`select[data-field="subcategory"][data-slug="${slug}"]`);
@@ -743,6 +749,7 @@ async function saveNewProduct() {
   const badge = document.getElementById('pfBadge').value.trim();
   const subcategory = document.getElementById('pfSubcategory') ? document.getElementById('pfSubcategory').value : '';
   const desc = document.getElementById('pfDesc').value.trim();
+  const material = document.getElementById('pfMaterial') ? document.getElementById('pfMaterial').value.trim() : '';
 
   if (!name || !categoryId || !price) {
     status.textContent = 'Name, category and price are required.';
@@ -759,6 +766,7 @@ async function saveNewProduct() {
     badge: badge || null,
     subcategory: subcategory || null,
     description: desc || null,
+    material: material || null,
   };
 
   btn.disabled = true;
@@ -784,6 +792,7 @@ async function saveNewProduct() {
     document.getElementById('pfOldPrice').value = '';
     document.getElementById('pfDesc').value = '';
     document.getElementById('pfBadge').value = '';
+    document.getElementById('pfMaterial').value = '';
     document.getElementById('pfImages').value = '';
     document.getElementById('pfPreview').innerHTML = '';
     selectedImages = [];

@@ -313,7 +313,7 @@ router.get('/products', async (req, res, next) => {
 // PATCH /api/admin/products/:slug  -> update name / price / old_price / stock / badge
 router.patch('/products/:slug', async (req, res, next) => {
   try {
-    const { name, price, old_price, stock_qty, badge, is_featured, is_active, category_id, subcategory } = req.body;
+    const { name, price, old_price, stock_qty, badge, is_featured, is_active, category_id, subcategory, material, description } = req.body;
 
     if (name != null && (!name.trim() || name.length > 200)) {
       return res.status(400).json({ error: 'name must be non-empty and under 200 chars' });
@@ -342,9 +342,11 @@ router.patch('/products/:slug', async (req, res, next) => {
               is_active = COALESCE($7::boolean, is_active),
               category_id = COALESCE($8::int, category_id),
               subcategory = CASE WHEN $10::text = '' THEN NULL ELSE COALESCE($10::varchar, subcategory) END,
+              material = CASE WHEN $11::text = '' THEN NULL ELSE COALESCE($11::varchar, material) END,
+              description = CASE WHEN $12::text = '' THEN NULL ELSE COALESCE($12::text, description) END,
               updated_at = NOW()
         WHERE slug = $9
-        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active, category_id, subcategory`,
+        RETURNING id, name, slug, price, old_price, badge, stock_qty, is_featured, is_active, category_id, subcategory, material, description`,
       [
         name != null && name.trim() ? name.trim() : null,
         price != null ? Number(price) : null,
@@ -356,6 +358,8 @@ router.patch('/products/:slug', async (req, res, next) => {
         category_id != null ? Number(category_id) : null,
         req.params.slug,
         subcategory,
+        material != null ? material.trim() : null,
+        description != null ? description.trim() : null,
       ]
     );
     if (updated.rows.length === 0) return res.status(404).json({ error: 'Product not found' });

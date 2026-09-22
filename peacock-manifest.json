@@ -1,7 +1,7 @@
 {
   "name": "Peacock Fashions",
   "short_name": "Peacock",
-  "description": "Peacock Fashions — elegant sarees, dresses, jewellery, night dresses & kids wear. Order easily on WhatsApp.",
+  "description": "Peacock Fashions — dresses, night dresses, kids wear & more. Order easily on WhatsApp.",
   "start_url": "/store.html",
   "scope": "/",
   "display": "standalone",
