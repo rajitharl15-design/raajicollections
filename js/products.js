@@ -437,7 +437,6 @@ window.ProductsRenderer = {
             <h3>${p.name}</h3>
             <p class="product-category">${p.category_name}</p>
             ${p.material ? `<p class="product-material">${escapeAttr(p.material)}</p>` : ''}
-            ${p.description ? `<p class="product-desc">${escapeAttr(p.description)}</p>` : ''}
             <p class="product-price">${priceHtml}</p>
             ${variantMeta}
             ${actionHtml}
