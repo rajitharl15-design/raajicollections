@@ -602,13 +602,33 @@ window.ProductsRenderer = {
       grid.dataset.rendered = '1';
     };
 
-    // 1) Paint instantly from the bundled static catalog (js/data.js) so the
-    //    grid is never blank while the Render backend cold-starts.
+    // Cache the live DB catalog in the browser so repeat visits show your
+    // updated prices/products instantly (even if the backend is briefly asleep),
+    // instead of the older bundled data.js snapshot.
+    const CACHE_KEY = 'raaji_products_v2';
+    const readCatalogCache = () => {
+      try {
+        if (typeof localStorage === 'undefined') return null;
+        const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (c && Array.isArray(c.products) && Date.now() - c.ts < 7 * 24 * 3600 * 1000) return c.products;
+      } catch (e) {}
+      return null;
+    };
+    const writeCatalogCache = (products) => {
+      try {
+        if (typeof localStorage === 'undefined' || !Array.isArray(products)) return;
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), products }));
+      } catch (e) {}
+    };
+
+    // 1) Paint instantly — prefer the last-known live DB catalog if we have one,
+    //    otherwise fall back to the bundled static catalog (js/data.js).
     const SS = window.StaticProducts || { list: () => [] };
-    renderProducts(SS.list(categorySlug));
+    const cached = readCatalogCache();
+    renderProducts(cached && cached.length ? cached.map(hydrateFromStatic) : SS.list(categorySlug));
 
     // 2) Refresh from the live DB in the background. A 5s timeout means a cold
-    //    Render instance can't stall the page — the static render stays up.
+    //    Render instance can't stall the page — the render on screen stays up.
     const base = API_CONFIG.baseUrl || '';
     if (!base) return;
     try {
@@ -624,14 +644,15 @@ window.ProductsRenderer = {
         if (timer) clearTimeout(timer);
         if (res.ok) {
           const data = await res.json();
+          writeCatalogCache(data.products || []);
           renderProducts((data.products || []).map(hydrateFromStatic));
         }
       } catch (e) {
         if (timer) clearTimeout(timer);
-        /* keep the static render */
+        /* keep the render on screen */
       }
     } catch (e) {
-      /* keep the static render */
+      /* keep the render on screen */
     }
   }
 };
