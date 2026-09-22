@@ -30,6 +30,8 @@
       category_name: p.cat,
       category: p.cat,
       is_featured: !!p.best,
+      material: p.material || null,
+      description: p.description || null,
       variants: sizes.map(function (size) {
         return { size: size, color: 'One', image_url: p.img || '', price: null, stock_qty: 10, is_active: true };
       })
