@@ -987,18 +987,18 @@ nav {
 .pl-detail {
   position: relative;
   display: flex;
-  gap: 24px;
+  gap: 22px;
   background: #fff;
   border-radius: 10px;
-  padding: 20px;
-  max-width: 980px;
+  padding: 18px;
+  max-width: 1180px;
   width: 100%;
-  max-height: 92vh;
+  max-height: 94vh;
   overflow: auto;
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.35);
 }
 .pl-img-panel {
-  flex: 1.2;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1006,8 +1006,9 @@ nav {
   border-radius: 8px;
   overflow: auto;
   position: relative;
+  min-width: 0;
   min-height: 320px;
-  height: min(78vh, 560px);
+  height: min(84vh, 720px);
   cursor: zoom-in;
 }
 .pl-img-panel.zoomed { cursor: zoom-out; }
@@ -1022,7 +1023,7 @@ nav {
   transform-origin: 0 0;
 }
 .pl-img.zoomed {
-  transform: scale(2);
+  transform: scale(2.2);
 }
 .pl-zoom-hint {
   position: absolute;
@@ -1037,9 +1038,9 @@ nav {
   pointer-events: none;
 }
 .pl-info {
-  flex: 0.8;
-  padding: 4px 6px;
+  flex: 0 0 340px;
   min-width: 0;
+  padding: 4px 6px;
 }
 .pl-cat {
   font-size: 11px;
