@@ -1010,7 +1010,7 @@ nav {
   height: min(78vh, 560px);
   cursor: zoom-in;
 }
-.pl-img-panel.zoomed { cursor: zoom-out; overflow: hidden; }
+.pl-img-panel.zoomed { cursor: zoom-out; }
 .pl-img {
   max-width: 100%;
   max-height: 100%;
@@ -1019,10 +1019,10 @@ nav {
   object-fit: contain;
   display: block;
   transition: transform 0.25s ease;
+  transform-origin: 0 0;
 }
 .pl-img.zoomed {
   transform: scale(2);
-  transform-origin: 0 0;
 }
 .pl-zoom-hint {
   position: absolute;
