@@ -11,7 +11,7 @@ services:
       - key: PORT
         value: 3000
       - key: CORS_ORIGIN
-        value: https://raajicollections.com,https://www.raajicollections.com,https://rajitharl15-design.github.io
+        value: https://raajicollections.com,https://www.raajicollections.com,https://peacock.raajicollections.com,https://rajitharl15-design.github.io
       # If you give Peacock its own subdomain (e.g. peacock.raajicollections.com),
       # set it here so that host's root opens the Peacock store instead of the
       # Raaji landing page.
