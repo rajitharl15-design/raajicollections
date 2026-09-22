@@ -10,3 +10,11 @@ const STORE_CONFIG = {
   upiName: 'Raaji Collections'
 };
 window.STORE_CONFIG = STORE_CONFIG;
+
+// Register the service worker so the installed Raaji PWA stays up to date
+// (network-first; never caches stale product data/images).
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(function () {});
+  });
+}
