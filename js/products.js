@@ -390,6 +390,8 @@ function hydrateFromStatic(p) {
   if (merged.price == null || Number(merged.price) <= 0) merged.price = Number(hit.price) || merged.price;
   if (merged.old_price == null || Number(merged.old_price) <= 0) merged.old_price = hit.old != null ? Number(hit.old) : merged.old_price;
   if (!merged.name) merged.name = hit.name;
+  if (!merged.description) merged.description = hit.description || null;
+  if (!merged.material) merged.material = hit.material || null;
   return merged;
 }
 
