@@ -637,20 +637,11 @@ async function boot() {
   initHome();
   initListing();
 
-  try {
-    const r = await fetch("https://raaji-collections.onrender.com/api/peacock/catalog?cb=" + Date.now(), { cache: "no-store" });
-    if (r.ok) {
-      const d = await r.json();
-      if (d && Array.isArray(d.products) && d.products.length) {
-        PRODUCTS = d.products;
-        CATS = [...new Set(PRODUCTS.map((p) => p.cat))];
-        SUBCATS = [...new Set(PRODUCTS.map((p) => p.subcat))];
-        if (d.updated_at) imgVer = d.updated_at;
-        initHome();
-        initListing();
-      }
-    }
-  } catch (e) {}
+  // The bundled js/peacock-data.js catalog is the authoritative source for the
+  // public store — it holds the correct/updated images and prices. We keep it
+  // as-is and do NOT overwrite it with the backend catalog, which can contain
+  // stale or partial rows. (Admin catalog edits are published to js/peacock-data.js
+  // in the repo, then pushed to go live for all visitors.)
 }
 
 document.addEventListener("DOMContentLoaded", boot);

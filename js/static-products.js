@@ -69,27 +69,11 @@
   window.fetch = function (url, opts) {
     var s = String(url);
     if (s.indexOf('/api/products') !== -1) {
-      // Use the live database when the backend is up (admin edits show);
-      // fall back to the bundled data.js catalog when it's unreachable so the
-      // store never goes blank. A short timeout caps how long a cold Render
-      // instance (30-60s wake-up) can hold the page hostage.
-      if (origFetch) {
-        var o = Object.assign({}, opts || {});
-        var timedOut = false;
-        if (typeof AbortController !== 'undefined') {
-          var ctrl = o.signal ? null : new AbortController();
-          if (ctrl) {
-            o.signal = ctrl.signal;
-            setTimeout(function () { if (!timedOut) { timedOut = true; try { ctrl.abort(); } catch (e) {} } }, 6000);
-          }
-        }
-        return origFetch(url, o).then(function (res) {
-          timedOut = true;
-          return (res && res.ok) ? res : staticProducts(url);
-        }, function () {
-          return staticProducts(url);
-        });
-      }
+      // The bundled data.js catalog is the authoritative source for the public
+      // store. It has the correct/updated images and prices, so serve it
+      // directly instead of mixing in live DB rows that can be stale or wrong
+      // (e.g. zero/outdated prices, misassigned categories). Returns a
+      // fetch-like promise so ProductsRenderer's normal fetch path works.
       return staticProducts(url);
     }
     return origFetch ? origFetch(url, opts) : Promise.reject(new Error('fetch unavailable'));
