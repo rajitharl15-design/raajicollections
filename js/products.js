@@ -513,6 +513,13 @@ window.ProductsRenderer = {
     ]);
     const imgSlug = (p) => String(p.image_url || '').replace(/\\/g, '/').split('/').pop()
       .toLowerCase().replace(/\.(jpe?g|png|webp|avif)$/, '').replace(/^jewellery-/, '');
+    const groupFor = (groups, p) => {
+      const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();
+      for (const g of groups) {
+        if (g.rules.some(r => text.includes(r.toLowerCase()))) return g;
+      }
+      return null;
+    };
     const matchSubcat = (groups, p, group) => {
       const assigned = (() => {
         if (JHUMKA_SLUGS.has(imgSlug(p))) return 'Jhumkas';
@@ -524,10 +531,13 @@ window.ProductsRenderer = {
         return null;
       })();
       if (assigned) return assigned === group.label;
-      const rules = group.rules;
-      if (rules.length === 0) return true;
+      if (group.rules.length === 0) {
+        // "All" group: exclude products that belong to a named subcategory so
+        // e.g. Vaikuntapuram sarees only appear under their own tab.
+        return !groupFor(groups, p);
+      }
       const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();
-      return rules.some(r => text.includes(r.toLowerCase()));
+      return group.rules.some(r => text.includes(r.toLowerCase()));
     };
 
     // Mutable source list so subcat tabs (built once) can re-filter after the
