@@ -102,7 +102,6 @@ let PRODUCTS = [
   {"id":1188,"name":"Normal Images Img 20260808 180109","cat":"Women","subcat":"Dresses","price":799,"old":1438,"img":"images/products/normal-images-img-20260808-180109.jpg","size":["S","M","L","XL"],"rating":4.6},
   {"id":1189,"name":"Normal Images Img 20260808 180116","cat":"Women","subcat":"Dresses","price":799,"old":1438,"img":"images/products/normal-images-img-20260808-180116.jpg","size":["S","M","L","XL"],"rating":4.6},
   {"id":1190,"name":"Pearl With Cz3 Stone","cat":"Accessories","subcat":"Bead Chains","price":399,"old":718,"img":"images/products/pearl-with-cz3-stone.jpg","size":["One Size"],"rating":4.6},
-  {"id":1197,"name":"Red Top","cat":"Women","subcat":"Dresses","price":649,"old":1168,"img":"images/products/red-top.jpg","size":["S","M","L","XL"],"rating":4.6},
   {"id":1243,"name":"Sarokasi Pearls","cat":"Accessories","subcat":"Bead Chains","price":399,"old":718,"img":"images/products/sarokasi-pearls.jpg","size":["One Size"],"rating":4.6}
 ];
 

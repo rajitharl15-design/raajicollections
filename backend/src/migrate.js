@@ -153,7 +153,6 @@ export async function migrate() {
       'emeralds-chain-set': 'images/products/emeralds-chain-set.jpg',
       'laksshmi-bangles': 'images/products/laksshmi-bangles.jpg',
       'chord-set-green': 'images/products/chord-set-green.jpg',
-      'red-top': 'images/products/red-top.jpg',
       'maroon-chrod-set': 'images/products/maroon-chrod-set.jpg',
       '4bangle-set': 'images/products/4bangle-set.jpg',
       'kundan-bangles': 'images/products/kundan-bangles.jpg',

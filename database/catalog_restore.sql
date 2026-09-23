@@ -217,7 +217,7 @@ DELETE FROM products;
 DELETE FROM categories;
 INSERT INTO categories(name,slug,sort_order) VALUES('Sarees','sarees',1);
 INSERT INTO categories(name,slug,sort_order) VALUES('Dresses','dresses',2);
-INSERT INTO categories(name,slug,sort_order) VALUES('Tops','tops',3);
+
 INSERT INTO categories(name,slug,sort_order) VALUES('Ready Made Blouses','ready-made-blouses',4);
 INSERT INTO categories(name,slug,sort_order) VALUES('Jewellery','jewellery',5);
 INSERT INTO categories(name,slug,sort_order) VALUES('Night Dresses','night-dresses',6);
@@ -619,8 +619,7 @@ INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT
 INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='rakhi-img-20260809-wa0026'),'images/products/rakhi-img-20260809-wa0026.jpg','Rakhi Img 20260809 Wa0026',TRUE,1);
 INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='rakhi'),'Rakhi Img 20260809 Wa0027','rakhi-img-20260809-wa0027',0,0,'New');
 INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='rakhi-img-20260809-wa0027'),'images/products/rakhi-img-20260809-wa0027.jpg','Rakhi Img 20260809 Wa0027',TRUE,1);
-INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='tops'),'Red Top','red-top',0,0,'New');
-INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='red-top'),'images/products/red-top.jpg','Red Top',TRUE,1);
+
 INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785772229891 2709','sarees-1785772229891-2709',0,0,'New');
 INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1785772229891-2709'),'images/products/sarees-1785772229891-2709.jpg','Sarees 1785772229891 2709',TRUE,1);
 INSERT INTO products(category_id,name,slug,price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785777044901 1872','sarees-1785777044901-1872',0,0,'New');

@@ -119,7 +119,7 @@ you keep the Pages site, block or remove the public `admin.html` so it isn't rea
 - This means a fresh database, **or a previously-deployed database that only has categories**, is
   auto-populated with the catalog on the next deploy/restart. No manual reload needed.
 
-> Products migrated are grouped under the real categories (Sarees, Dresses, Tops, Ready Made Blouses,
+> Products migrated are grouped under the real categories (Sarees, Dresses, Ready Made Blouses,
 > Jewellery, Night Dresses, Kids Wear). Auto-named uploads from misc/rakhi/try-on categories are
 > skipped from the DB catalog (they remain on the new static site).
 

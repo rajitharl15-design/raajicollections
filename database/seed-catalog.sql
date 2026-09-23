@@ -352,8 +352,7 @@ INSERT INTO products(category_id,name,slug,price,old_price,stock_qty,badge) VALU
 INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='purple-banara-cotton'),'images/products/purple-banara-cotton.jpg','Purple Banara Cotton',TRUE,1);
 INSERT INTO products(category_id,name,slug,price,old_price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='jewellery'),'Radha Krishna Bangles','radha-krishna-bangles',399,718,0,'New') ON CONFLICT (slug) DO NOTHING;
 INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='radha-krishna-bangles'),'images/products/radha-krishna-bangles.jpg','Radha Krishna Bangles',TRUE,1);
-INSERT INTO products(category_id,name,slug,price,old_price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='tops'),'Red Top','red-top',649,1168,0,'New') ON CONFLICT (slug) DO NOTHING;
-INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='red-top'),'images/products/red-top.jpg','Red Top',TRUE,1);
+
 INSERT INTO products(category_id,name,slug,price,old_price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785772229891 2709','sarees-1785772229891-2709',1299,2338,0,'New') ON CONFLICT (slug) DO NOTHING;
 INSERT INTO product_images(product_id,image_url,alt_text,is_primary,sort_order) VALUES((SELECT id FROM products WHERE slug='sarees-1785772229891-2709'),'images/products/sarees-1785772229891-2709.jpg','Sarees 1785772229891 2709',TRUE,1);
 INSERT INTO products(category_id,name,slug,price,old_price,stock_qty,badge) VALUES((SELECT id FROM categories WHERE slug='sarees'),'Sarees 1785777044901 1872','sarees-1785777044901-1872',1299,2338,0,'New') ON CONFLICT (slug) DO NOTHING;
