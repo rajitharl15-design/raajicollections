@@ -8,6 +8,15 @@ function escapeAttr(s) {
 let imgVer = Date.now();
 function vimg(u) {
   if (!u) return u;
+  // Newly uploaded images are stored on the backend and returned as relative
+  // paths (/uploads/...). On the static GitHub Pages store that would resolve
+  // to the wrong origin and show a broken image, so pin them to the backend.
+  if (typeof API_CONFIG !== 'undefined' && API_CONFIG.baseUrl) {
+    const s = String(u).replace(/\\/g, '/');
+    if (s.charAt(0) === '/' && s.startsWith('/uploads/')) {
+      u = API_CONFIG.baseUrl + s;
+    }
+  }
   return u + (u.includes('?') ? '&' : '?') + 'v=' + imgVer;
 }
 
