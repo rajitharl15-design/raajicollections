@@ -2,6 +2,15 @@ function escapeAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Cache-busting stamp for product images so the browser always loads the
+// newest version instead of an old cached copy. Set to the catalog's update
+// time when available; falls back to a per-load timestamp.
+let imgVer = Date.now();
+function vimg(u) {
+  if (!u) return u;
+  return u + (u.includes('?') ? '&' : '?') + 'v=' + imgVer;
+}
+
 // Derive a compressed WebP thumbnail for locally-served product photos, so
 // grid cards load a small image instead of the full-res file. Returns null for
 // external/uploaded images (caller keeps the full image in that case).
@@ -19,11 +28,12 @@ function imgSrcset(u, cls, alt) {
   const thumb = thumbSrc(full);
   const a = escapeAttr(alt || '');
   if (!thumb) {
-    return `<img class="${cls}" src="${escapeAttr(full)}" alt="${a}" loading="lazy" decoding="async">`;
+    return `<img class="${cls}" src="${escapeAttr(vimg(full))}" alt="${a}" loading="lazy" decoding="async">`;
   }
-  const escFull = escapeAttr(full);
+  const escFull = escapeAttr(vimg(full));
+  const escThumb = escapeAttr(vimg(thumb));
   const onerr = "onerror=\"this.onerror=null;this.removeAttribute('srcset');this.removeAttribute('sizes');this.src='" + escFull + "'\"";
-  return `<img class="${cls}" src="${escapeAttr(thumb)}" srcset="${escapeAttr(thumb)} 500w, ${escFull} 1000w" sizes="(max-width:600px) 46vw, 24vw" alt="${a}" loading="lazy" decoding="async" ${onerr}>`;
+  return `<img class="${cls}" src="${escThumb}" srcset="${escThumb} 500w, ${escFull} 1000w" sizes="(max-width:600px) 46vw, 24vw" alt="${a}" loading="lazy" decoding="async" ${onerr}>`;
 }
 
 function openProductLightbox(src, alt, product, isKids) {
@@ -44,7 +54,7 @@ function openProductLightbox(src, alt, product, isKids) {
     const imgPanel = document.createElement('div');
     imgPanel.className = 'pl-img-panel';
     const img = document.createElement('img');
-    img.src = src;
+    img.src = vimg(src);
     img.alt = alt || product.name || '';
     img.className = 'pl-img';
     img.loading = 'eager';
@@ -80,7 +90,7 @@ function openProductLightbox(src, alt, product, isKids) {
     box.appendChild(inner);
   } else {
     const img = document.createElement('img');
-    img.src = src;
+    img.src = vimg(src);
     img.alt = alt || '';
     box.appendChild(close);
     box.appendChild(img);
@@ -190,7 +200,7 @@ function openVariantPicker(product) {
     <div class="vm-box">
       <button class="vm-close" title="Close">&times;</button>
       <div class="vm-img-wrap">
-        <img class="vm-img" src="${escapeAttr(product.image_url || 'images/dress.svg')}" alt="${escapeAttr(product.name)}">
+        <img class="vm-img" src="${escapeAttr(vimg(product.image_url || 'images/dress.svg'))}" alt="${escapeAttr(product.name)}">
       </div>
       <div class="vm-body">
         <h3>${escapeAttr(product.name)}</h3>
@@ -272,7 +282,7 @@ function openQuickView(product, isKids) {
   const allKidsGone = isKids && productStockKnown && productStock <= 0;
 
   const galleryImages = (product.images && product.images.length ? product.images : [product.image_url || 'images/dress.svg'])
-    .map((u, i) => ({ src: u, id: i }));
+    .map((u, i) => ({ src: vimg(u), id: i }));
   const galleryHasMany = galleryImages.length > 1;
 
   overlay.innerHTML = `

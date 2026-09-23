@@ -231,7 +231,7 @@ document.querySelectorAll('.category-card, .product-card, .testimonial-card').fo
   observer.observe(el);
 });
 
-document.querySelector('.product-card img') && (() => {
+document.querySelector('.product-card img, .category-card img') && (() => {
   let current = [], currentIndex = 0;
 
   function build() {
@@ -265,7 +265,7 @@ document.querySelector('.product-card img') && (() => {
 
   function open(img) {
     const lb = build();
-    current = [...document.querySelectorAll('.product-card img')].map(i => ({ src: i.currentSrc || i.src, alt: i.alt }));
+    current = [...document.querySelectorAll('.product-card img, .category-card img')].map(i => ({ src: i.currentSrc || i.src, alt: i.alt }));
     const idx = Math.max(0, current.findIndex(i => i.src === img.src));
     show(idx);
     lb.classList.add('open');
@@ -279,7 +279,7 @@ document.querySelector('.product-card img') && (() => {
   }
 
   document.addEventListener('click', e => {
-    const img = e.target.closest('.product-card img');
+    const img = e.target.closest('.product-card img, .category-card img');
     if (img) { e.preventDefault(); open(img); }
   });
 
