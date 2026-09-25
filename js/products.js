@@ -8,6 +8,8 @@ function escapeAttr(s) {
 let imgVer = Date.now();
 function vimg(u) {
   if (!u) return u;
+  // base64 data: URIs must never have a cache query appended or they break.
+  if (typeof u === 'string' && u.indexOf('data:') === 0) return u;
   // Newly uploaded images are stored on the backend and returned as relative
   // paths (/uploads/...). On the static GitHub Pages store that would resolve
   // to the wrong origin and show a broken image, so pin them to the backend.
@@ -400,10 +402,31 @@ function openQuickView(product, isKids) {
 // Fall back to the static catalog (js/data.js -> PRODUCTS) for any price that
 // is missing or zero in the database, so items display with their correct
 // names/prices even if the DB catalog wasn't populated with pricing.
+// Normalized keys used to bind a live DB product against the bundled static
+// catalog (js/data.js -> PRODUCTS). Matching is by image filename AND product
+// name so DB rows whose image is a base64 data: URI (no usable filename) still
+// bind to the catalog entry that holds the real uploaded image file.
+const normKey = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const fileKey = (u) => String(u || '').replace(/\\/g, '/').split('/').pop().toLowerCase().replace(/\?.*$/, '');
+
+function findStatic(p) {
+  if (typeof PRODUCTS === 'undefined' || !PRODUCTS || !p) return null;
+  const isData = /^data:/.test(String(p.image_url || ''));
+  const ik = fileKey(p.image_url);
+  const nk = normKey(p.name);
+  return PRODUCTS.find(s => (
+    (!isData && ik && fileKey(s.img) === ik) ||
+    (nk && normKey(s.name) === nk)
+  )) || null;
+}
+
+// Merge a live DB product with its static catalog entry so the store keeps the
+// correct real image file and prices, while still reflecting live admin edits.
+// A valid DB price wins (so admin price changes show); the static file image is
+// used so base64 data-URI images never reach the renderer (they'd break thumbs).
 function hydrateFromStatic(p) {
-  if (typeof PRODUCTS === 'undefined' || !PRODUCTS || !p) return p;
-  const urlKey = String(p.image_url || '').replace(/\\/g, '/').split('/').pop().toLowerCase();
-  const hit = PRODUCTS.find(s => String(s.img || '').replace(/\\/g, '/').split('/').pop().toLowerCase() === urlKey);
+  if (!p) return p;
+  const hit = findStatic(p);
   if (!hit) return p;
   const merged = Object.assign({}, p);
   if (merged.price == null || Number(merged.price) <= 0) merged.price = Number(hit.price) || merged.price;
@@ -411,12 +434,133 @@ function hydrateFromStatic(p) {
   if (!merged.name) merged.name = hit.name;
   if (!merged.description) merged.description = hit.description || null;
   if (!merged.material) merged.material = hit.material || null;
+  if (!merged.badge && hit.badge) merged.badge = hit.badge;
+  if (hit.img) {
+    merged.image_url = hit.img;
+    merged.image_url_2 = null;
+    merged.images = [hit.img];
+  }
   return merged;
+}
+
+// Auto-generated/placeholder rows (bulk uploads with timestamps, "Img 2026…"
+// names, "Item 08", long random ids, ₹0 items) were curated out of the static
+// catalog. Live-only products that don't bind to a catalog entry and look
+// auto-generated are hidden; deliberately-catalogued ones always show.
+function isPlaceholder(p) {
+  if (!p) return true;
+  if (findStatic(p)) return false;
+  const price = Number(p.price);
+  if (!Number.isFinite(price) || price <= 0) return true;
+  const n = String(p.name || '');
+  if (/\d{10,}/.test(n)) return true;             // timestamp auto-name
+  if (/img\s+20\d{4,}/i.test(n)) return true;     // "Img 2026…"
+  if (/item\s+\d+/i.test(n)) return true;         // "Item 08"
+  if (/\b[a-z0-9]{20,}\b/i.test(n)) return true;  // long random run
+  return false;
+}
+
+// Merge strategy for "live admin catalog":
+//  * The curated static catalog (js/data.js) is the baseline, so every category
+//    always shows its real products even if they aren't in the live DB.
+//  * Live DB rows that bind to a static entry apply their admin edits on top
+//    (price, badge, name) while keeping the real image file.
+//  * Live DB rows with NO static entry (brand-new admin products) are appended,
+//    unless they're auto-generated placeholders.
+function buildMergedList(categorySlug, liveRows) {
+  const ss = (typeof StaticProducts !== 'undefined' && StaticProducts.list)
+    ? StaticProducts.list(categorySlug)
+    : [];
+  const merged = new Map();
+  ss.forEach(s => { if (s && s.name) merged.set('s:' + normKey(s.name), s); });
+  (liveRows || []).forEach(live => {
+    const hit = findStatic(live);
+    if (hit) {
+      merged.set('s:' + normKey(hit.name), hydrateFromStatic(live));
+    } else if (!isPlaceholder(live)) {
+      merged.set('n:' + String(live.id), hydrateFromStatic(live));
+    }
+  });
+  return [...merged.values()];
+}
+
+const imgFile = (u) => String(u || '').replace(/\\/g, '/').split('/').pop().toLowerCase().replace(/\?.*$/, '');
+
+// Live badge overlay: after the grid renders, pull the product badges from the
+// backend DB and apply them to the matching cards. This makes badge changes made
+// in the DB admin (Manage Products) show up on the store immediately, without
+// re-syncing js/data.js. Matches products by image filename so the static
+// catalog (correct images/prices) stays authoritative for everything else.
+async function applyLiveBadges() {
+  if (typeof window.API_CONFIG === 'undefined' || !API_CONFIG.baseUrl) return;
+  const realFetch = window.__staticOrigFetch || window.fetch.bind(window);
+  let data = null;
+  try {
+    const res = await realFetch(`${API_CONFIG.baseUrl}/api/products?cb=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' },
+    });
+    if (res.ok) data = await res.json();
+  } catch (e) { /* backend down -> keep static badges */ }
+  if (!data || !Array.isArray(data.products)) return;
+
+  // Build lookups keyed by both normalized image filename and by normalized
+  // product name. DB rows whose image is stored as a base64 data: URI (common
+  // for recently-updated sarees) have no usable filename, so name becomes the
+  // only reliable way to bind the DB badge (e.g. "Sold Out") to the card.
+  const norm = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const badgeByImg = {};
+  const badgeByName = {};
+  data.products.forEach(p => {
+    const ik = imgFile(p.image_url);
+    if (ik && ik.indexOf('data') !== 0) badgeByImg[ik] = p.badge || null;
+    const nk = norm(p.name);
+    if (nk) badgeByName[nk] = p.badge || null;
+  });
+
+  document.querySelectorAll('.product-card').forEach(card => {
+    const link = card.querySelector('.product-img-link');
+    if (!link) return;
+    const nameEl = card.querySelector('h3');
+    const ik = imgFile(link.dataset.img);
+    const nk = nameEl ? norm(nameEl.textContent) : '';
+    let bad;
+    if (ik && ik.indexOf('data') !== 0 && (ik in badgeByImg)) bad = badgeByImg[ik];
+    else if (nk && nk in badgeByName && badgeByName[nk]) bad = badgeByName[nk];
+    if (bad === undefined) return;
+    const badge = bad;
+    const soldOut = /sold\s*out/i.test(String(badge || ''));
+
+    const existing = card.querySelector('.product-badge');
+    if (!badge) {
+      if (existing) existing.remove();
+      card.classList.toggle('sold-out', false);
+      const btn = card.querySelector('.btn-add');
+      if (btn) { btn.disabled = false; }
+      return;
+    }
+
+    if (!existing || existing.textContent !== badge) {
+      if (existing) existing.remove();
+      const el = document.createElement('div');
+      el.className = 'product-badge' + (soldOut ? ' soldout' : (badge.toLowerCase() === 'sale' ? ' sale' : ''));
+      el.textContent = badge;
+      card.appendChild(el);
+    }
+    card.classList.toggle('sold-out', soldOut);
+    const btn = card.querySelector('.btn-add');
+    if (btn) {
+      btn.disabled = soldOut;
+      if (soldOut) btn.textContent = 'Sold Out';
+      else btn.textContent = card.classList.contains('has-variants') ? 'View &amp; Add to Cart' : 'Add to Cart';
+    }
+  });
 }
 
 window.ProductsRenderer = {
   apiBase: () => API_CONFIG.baseUrl || '',
   loaded: false,
+  applyLiveBadges,
 
   async load() {
     if (this.loaded) return;
@@ -438,15 +582,19 @@ window.ProductsRenderer = {
         const priceHtml = (old && old > price)
           ? `<span class="old-price">₹${old.toLocaleString('en-IN')}</span> ₹${price.toLocaleString('en-IN')}`
           : `₹${price.toLocaleString('en-IN')}`;
+        const soldOut = !!p.badge && /sold\s*out/i.test(String(p.badge));
+        const badgeCls = soldOut ? 'soldout' : (p.badge && String(p.badge).toLowerCase() === 'sale' ? 'sale' : '');
         const badgeHtml = p.badge
-          ? `<div class="product-badge ${p.badge.toLowerCase() === 'sale' ? 'sale' : ''}">${p.badge}</div>`
+          ? `<div class="product-badge ${badgeCls}">${escapeAttr(p.badge)}</div>`
           : '';
         const variantMeta = hasVariants
           ? `<p class="product-variant-meta">${sizes.length} Size${sizes.length > 1 ? 's' : ''} · ${p.variants.length} Color${p.variants.length > 1 ? 's' : ''}</p>`
           : '';
-        const actionHtml = `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
+        const actionHtml = soldOut
+          ? `<button class="btn-add quickview-open" data-pid="${p.id}" disabled>Sold Out</button>`
+          : `<button class="btn-add quickview-open" data-pid="${p.id}">${hasVariants || isKids ? 'View &amp; Add to Cart' : 'Add to Cart'}</button>`;
         return `
-        <div class="product-card${hasVariants ? ' has-variants' : ''}">
+        <div class="product-card${hasVariants ? ' has-variants' : ''}${soldOut ? ' sold-out' : ''}">
           ${badgeHtml}
           <a class="product-img-link" href="#" data-img="${escapeAttr(p.image_url || 'images/dress.svg')}" title="Click to enlarge">
             ${imgSrcset(p.image_url, 'product-img-main', p.name)}
@@ -657,8 +805,8 @@ window.ProductsRenderer = {
     const SS = window.StaticProducts || { list: () => [] };
     const renderFallback = () => {
       const cached = readCatalogCache();
-      const fallback = cached && cached.length ? cached.map(hydrateFromStatic) : SS.list(categorySlug);
-      if (fallback && fallback.length) renderProducts(fallback);
+      const live = cached && cached.length ? cached : [];
+      renderProducts(buildMergedList(categorySlug, live));
     };
 
     if (!grid.dataset.rendered) {
@@ -667,21 +815,26 @@ window.ProductsRenderer = {
 
     const base = API_CONFIG.baseUrl || '';
     if (!base) { renderFallback(); return; }
+    // Use the REAL fetch (unhijacked by static-products.js) so the grid renders
+    // the live admin catalog — edits and new products appear without waiting for
+    // a regenerated js/data.js. Falls back to the static catalog below.
+    const realFetch = window.__staticOrigFetch || window.fetch.bind(window);
     try {
       const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
       const sep = qs ? '&' : '?';
       const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
       const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
       try {
-        const res = await fetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, {
+        const res = await realFetch(`${base}/api/products${qs}${sep}cb=${Date.now()}`, {
           headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache', 'Expires': '0' },
           signal: ctrl ? ctrl.signal : undefined,
         });
         if (timer) clearTimeout(timer);
         if (res.ok) {
           const data = await res.json();
-          writeCatalogCache(data.products || []);
-          renderProducts((data.products || []).map(hydrateFromStatic));
+          const live = data.products || [];
+          writeCatalogCache(live);
+          renderProducts(buildMergedList(categorySlug, live));
         } else {
           renderFallback();
         }
@@ -694,3 +847,8 @@ window.ProductsRenderer = {
     }
   }
 };
+
+// Run the live DB badge overlay whenever a grid (re)renders, so badges changed
+// in the DB admin appear on the store automatically. (Rendered grids dispatch
+// this event on document, not window.)
+document.addEventListener('products:rendered', () => { if (window.ProductsRenderer) ProductsRenderer.applyLiveBadges(); });

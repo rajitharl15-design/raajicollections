@@ -23,7 +23,7 @@
       name: p.name,
       price: p.price,
       old_price: p.old || null,
-      badge: p.new ? 'New' : (p.sale ? 'Sale' : (p.best ? 'Best Seller' : '')),
+      badge: p.badge || (p.new ? 'New' : (p.sale ? 'Sale' : (p.best ? 'Best Seller' : ''))),
       image_url: p.img || '',
       image_url_2: '',
       category_name: p.cat,
@@ -66,6 +66,9 @@
   window.StaticProducts = { list: buildList };
 
   var origFetch = window.fetch && window.fetch.bind(window);
+  // Expose the un-hijacked fetch so live DB lookups (e.g. badge overlay in
+  // products.js) can reach the real backend instead of this static adapter.
+  window.__staticOrigFetch = origFetch;
   window.fetch = function (url, opts) {
     var s = String(url);
     if (s.indexOf('/api/products') !== -1) {

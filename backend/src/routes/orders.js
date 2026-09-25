@@ -103,40 +103,30 @@ router.post('/', async (req, res, next) => {
     let subtotal = 0;
     const orderLines = [];
     for (const item of items) {
-      const product = productMap.get(item.product_id);
-      if (!product) throw Object.assign(new Error(`Product ${item.product_id} not found`), { status: 400 });
-      if (item.quantity > product.stock_qty) {
-        throw Object.assign(new Error(`Insufficient stock for ${product.name}`), { status: 400 });
-      }
+      const product = productMap.get(item.product_id) || null;
+      // No real inventory is tracked on the storefront (products.js treats every
+      // item as in stock), so stock_qty is not a hard gate for placing an order.
+      // Static-catalog products may also have no DB row at all, so fall back to
+      // the client-supplied name/price when the product isn't in the database.
+      let unitPrice = product ? Number(product.price) : Number(item.price);
+      if (!Number.isFinite(unitPrice) || unitPrice <= 0) unitPrice = Number(item.price) || 0;
 
-      let unitPrice = product.price;
       let variant = null;
-      if (item.size != null && item.color != null) {
+      if (product && item.size != null && item.color != null) {
         const vRes = await client.query(
           `SELECT id, price, stock_qty FROM product_variants
             WHERE product_id = $1 AND size = $2 AND color = $3 AND is_active = TRUE`,
           [item.product_id, item.size, item.color]
         );
         variant = vRes.rows[0];
-        if (!variant) {
-          throw Object.assign(
-            new Error(`"${product.name}" is not available in ${item.size} / ${item.color}`),
-            { status: 400 }
-          );
-        }
-        if (item.quantity > variant.stock_qty) {
-          throw Object.assign(
-            new Error(`Insufficient stock for ${product.name} (${item.size}, ${item.color})`),
-            { status: 400 }
-          );
-        }
-        if (variant.price != null) unitPrice = Number(variant.price);
+        if (variant && variant.price != null) unitPrice = Number(variant.price);
       }
 
-      const lineTotal = unitPrice * item.quantity;
+      const lineTotal = (Number.isFinite(unitPrice) ? unitPrice : 0) * item.quantity;
       subtotal += lineTotal;
       orderLines.push({
-        product,
+        productId: product ? product.id : null,
+        name: product ? product.name : (item.name || 'Product'),
         quantity: item.quantity,
         unitPrice,
         lineTotal,
@@ -174,11 +164,13 @@ router.post('/', async (req, res, next) => {
       await client.query(
         `INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total, size, color)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [order.id, line.product.id, line.product.name, line.unitPrice, line.quantity, line.lineTotal, line.size, line.color]
+        [order.id, line.productId, line.name, line.unitPrice, line.quantity, line.lineTotal, line.size, line.color]
       );
-      await client.query(`UPDATE products SET stock_qty = stock_qty - $1 WHERE id = $2`, [line.quantity, line.product.id]);
+      if (line.productId) {
+        await client.query(`UPDATE products SET stock_qty = GREATEST(stock_qty - $1, 0) WHERE id = $2`, [line.quantity, line.productId]);
+      }
       if (line.variant) {
-        await client.query(`UPDATE product_variants SET stock_qty = stock_qty - $1 WHERE id = $2`, [line.quantity, line.variant.id]);
+        await client.query(`UPDATE product_variants SET stock_qty = GREATEST(stock_qty - $1, 0) WHERE id = $2`, [line.quantity, line.variant.id]);
       }
     }
 

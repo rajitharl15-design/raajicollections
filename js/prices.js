@@ -41,6 +41,7 @@ async function loadDbPrices() {
         price,
         old_price: oldPrice,
         stock_qty: Number(p.stock_qty),
+        badge: p.badge || (sb && sb.badge) || null,
       };
     });
     applyAllPrices();
@@ -97,8 +98,10 @@ function applySoldOut() {
     if (!nameEl) return;
     const name = nameEl.textContent.trim();
     const db = dbPrices[name];
-    // No real inventory for the online catalog — treat everything as in stock.
-    const soldOut = false;
+    // Sold out when stock is 0 OR the catalog badge says "Sold Out".
+    const cardBadge = card.querySelector('.product-badge');
+    const soldOut = !!(db && (Number(db.stock_qty) === 0 || /sold\s*out/i.test(String(db.badge || ''))))
+      || /sold\s*out/i.test(String((cardBadge && cardBadge.textContent) || ''));
 
     card.classList.toggle('sold-out', soldOut);
 

@@ -156,6 +156,8 @@ async function placeOrder() {
     quantity: i.qty,
     size: i.size || null,
     color: i.color || null,
+    name: i.name,
+    price: Number(i.price) || 0,
   }));
 
   const payload = {
@@ -249,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const price = prices.length ? parseInt(prices[prices.length - 1].replace(/[^0-9]/g, ''), 10) : 0;
     const id = (name + '_' + price).replace(/\s+/g, '-').toLowerCase();
     const image = imgEl ? imgEl.getAttribute('src') : 'images/dress.svg';
-    const catalogItem = productCatalog.find(p => p.name === name);
+    const catalogItem = productCatalog.find(p => p.name && String(p.name).trim().toLowerCase() === name.toLowerCase());
     Cart.add({
       id,
       name,
