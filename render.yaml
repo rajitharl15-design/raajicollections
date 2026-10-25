@@ -11,20 +11,15 @@ services:
       - key: PORT
         value: 3000
       - key: CORS_ORIGIN
-        value: https://raajicollections.com,https://www.raajicollections.com,https://peacock.raajicollections.com,https://rajitharl15-design.github.io
-      # If you give Peacock its own subdomain (e.g. peacock.raajicollections.com),
-      # set it here so that host's root opens the Peacock store instead of the
-      # Raaji landing page.
-      - key: PEACOCK_HOST
-        value: peacock.raajicollections.com
+        value: https://raajicollections.com,https://www.raajicollections.com,https://rajitharl15-design.github.io
       - key: DATABASE_URL
         fromDatabase:
           name: raaji-collections-db
           property: connectionString
       # Persist uploads on a Render disk (Starter+ plans include one free).
       # The "uploads" disk is mounted at /data, so uploaded images survive redeploys.
-      # NOTE: admin credentials are NOT set here — the Raaji + Peacock admins are
-      # DB-backed (first-time setup at /admin) so no secrets live in this repo.
+      # NOTE: admin credentials are NOT set here — the admin is DB-backed
+      # (first-time setup at /admin) so no secrets live in this repo.
       - key: UPLOAD_DIR
         value: /data
     disk:

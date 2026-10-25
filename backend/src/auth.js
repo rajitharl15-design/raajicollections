@@ -62,32 +62,6 @@ export function verifyCookies(headers) {
   return verifyToken(getCookieValue(headers, ADMIN_COOKIE));
 }
 
-// ---- Separate Peacock store admin (its own login/credentials) ----
-export const PEACOCK_COOKIE = 'raaji_peacock_admin';
-
-// Credentials come from env (highest priority) OR from a DB row in
-// peacock_admin_settings (loaded into memory on boot). DB-backed setup means no
-// Render env vars are needed - the owner creates them once on the login page.
-// Note: gating (configured/setup) is based on the DB row only, so leftover
-// PEACOCK_ADMIN_* Render env placeholders can't block the first-time setup.
-let peacockSettings = null; // { username, password }
-export function setPeacockSettings(s) { peacockSettings = s || null; }
-export function getPeacockSettings() { return peacockSettings; }
-
-export function peacockConfigured() {
-  return !!peacockSettings;
-}
-function peacockCreds() {
-  if (peacockSettings) return peacockSettings;
-  if (process.env.PEACOCK_ADMIN_USER && process.env.PEACOCK_ADMIN_PASS) {
-    return { username: process.env.PEACOCK_ADMIN_USER, password: process.env.PEACOCK_ADMIN_PASS };
-  }
-  return null;
-}
-export function peacockUsername() {
-  const c = peacockCreds();
-  return c ? c.username : '';
-}
 // --- Password hashing (scrypt, no external deps) ---
 // Stored format: scrypt$<saltHex>$<hashHex>. A stored value without the prefix is
 // treated as legacy plaintext and upgraded to a hash on the next successful login.
@@ -114,36 +88,9 @@ export function verifyPassword(stored, input) {
   return String(stored) === String(input) ? 'legacy' : false;
 }
 
-// For Peacock, the stored value is potentially plaintext (legacy) or a scrypt hash.
-// Returns true for a password that should be stored as-is (i.e. already a hash),
-// false if it must be upgraded to a hash (after a successful 'legacy' match).
+// Returns true for a password that is already stored as a scrypt hash.
 export function isHashed(stored) {
   return !!stored && String(stored).startsWith('scrypt$');
-}
-
-export function validatePeacock(username, password) {
-  const c = peacockCreds();
-  return !!c && username === c.username && !!verifyPassword(c.password, password);
-}
-export function setPeacockCookie(res) {
-  res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=${encodeURIComponent(signToken(peacockUsername()))}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=43200`);
-}
-export function clearPeacockCookie(res) {
-  res.setHeader('Set-Cookie', `${PEACOCK_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
-}
-export function verifyPeacockAuth(headers) {
-  return verifyToken(getCookieValue(headers, PEACOCK_COOKIE));
-}
-export function requirePeacockAdmin(req, res, next) {
-  if (!peacockConfigured()) {
-    return res.status(403).json({ error: 'Peacock admin is not configured (set PEACOCK_ADMIN_USER / PEACOCK_ADMIN_PASS env vars).' });
-  }
-  const user = verifyPeacockAuth(req.headers) || verifyToken(req.get('x-admin-key'));
-  if (!user || user !== peacockUsername()) {
-    return res.status(401).json({ error: 'Unauthorized', gotCookie: !!req.headers.cookie, gotHeader: !!req.get('x-admin-key') });
-  }
-  req.peacockUser = user;
-  next();
 }
 
 export function requireAdmin(req, res, next) {

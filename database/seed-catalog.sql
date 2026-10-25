@@ -1,4 +1,4 @@
--- Peacock Fashions / Raaji Collections catalog seed (idempotent).
+-- Raaji Collections catalog seed (idempotent).
 -- Applied automatically by migrate.js only when the products table is empty.
 -- Source: legacy admin uploads (catalog_restore.sql).
 BEGIN;
