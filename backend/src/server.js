@@ -32,7 +32,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'raaji-collections-backend' });
+  res.json({ status: 'ok', service: 'raaji-collections-backend', build: 'v5-category-cleanup' });
 });
 
 // ---- Secure admin area (gates run BEFORE express.static so /admin.html is not served open) ----

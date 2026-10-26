@@ -9,25 +9,15 @@ const SCHEMA_FILE = path.join(repoRoot, 'database', 'schema.sql');
 const SEED_FILE = path.join(repoRoot, 'database', 'seed.sql');
 const CATALOG_FILE = path.join(repoRoot, 'database', 'seed-catalog.sql');
 
-async function removeRetiredCategory(slug, markerSlug, label) {
+async function removeRetiredCategory(slug, label) {
   try {
-    const marker = await pool.query(
-      `INSERT INTO categories(name, slug, description, sort_order, is_active)
-       VALUES($1, $1, 'Internal migration marker', 999, FALSE)
-       ON CONFLICT (slug) DO NOTHING`,
-      [markerSlug]
+    const deleted = await pool.query(
+      `DELETE FROM products
+        WHERE category_id IN (SELECT id FROM categories WHERE slug = $1);
+       DELETE FROM categories WHERE slug = $1;`,
+      [slug]
     );
-    if (marker.rowCount > 0) {
-      await pool.query(
-        `DELETE FROM products
-          WHERE category_id IN (SELECT id FROM categories WHERE slug = $1);
-         DELETE FROM categories WHERE slug = $1;`,
-        [slug]
-      );
-      console.log(`[migrate] ${label} category deleted.`);
-    } else {
-      console.log(`[migrate] ${label} cleanup already applied.`);
-    }
+    console.log(`[migrate] ${label} cleanup applied (${deleted.rowCount || 0} result rows).`);
   } catch (err) {
     console.warn(`[migrate] ${label} cleanup skipped:`, err.message);
   }
@@ -246,7 +236,7 @@ export async function migrate() {
   }
 
   console.log('[migrate] removing retired categories...');
-  await removeRetiredCategory('ready-made-blouses', '__migration_remove_blouses_v1', 'Ready Made Blouses');
-  await removeRetiredCategory('dresses', '__migration_remove_dresses_v1', 'Dresses');
+  await removeRetiredCategory('ready-made-blouses', 'Ready Made Blouses');
+  await removeRetiredCategory('dresses', 'Dresses');
 
 }
