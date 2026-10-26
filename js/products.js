@@ -461,18 +461,27 @@ function isPlaceholder(p) {
 }
 
 // Merge strategy for "live admin catalog":
-//  * The curated static catalog (js/data.js) is the baseline, so every category
-//    always shows its real products even if they aren't in the live DB.
-//  * Live DB rows that bind to a static entry apply their admin edits on top
-//    (price, badge, name) while keeping the real image file.
+//  * When the live catalog is available it is authoritative: products deleted or
+//    hidden in the admin never fall back in from the bundled static catalog.
+//  * Live DB rows that bind to a static entry keep the static image/description
+//    while applying admin edits (price, badge, name).
 //  * Live DB rows with NO static entry (brand-new admin products) are appended,
 //    unless they're auto-generated placeholders.
-function buildMergedList(categorySlug, liveRows) {
+//  * Static entries explicitly marked staticOnly (e.g. Vaikuntapuram sarees that
+//    only exist in the bundled catalog) are still shown.
+//  * The full static catalog is only the baseline when the backend is unreachable.
+function buildMergedList(categorySlug, liveRows, liveAuthoritative) {
   const ss = (typeof StaticProducts !== 'undefined' && StaticProducts.list)
     ? StaticProducts.list(categorySlug)
     : [];
   const merged = new Map();
-  ss.forEach(s => { if (s && s.name) merged.set('s:' + normKey(s.name), s); });
+  if (!liveAuthoritative) {
+    ss.forEach(s => { if (s && s.name) merged.set('s:' + normKey(s.name), s); });
+  } else {
+    ss.forEach(s => {
+      if (s && s.staticOnly && s.name) merged.set('s:' + normKey(s.name), s);
+    });
+  }
   (liveRows || []).forEach(live => {
     const hit = findStatic(live);
     if (hit) {
@@ -803,10 +812,14 @@ window.ProductsRenderer = {
     // We never paint cached/static skeletons first so old images/prices never
     // appear — the updated items render as soon as the backend responds.
     const SS = window.StaticProducts || { list: () => [] };
+    const kidsPage = categorySlug === 'kids-wear';
+    const selectLive = (rows) => kidsPage
+      ? (rows || []).filter(p => /^kids(-|$)/i.test(p.category_slug || ''))
+      : (rows || []);
     const renderFallback = () => {
       const cached = readCatalogCache();
-      const live = cached && cached.length ? cached : [];
-      renderProducts(buildMergedList(categorySlug, live));
+      const live = selectLive(cached && cached.length ? cached : []);
+      renderProducts(buildMergedList(categorySlug, live, live.length > 0));
     };
 
     if (!grid.dataset.rendered) {
@@ -820,7 +833,7 @@ window.ProductsRenderer = {
     // a regenerated js/data.js. Falls back to the static catalog below.
     const realFetch = window.__staticOrigFetch || window.fetch.bind(window);
     try {
-      const qs = categorySlug && categorySlug !== 'all' ? `?category=${categorySlug}` : '';
+      const qs = categorySlug && categorySlug !== 'all' && !kidsPage ? `?category=${categorySlug}` : '';
       const sep = qs ? '&' : '?';
       const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
       const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
@@ -832,9 +845,9 @@ window.ProductsRenderer = {
         if (timer) clearTimeout(timer);
         if (res.ok) {
           const data = await res.json();
-          const live = data.products || [];
+          const live = selectLive(data.products || []);
           writeCatalogCache(live);
-          renderProducts(buildMergedList(categorySlug, live));
+          renderProducts(buildMergedList(categorySlug, live, true));
         } else {
           renderFallback();
         }
