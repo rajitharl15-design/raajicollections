@@ -467,8 +467,8 @@ function isPlaceholder(p) {
 //    while applying admin edits (price, badge, name).
 //  * Live DB rows with NO static entry (brand-new admin products) are appended,
 //    unless they're auto-generated placeholders.
-//  * Static entries explicitly marked staticOnly (e.g. Vaikuntapuram sarees that
-//    only exist in the bundled catalog) are still shown.
+//  * Static entries explicitly marked staticOnly (bundled-only items) are still
+//    shown.
 //  * The full static catalog is only the baseline when the backend is unreachable.
 function buildMergedList(categorySlug, liveRows, liveAuthoritative) {
   const ss = (typeof StaticProducts !== 'undefined' && StaticProducts.list)
@@ -690,7 +690,7 @@ window.ProductsRenderer = {
       if (assigned) return assigned === group.label;
       if (group.rules.length === 0) {
         // "All" group: exclude products that belong to a named subcategory so
-        // e.g. Vaikuntapuram sarees only appear under their own tab.
+        // e.g. exclusive subcategory products only appear under their own tab.
         return !groupFor(groups, p);
       }
       const text = `${p.name || ''} ${p.category_name || ''} ${p.description || ''}`.toLowerCase();

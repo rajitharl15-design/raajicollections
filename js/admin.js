@@ -30,7 +30,6 @@ let orders = [];
 
 const SUBCAT_OPTIONS = [
   { match: 'jewell', label: 'Jewellery Subcategory', options: ['Jhumkas', 'Bangles', 'Bead Chains', 'Terracotta Fashion Jewellery'] },
-  { match: 'saree', label: 'Saree Subcategory', options: ['Vaikuntapuram'] },
 ];
 
 function subcatOptsFor(categoryName) {
