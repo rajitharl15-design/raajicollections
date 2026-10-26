@@ -9,6 +9,30 @@ const SCHEMA_FILE = path.join(repoRoot, 'database', 'schema.sql');
 const SEED_FILE = path.join(repoRoot, 'database', 'seed.sql');
 const CATALOG_FILE = path.join(repoRoot, 'database', 'seed-catalog.sql');
 
+async function removeRetiredCategory(slug, markerSlug, label) {
+  try {
+    const marker = await pool.query(
+      `INSERT INTO categories(name, slug, description, sort_order, is_active)
+       VALUES($1, $1, 'Internal migration marker', 999, FALSE)
+       ON CONFLICT (slug) DO NOTHING`,
+      [markerSlug]
+    );
+    if (marker.rowCount > 0) {
+      await pool.query(
+        `DELETE FROM products
+          WHERE category_id IN (SELECT id FROM categories WHERE slug = $1);
+         DELETE FROM categories WHERE slug = $1;`,
+        [slug]
+      );
+      console.log(`[migrate] ${label} category deleted.`);
+    } else {
+      console.log(`[migrate] ${label} cleanup already applied.`);
+    }
+  } catch (err) {
+    console.warn(`[migrate] ${label} cleanup skipped:`, err.message);
+  }
+}
+
 async function hasSchema() {
   const { rows } = await pool.query(
     `SELECT EXISTS (
@@ -88,7 +112,6 @@ export async function migrate() {
   try {
     await pool.query(`
       UPDATE categories SET image_url = 'images/jewellery-category.jpg' WHERE slug = 'jewellery';
-      UPDATE categories SET image_url = 'images/dresses-category.jpg' WHERE slug = 'dresses';
     `);
     console.log('[migrate] category images done.');
   } catch (err) {
@@ -222,26 +245,8 @@ export async function migrate() {
     console.warn('[migrate] admin_settings table skipped:', err.message);
   }
 
-  console.log('[migrate] removing retired Ready Made Blouses category...');
-  try {
-    const marker = await pool.query(
-      `INSERT INTO categories(name, slug, description, sort_order, is_active)
-       VALUES('__migration_remove_blouses_v1', '__migration_remove_blouses_v1',
-              'Internal migration marker', 999, FALSE)
-       ON CONFLICT (slug) DO NOTHING`
-    );
-    if (marker.rowCount > 0) {
-      await pool.query(`
-        DELETE FROM products
-         WHERE category_id IN (SELECT id FROM categories WHERE slug = 'ready-made-blouses');
-        DELETE FROM categories WHERE slug = 'ready-made-blouses';
-      `);
-      console.log('[migrate] Ready Made Blouses category deleted.');
-    } else {
-      console.log('[migrate] Ready Made Blouses cleanup already applied.');
-    }
-  } catch (err) {
-    console.warn('[migrate] Ready Made Blouses cleanup skipped:', err.message);
-  }
+  console.log('[migrate] removing retired categories...');
+  await removeRetiredCategory('ready-made-blouses', '__migration_remove_blouses_v1', 'Ready Made Blouses');
+  await removeRetiredCategory('dresses', '__migration_remove_dresses_v1', 'Dresses');
 
 }

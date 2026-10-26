@@ -5,7 +5,6 @@
 (function () {
   var CATEGORY = {
     'sarees': { cat: 'Women', sub: 'Sarees' },
-    'dresses': { cat: 'Women', sub: 'Dresses' },
     'night-dresses': { cat: 'Women', sub: 'Night Dresses' },
     'jewellery': { cat: 'Accessories', sub: null },
     'kids-wear': { cat: 'Kids', sub: null },
