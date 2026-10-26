@@ -237,16 +237,16 @@ nav {
 
 /* === HERO === */
 .hero {
-  min-height: 100vh;
+  min-height: auto;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, #A02030 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   position: relative;
   overflow: hidden;
-  padding: 30px 5% 50px;
+  padding: 50px 5% 70px;
 }
 
 .hero::before {
