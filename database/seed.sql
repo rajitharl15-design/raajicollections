@@ -4,7 +4,6 @@ BEGIN;
 INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES ('Sarees', 'sarees', NULL, 'images/saree.svg', 1) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES ('Dresses', 'dresses', NULL, 'images/dresses-category.jpg', 2) ON CONFLICT (slug) DO NOTHING;
 
-INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES ('Ready Made Blouses', 'ready-made-blouses', NULL, 'images/blouse.svg', 4) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES ('Jewellery', 'jewellery', NULL, 'images/jewellery-category.jpg', 5) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES ('Night Dresses', 'night-dresses', NULL, 'images/nightwear-2.jpg', 6) ON CONFLICT (slug) DO NOTHING;
 INSERT INTO categories (name, slug, description, image_url, sort_order) VALUES ('Kids Wear', 'kids-wear', NULL, 'images/kids.svg', 7) ON CONFLICT (slug) DO NOTHING;

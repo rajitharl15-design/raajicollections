@@ -222,4 +222,26 @@ export async function migrate() {
     console.warn('[migrate] admin_settings table skipped:', err.message);
   }
 
+  console.log('[migrate] removing retired Ready Made Blouses category...');
+  try {
+    const marker = await pool.query(
+      `INSERT INTO categories(name, slug, description, sort_order, is_active)
+       VALUES('__migration_remove_blouses_v1', '__migration_remove_blouses_v1',
+              'Internal migration marker', 999, FALSE)
+       ON CONFLICT (slug) DO NOTHING`
+    );
+    if (marker.rowCount > 0) {
+      await pool.query(`
+        DELETE FROM products
+         WHERE category_id IN (SELECT id FROM categories WHERE slug = 'ready-made-blouses');
+        DELETE FROM categories WHERE slug = 'ready-made-blouses';
+      `);
+      console.log('[migrate] Ready Made Blouses category deleted.');
+    } else {
+      console.log('[migrate] Ready Made Blouses cleanup already applied.');
+    }
+  } catch (err) {
+    console.warn('[migrate] Ready Made Blouses cleanup skipped:', err.message);
+  }
+
 }
