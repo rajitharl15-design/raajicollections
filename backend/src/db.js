@@ -11,7 +11,7 @@ function connectionString() {
     const auth = PGUSER ? `${encodeURIComponent(PGUSER)}:${encodeURIComponent(PGPASSWORD || '')}@` : '';
     return `postgres://${auth}${PGHOST}:${PGPORT || '5432'}/${PGDATABASE}`;
   }
-  return 'postgres://postgres:mayur@localhost:5432/raaji_collections';
+  return 'postgres://postgres:postgres@localhost:5432/raaji_collections';
 }
 
 const DB_URL = connectionString();

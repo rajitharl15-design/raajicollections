@@ -19,7 +19,20 @@ import { requireAdmin, verifyCookies, verifyToken, signToken, setAdminCookie, cl
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*', credentials: true, allowedHeaders: ['Content-Type', 'x-admin-key', 'Cache-Control', 'Pragma', 'Expires'] }));
+app.disable('x-powered-by');
+
+app.use((req, res, next) => {
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  });
+  next();
+});
+
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : false, credentials: true, allowedHeaders: ['Content-Type', 'x-admin-key', 'Cache-Control', 'Pragma', 'Expires'] }));
 app.use(express.json({ limit: '25mb' }));
 
 // Avoid stale-cached admin/html/js so fixes go live immediately.
@@ -32,7 +45,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'raaji-collections-backend', build: 'v5-category-cleanup' });
+  res.json({ status: 'ok', service: 'raaji-collections-backend', build: 'v6-security-hardening' });
 });
 
 // ---- Secure admin area (gates run BEFORE express.static so /admin.html is not served open) ----
@@ -141,8 +154,8 @@ app.use('/api/admin', requireAdmin, admRouter);
 app.use('/api/upload', requireAdmin, uploadRouter);
 
 // Serve the static website (index.html, css/, js/, images/)
-app.use(express.static(publicDir));
 app.use(['/backend', '/database', '/.git', '/node_modules'], (req, res) => res.status(404).end());
+app.use(express.static(publicDir));
 if (process.env.UPLOAD_DIR) {
   app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR)));
 }
@@ -150,9 +163,16 @@ if (process.env.UPLOAD_DIR) {
 app.use((err, req, res, next) => {
   console.error(err);
   const status = err.status || 500;
-  const msg = err.message || 'Internal server error';
-  const extra = err && err.errors && err.errors.map(e => e.message).join(' | ');
-  res.status(status).json({ error: msg, detail: (err && err.stack) || String(err), inner: extra, db: (process.env.DATABASE_URL || '').replace(/\/\/[^:]+:[^@]+@/, '//USER:PASS@') });
+  const isProd = process.env.NODE_ENV === 'production';
+  const message = (status >= 500 && isProd)
+    ? 'Internal server error'
+    : (err.message || 'Request failed');
+  const body = { error: message };
+  if (!isProd) {
+    body.detail = (err && err.stack) || String(err);
+    if (err && err.errors) body.inner = err.errors.map(e => e.message).join(' | ');
+  }
+  res.status(status).json(body);
 });
 
 const PORT = process.env.PORT || 3000;
